@@ -353,6 +353,42 @@ Das Verhältnis zwischen «Prüfprotokoll» (aus der Arbeitshilfe) und
 «Prüfregister QS wie SBB Tool» (aus dem Workshop) ist auf dem Board nicht
 aufgelöst — siehe Abschnitt 10.
 
+### 4.7 Checkliste 1
+
+Die Checkliste, auf der das Prüfprotokoll aufbaut. Neun Prüffragen, jede als
+**binärer Schalter** (Toggle, erfüllt / nicht erfüllt) — keine Dreiwertigkeit,
+kein «nicht anwendbar». Blau gesetzte Kapitelnummern sind Links in die
+Arbeitshilfe beziehungsweise ins Terminologie-Handbuch.
+
+| Nr. | Prüffrage | Verweis |
+|---|---|---|
+| 1 | Ist der Beschrieb verständlich? | — |
+| 2 | Sind Aufbau und Argumentation des Beschriebs nachvollziehbar? | — |
+| 3 | Entspricht der Inhalt des Beschriebs den Bestimmungen der Arbeitshilfe? | Arbeitshilfe Kap. 3.6, 4.7 |
+| 4 | Ist der Inhalt des Beschriebs aktuell und für den Vollzug des IVS relevant? | — |
+| 5 | Ist der Inhalt des Beschriebs widerspruchsfrei? | — |
+| 6 | Werden inhaltliche Lücken explizit erwähnt und gegebenenfalls begründet? Sind die Begründungen nachvollziehbar und fachlich korrekt? | — |
+| 7 | Ist die Terminologie der Beschriebe korrekt? | Terminologie-Handbuch |
+| 8 | Werden die wichtigsten Aussagen des Beschriebs hervorgehoben und korrekt bewertet? | Arbeitshilfe Kap. 5.1, 5.2, 5.3 |
+| 9 | Entsprechen die Eckdaten dem Inhalt des Beschriebs? | — |
+
+**Für das Prototyping relevant:**
+
+- Die Liste ist **rein textbezogen**. Keine einzige Frage betrifft die
+  Geometrie. Die `[AH]`-Karte «Korrekturen an IVS-Karte im Prüfprotokoll des
+  entsprechenden Beschriebs festhalten» hat in Checkliste 1 also keine
+  Entsprechung — Kartenbefunde landen im selben Protokoll, aber ausserhalb des
+  Fragenrasters. Das Prüfprotokoll besteht demnach aus **Checkliste + freien
+  Befunden**.
+- Frage 7 deckt sich mit der `[AH]`-Karte «Terminologie prüfen» unter Fachliche
+  Prüfung.
+- Die Fragen 3, 7 und 8 verweisen auf externe Dokumente. Im Prototyp genügen
+  Platzhalter-Links; das **Terminologie-Handbuch** liegt nicht vor.
+- Ein Toggle allein trägt keine Begründung. Da abgelehnte Punkte laut Story Map
+  begründet werden müssen, braucht jede Frage im Tool zusätzlich ein
+  **Kommentarfeld** — mindestens dann, wenn der Schalter auf «nicht erfüllt»
+  steht.
+
 ## 5. Funktionale Anforderungen
 
 Die Spalte «Ref.» bezieht sich auf die Referenz der entsprechenden
@@ -617,7 +653,8 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
     inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
     Fachlektorats, Umsetzungsvermerk der Inventarisierenden, begründete
     Abweichungen, Kommentare der Fachlichen Prüfstelle pro Objekt — alles im
-    Objektbeschrieb verankert, nicht als separates Dokument.
+    Objektbeschrieb verankert, nicht als separates Dokument. Der Fragenteil ist
+    mit Checkliste 1 (Abschnitt 4.7) vorgegeben.
 13. **Exporte** (Excel-Listen, Einsatzlisten, PDF-Report, INTERLIS): funktionslose
     Buttons genügen.
 
@@ -679,7 +716,10 @@ Neu hinzugekommen mit der überarbeiteten User Story Map:
   Prüfprotokoll auf Basis von Checkliste 1, integriert in jeden Objektbeschrieb.
   Der Workshop verlangt ein «Prüfregister QS wie SBB Tool». Ob das dasselbe
   Artefakt in zwei Formulierungen ist oder zwei getrennte Dinge, ist nicht
-  geklärt. **Checkliste 1 selbst liegt nicht vor.**
+  geklärt. Checkliste 1 liegt inzwischen vor (Abschnitt 4.7).
+- **Arbeitshilfe und Terminologie-Handbuch liegen nicht vor.** Checkliste 1
+  verweist auf Arbeitshilfe Kap. 3.6, 4.7, 5.1, 5.2, 5.3 und auf das
+  Terminologie-Handbuch. Für den Prototyp genügen Platzhalter-Links.
 - **Fachgremium ist keine Rolle:** Strittige Fälle gehen «an das Fachgremium».
   In Abschnitt 2 taucht das Fachgremium nur als Referenz der Arbeitshilfe
   innerhalb von R-07 auf, nicht als eigene Zugriffsrolle. Ob das Gremium im Tool
