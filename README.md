@@ -72,11 +72,19 @@ pnpm ng g @spartan-ng/cli:ui <name>
 `pnpm test` schlägt derzeit mit «No tests found» fehl — für die Prototypen sind
 keine Unit-Tests vorgesehen.
 
+## Kitchen Sink
+
+Unter `/kitchen-sink` liegt eine Referenzseite mit **allen** spartan/ui-Primitives
+im Theme des Projekts, mit Beispielinhalten aus der IVS-Fachdomäne und einem
+Umschalter für hell/dunkel. Sie dient als Nachschlagewerk beim Bauen der
+Varianten — Quellcode unter `src/app/kitchen-sink/`, je ein Abschnitt pro
+Themengruppe.
+
 ## Stand
 
-Setup steht, der Prototyp ist noch nicht gebaut. `src/app/app.html` ist eine
-Platzhalter-Seite zur Verifikation und wird durch die Prototypen-Übersicht
-ersetzt.
+Setup und Kitchen Sink stehen, die Prototypen-Varianten sind noch nicht gebaut.
+`/` leitet vorerst auf `/kitchen-sink` um; später übernimmt dort die
+Prototypen-Übersicht.
 
 ## Verwandte Projekte
 
