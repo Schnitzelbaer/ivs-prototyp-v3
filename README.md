@@ -29,6 +29,46 @@ Was dort steht, ist geklärt und gilt, bis es ausdrücklich geändert wird.
   Vorgehen wie im Projekt `ivs-map`.
 - **Tablet-Tauglichkeit** ab 768 px inkl. Touch von Beginn an mitgedacht.
 
+## Technischer Stack
+
+| Baustein | Version | Bemerkung |
+|---|---|---|
+| Angular | 22 | Standalone, kein SSR (ArcGIS-SDK ist browser-only) |
+| Tailwind CSS | 4 | via `@tailwindcss/postcss`, konfiguriert in `.postcssrc.json` |
+| spartan/ui | 1.1.2 | alle 57 Primitives generiert unter `libs/ui`, Theme «neutral», Style «nova» |
+| ArcGIS Maps SDK | 5 | `@arcgis/core`, für die Karte ohne Lizenzschlüssel nutzbar |
+| pnpm | 11 | Paketmanager |
+
+spartan/ui kopiert seinen Quellcode ins Projekt (shadcn-Prinzip) — die
+Komponenten unter `libs/ui` sind unser Code und dürfen angepasst werden. Der
+Import läuft über den Alias `@spartan-ng/helm/*`, gemappt in `tsconfig.json`.
+Konfiguration des Generators: `components.json`.
+
+## Entwicklung
+
+```bash
+pnpm install
+```
+
+```bash
+pnpm start
+```
+
+Weitere Komponenten nachziehen (falls neue Primitives dazukommen):
+
+```bash
+pnpm ng g @spartan-ng/cli:ui <name>
+```
+
+`pnpm test` schlägt derzeit mit «No tests found» fehl — für die Prototypen sind
+keine Unit-Tests vorgesehen.
+
+## Stand
+
+Setup steht, der Prototyp ist noch nicht gebaut. `src/app/app.html` ist eine
+Platzhalter-Seite zur Verifikation und wird durch die Prototypen-Übersicht
+ersetzt.
+
 ## Verwandte Projekte
 
 | Projekt | Inhalt |

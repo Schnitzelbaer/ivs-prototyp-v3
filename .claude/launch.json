@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ivs-prototyp-v3",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["ng", "serve"],
+      "port": 4200,
+      "autoPort": true
+    }
+  ]
+}

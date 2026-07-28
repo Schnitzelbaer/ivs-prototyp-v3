@@ -1,0 +1,8 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@vaadin/vaadin-usage-statistics': false
+  esbuild: true
+  less: true
+  lmdb: true
+  msgpackr-extract: true
+  nx: true
