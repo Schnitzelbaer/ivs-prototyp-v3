@@ -123,117 +123,235 @@ sind kürzer und konkreter als auf Streckenebene.
 
 ## 4. Prozess (User Story Map)
 
-Der Backbone von links nach rechts, mit Persona und Ziel je Abschnitt.
+Grundlage ist die **überarbeitete Fassung** der User Story Map. Sie ersetzt die
+frühere Fassung vollständig. Gegenüber der alten Karte sind die Personas nun
+durchgehend mit den Rollen-IDs aus Abschnitt 2 beschriftet, es gibt eine dritte
+Markierungsfarbe für Ergänzungen aus der Arbeitshilfe, und die Prüfschritte sind
+mit den Bearbeitungsschritten durch eine explizite Rückkopplung verbunden.
+
+### 4.1 Aufbau des Boards
+
+Vier Zeilen von oben nach unten:
+
+| Zeile | Farbe | Bedeutung |
+|---|---|---|
+| Wer | violett | Persona / Rolle |
+| Warum | grün | Ziel |
+| Was | blau | Aufgabe (Backbone) |
+| Wie | gelb | Teilaufgabe |
+
+### 4.2 Markierungen
+
+| Markierung | Farbe | Bedeutung |
+|---|---|---|
+| `[Feld]` | hellblau | «Muss im Feld möglich sein» — betrifft Backbone-Karten |
+| `[WS]` | orange | «Ergänzungen im Workshop» |
+| `[AH]` | pink | «Ergänzungen aus der Arbeitshilfe» — **neu in dieser Fassung** |
+| `[SOLL]` | Badge | Priorität Soll, direkt auf der Karte vermerkt |
+| `[?]` | rot | offene Frage auf dem Board |
+
+Als `[Feld]` markiert sind die Backbone-Aufgaben **Bearbeitungsstand prüfen,
+Bildmaterial ergänzen, Kartendaten anpassen, Informationen bearbeiten** und
+**Bedeutung einschätzen**. Das ist der Teil des Prozesses, der auf dem Tablet
+draussen funktionieren muss (vgl. N12).
+
+Die `[AH]`-Karten stammen aus der Arbeitshilfe und sind fachlich verbindlicher
+als die Workshop-Ergänzungen. Sie führen mit dem **Prüfprotokoll** ein Konzept
+ein, das in der alten Karte fehlte (siehe 4.5).
+
+### 4.3 Backbone
 
 | Aufgabe (Backbone) | Persona | Ziel |
 |---|---|---|
-| Anmelden | Alle, Technischer Admin | Zugriff aufs IVS beschränken |
-| Zutritte verteilen (manuell) | Technischer Admin | Zugriff aufs IVS beschränken |
-| Verwalten von Auswahllisten | Technischer Admin / Fachlicher Admin | Basis für Erfassung und Beurteilung schaffen |
-| 360-Grad-Bilder importieren | (offen) | Basis für Erfassung und Beurteilung schaffen |
-| Lücken bestimmen | Kantone, Fachlicher Admin | Koordination der Erfassung |
-| Arbeitspakete zuweisen | Fachlicher Admin | Koordination der Erfassung |
-| Bearbeitungsstand prüfen | Fachlektor, Inventarisierer | Inventar auf neuesten Stand bringen und halten |
-| Bildmaterial ergänzen | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
-| Kartendaten anpassen | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
-| Informationen bearbeiten | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
-| Bedeutung einschätzen | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
-| Bericht generieren | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
-| Status wechseln | Inventarisierer, Fachlektor | Qualität des Inventars sicherstellen |
-| Versionen vergleichen | Inventarisierer, Fachlektor | Qualität des Inventars sicherstellen |
-| Fachliche Prüfung | Fachlektor | Qualität des Inventars sicherstellen |
-| Sprachliche Prüfung | Sprachlektor | Qualität des Inventars sicherstellen |
-| Übergreifende Prüfung | Kantone, Externe | Qualität des Inventars sicherstellen |
-| Kommentieren | Fachlektor, Kantone/Externe, Inventarisierer | Qualität des Inventars sicherstellen |
-| Zusammenfassung prüfen | Fachlektor | Qualität des Inventars sicherstellen |
-| Rückmeldungen einarbeiten | Inventarisierer | Qualität des Inventars sicherstellen |
-| Version definitiv setzen | Fachlicher Admin | Inventar der Öffentlichkeit zur Verfügung stellen |
-| Freigeben | Fachlicher Admin | Inventar der Öffentlichkeit zur Verfügung stellen |
-| Publizieren | System, swisstopo | Inventar der Öffentlichkeit zur Verfügung stellen |
-| Reports erstellen | (offen) | (offen) |
+| Anmelden | Alle Benutzer (R-01) | Zugriff aufs IVS beschränken |
+| Zutritte verteilen (manuell) | Technische Administration (R-02) | Zugriff aufs IVS beschränken |
+| Verwalten von Auswahllisten | — (keine Persona auf dem Board) | Basis für Erfassung und Beurteilung schaffen |
+| 360-Grad-Bilder importieren | `[?]` | Basis für Erfassung und Beurteilung schaffen |
+| Lücken bestimmen | Regionale Koordination (R-04), Fachliche Administration (R-03) | Koordination der Erfassung |
+| Arbeitspakete zuweisen | Fachliche Administration (R-03) | Koordination der Erfassung |
+| Bearbeitungsstand prüfen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
+| Bildmaterial ergänzen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
+| Kartendaten anpassen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
+| Informationen bearbeiten `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
+| Bedeutung einschätzen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
+| Bericht generieren | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
+| Status wechseln | Inventarisierende (R-05), Fachlektorat (R-06) | Qualität des Inventars sicherstellen |
+| Versionen vergleichen | Inventarisierende (R-05), Fachlektorat (R-06) | Qualität des Inventars sicherstellen |
+| Fachliche Prüfung | Fachlektorat (R-06) | Qualität des Inventars sicherstellen |
+| Kommentieren | Fachlektorat (R-06), Fachliche Prüfstelle (R-07), Inventarisierende (R-05) | Qualität des Inventars sicherstellen |
+| Sprachliche Prüfung | Sprachlektorat (gleiche Rolle wie Fachlektorat R-06) | Qualität des Inventars sicherstellen |
+| Übergreifende Prüfung | Fachliche Prüfstelle (R-07) | Qualität des Inventars sicherstellen |
+| Zusammenfassung prüfen | — (keine Persona auf dem Board) | Qualität des Inventars sicherstellen |
+| Rückmeldungen einarbeiten | Inventarisierende (R-05) | Qualität des Inventars sicherstellen |
+| Version definitiv setzen | Fachliche Administration (R-03) | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Freigeben | Fachliche Prüfstelle (R-07), Fachliche Administration (R-03) | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Publizieren | System (R-08), swisstopo | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Reports erstellen | `[?]` | `[?]` |
 
-### 4.1 Teilaufgaben je Abschnitt
+**Änderungen gegenüber der alten Fassung, die für das Prototyping zählen:**
 
-**Anmelden / Zutritte verteilen:** Accounts on-boarden · Zugriffsstufen · Rollen
+- **Sprachlektorat ist keine eigene Zugriffsrolle**, sondern «gleiche Rolle wie
+  Fachlektorat R-06». Der Rollen-Umschalter braucht dafür keinen eigenen
+  Eintrag; die sprachliche Prüfung ist eine Aufgabe innerhalb von R-06.
+- **Übergreifende Prüfung liegt bei R-07** (vorher unspezifisch «Kantone,
+  Externe»).
+- **Freigeben nennt neben R-03 zusätzlich R-07.** Das steht in Spannung zu
+  Abschnitt 7, wo die Freigabe allein bei R-03 liegt (siehe Abschnitt 10).
+- **Lücken bestimmen liegt bei R-04 und R-03** (vorher «Kantone, Fachlicher
+  Admin»).
+- **Bericht generieren** hat neu dieselbe Persona wie die Bearbeitungsschritte.
+- Für **Verwalten von Auswahllisten** und **Zusammenfassung prüfen** ist auf dem
+  Board keine Persona gesetzt.
+
+### 4.4 Teilaufgaben je Abschnitt
+
+**Anmelden** — keine Teilaufgaben.
+
+**Zutritte verteilen (manuell):** Accounts on-boarden · Zugriffsstufen · Rollen
 verwalten (erstellen, umbenennen, löschen) · Rechte verwalten (erstellen,
 umbenennen, löschen, an Rolle zuweisen) · Benutzer erfassen, disablen, für
-Bearbeitung sperren · Rolle & Rechte zuweisen/entfernen
+Bearbeitung sperren · Rolle & Rechte zuweisen, entfernen
 
-**Auswahllisten:** Auswahllisten von GIS-Objekten · Auswahllisten von
-Objektbeschrieben · *(offen: noch andere Stammdaten verwalten?)*
+**Verwalten von Auswahllisten:** Auswahllisten von GIS-Objekten · Auswahllisten
+von Objektbeschrieben · `[?]` Noch andere Stammdaten verwalten?
 
-**360-Grad-Bilder importieren:** Die Schweiz wird gesamthaft aufgezeichnet · als
-eigener Layer in der Karte verfügbar · zu IVS-Objekten verlinkt
+**360-Grad-Bilder importieren:** `[WS]` Schweiz wird gesamthaft aufgezeichnet ·
+`[WS]` Als eigener Layer in Karte verfügbar · `[WS]` Zu IVS-Objekten verlinkt
 
-**Lücken bestimmen:** *(provisorisch?)* auf Karte erfassen mit leerem
-Objektbeschrieb
+**Lücken bestimmen:** `[WS]` (Prov.?) auf Karte erfassen mit leerem
+Obj.beschrieb
 
 **Arbeitspakete zuweisen:** Layer mit vordefinierten Gebieten · Bearbeiter
-zuweisen (Auswahl 1..n) · Prüfenden manuell zuweisen · Gebiete zusammenstellen ·
-Gebiete werden an Anbieter (automatisch?) zugewiesen · Gebiete an Personen
-zuweisen · Einsatzlisten generieren
+zuweisen (Auswahl, 1..n) · Prüfenden manuell zuweisen · `[WS]` Gebiete
+zusammenstellen · `[WS]` Gebiete werden an Anbieter (autom.?) zugewiesen ·
+`[WS]` Gebiete an Personen zuweisen · `[WS]` Einsatzlisten generieren
 
 **Bearbeitungsstand prüfen:** Grafische Übersicht mit Filter (gesamte Schweiz,
-Gebiete) · Übersicht IVS-Objekte (Liste mit Filter, Sortierung, Status,
-Versionen, Zuständiger) · Ändern des Status direkt in der Liste · Übersicht über
-eigene/zugewiesene Gebiete · Export gefilterter und sortierter Liste ·
-Volltextsuche
+Gebiete, ?) · Übersicht IVS-Objekte (Liste mit Filter, Sortierung und Status,
+Versionen, Zuständiger) · Ändern des Status in der Liste · Übersicht über eigene
+/ zugewiesene Gebiete · Export gefilterte und sortierte Liste · Volltextsuche
 
 **Bildmaterial ergänzen:** Fotos (auch historische) · Metadaten bearbeiten
-(insbesondere Aufnahmedatum, Fotograf, Quelle, Aufnahmestandort) · mehrere
-Bilder möglich
+(insb. Aufnahmedatum, Fotograf, Quelle, Aufnahmestandort) · Mehrere Bilder
+möglich
 
-**Kartendaten anpassen:** Layer dazuschalten (IVS-Geländekarte, Dufourkarte) ·
-Validierung gegen INTERLIS-Modell · Historisierung mit Datum und Name der Person
-pro Änderung am GIS-Objekt · GIS-Objekte verlinken (dazu auffordern) · Segment
-hinzufügen zu IVS-Objekt, zusammenfassen, attribuieren · Kartendaten filtern ·
-**Zeichnen (Geografien) mit Tablet muss möglich sein**
+**Kartendaten anpassen:** Layer dazuschalten (bspw. IVS-Gelände-, Dufourkarte) ·
+Validierung gegen INTERLIS-Modell · Historisierung mit Datum, Name Person pro
+Änderung GIS-Objekt · GIS-Objekte verlinken (dazu auffordern) · Segment
+hinzufügen zu IVS-Obj., zusammenfassen, attribuieren · Kartendaten filtern ·
+`[WS]` Zeichnen (Geografien) mit Tablet muss möglich sein · `[AH]`
+Inventarisierende: IVS-Karteneinträge nach Prüfung überarbeiten
 
-**Informationen bearbeiten:** Texte bearbeiten (Bearbeitungsmaske analog ISOS) ·
-**automatisches Speichern** · Links zu anderen IVS-Objekten · Historisierung mit
-Datum und Name der Person pro Änderung/Löschung · *(soll)* gelöschte Inhalte für
-spätere Bearbeitung zur Verfügung stellen (Redo?) · Objekte auf nicht-existent
-oder wieder existent setzen · Export IVS-Objekt · **Notizen im Feld machen**
+**Informationen bearbeiten:** Texte bearbeiten (Bearbeitungsmaske -> ISOS) ·
+Automatisches Speichern · Links zu anderen IVS-Objekten · `[AH]` Links zu
+kantonübergreifenden Objekten · Historisierung mit Datum, Name Person pro
+Änderung / Löschung · `[SOLL]` Gelöschte Inhalte für spätere Bearbeitung zu
+Verfügung stellen (Redo?) · Objekte auf nicht-existent oder wieder existent
+setzen · Export IVS-Objekt · `[WS]` Notizen im Feld machen · `[AH]`
+Inventarisierende: Beschriebe nach Prüfung überarbeiten · `[AH]` Fachlektorat:
+Korrekturen anbringen · `[AH]` Textstellen, die diskutiert werden müssen, müssen
+markiert werden können
 
-**Bedeutung einschätzen:** National oder Regional · *(soll)* Liste mit Punkten
-durchgehen, woraus die Bedeutung vorgeschlagen wird
+**Bedeutung einschätzen:** National oder Regional · `[SOLL]` Liste mit Punkten
+durchgehen und Bedeutung wird vorgeschlagen
 
-**Status wechseln:** Zuweisung an Rolle · **Notification** · Zur Prüfung · An
-Fachlektor · Zurück zur Inventarisierung · Freigabe · Zurück zum fachlichen Admin
+**Bericht generieren** — keine Teilaufgaben.
 
-**Versionen vergleichen:** Versionen nebeneinander · **Änderungsmodus (analog
-Word-Dokument)** · Änderungen sollten ersichtlich sein
+**Status wechseln:** Zuweisung an Rolle · Notification · Zur Prüfung · An
+Fachlektor · Zurück zu Inventarisierung · Freigabe · Zurück zu fachlichem Admin
+
+**Versionen vergleichen:** Versionen nebeneinander · Änderungsmodus (analog
+Word-Dokument) · Änderungen sollten ersichtlich sein
 
 **Fachliche Prüfung:** Zeitstempel der Prüfung · Objektbeschrieb als geprüft
-kennzeichnen
+kennzeichnen · `[AH]` Prüfprotokoll auf Grundlage Checkliste 1 in jedem
+Beschrieb integriert · `[AH]` Korrekturen an IVS-Karte im Prüfprotokoll des
+entsprechenden Beschriebs festhalten · `[AH]` Karte und Beschriebe müssen in
+separaten Fenstern geöffnet werden können für die Prüfung · `[AH]` Terminologie
+prüfen
 
-**Sprachliche Prüfung:** Es wird nur in der Sprache der Region dokumentiert
-(Applikation jedoch mehrsprachig)
+**Kommentieren:** Prüfregister QS wie SBB Tool · Kommentar erstellen · Kommentar
+bearbeiten · Kommentar erledigen · Auf Kommentar antworten · `[WS]` Kommentare
+werden für Inventarisierer erst ersichtlich, wenn Status wieder auf «In
+Bearbeitung» oder «Korrektur» o. ä. · `[AH]` Inventarisierende müssen in einem
+Prüfprotokoll festhalten, welche Befunde sie umgesetzt haben · `[AH]`
+Abweichungen zu Befunden des Fachlektorats müssen festgehalten & begründet
+werden · `[AH]` Fachgremium kann Kommentare zu einzelnen Beschrieben erfassen
 
-**Kommentieren:** **Prüfregister QS wie SBB-Tool** · Kommentar erstellen ·
-Kommentar bearbeiten · Kommentar erledigen · auf Kommentar antworten ·
-**Kommentare werden für Inventarisierende erst ersichtlich, wenn der Status
-wieder auf «In Bearbeitung» oder «Korrektur» o. ä. steht**
+**Sprachliche Prüfung:** `[WS]` Es wird nur in der Sprache der Region
+dokumentiert (Appl. jedoch mehrsprachig) · `[AH]` Es dürfen keine inhaltlichen
+Änderungen gemacht werden
+
+**Übergreifende Prüfung:** `[AH]` Der Prüfbericht für die IVS-Dokumentation
+eines Kantons muss im Erfassungstool integriert werden. Es ist nicht
+erforderlich, ein Prüfprotokoll des Fachexperten pro Beschrieb zu integrieren,
+da diese Detaillierung nicht angestrebt wird. **ABER**: der Fachexperte muss im
+Tool ein Kommentarfeld nutzen können, um individuelle Hinweise pro Objekt
+platzieren zu können. · `[AH]` Strittige Fälle, wo sich Fachexperten,
+Inventarisierende und Fachlektorat nicht einig werden, sind mit der
+Stellungnahme zur vertieften Prüfung und Fachentscheid an das Fachgremium zu
+überweisen.
 
 **Zusammenfassung prüfen:** Abstract des Objektbeschriebs als Orientierung für
-die allgemeine Bevölkerung hilfreich
+allg. Bevölkerung hilfreich
 
 **Rückmeldungen einarbeiten:** Korrekturen annehmen · Korrekturen ablehnen
 
+**Version definitiv setzen** — keine Teilaufgaben.
+
 **Freigeben:** Entscheid dokumentieren · Zeitstempel der Freigabe ·
-Publikationsversion angeben · IVS-Objekt sperren nach Freigabe · **auf einen
-Schlag freigeben**
+Publikationsversion angeben · IVS-Objekt sperren nach Freigabe · Auf einen
+Schlag freigeben
 
 **Publizieren:** Export
 
 **Reports erstellen:** Mutationshistorie · Zustände · Aktivitäten
 
-### 4.2 Markierungen auf dem Board
+### 4.5 Rückkopplung Prüfung → Bearbeitung
 
-- **Blau hervorgehoben:** «Muss im Feld möglich sein»
-- **Orange hervorgehoben:** «Ergänzungen im Workshop» (nachträglich eingebracht)
+Neu auf dem Board ist eine gezeichnete Verbindung: von **Fachliche Prüfung**,
+**Kommentieren**, **Sprachliche Prüfung** und **Übergreifende Prüfung** führt
+eine gemeinsame Linie zurück zu je einem Pfeil auf **Kartendaten anpassen** und
+**Informationen bearbeiten**.
 
----
+```
+Fachliche Prüfung ┐
+Kommentieren      ├──────────┬──────────────┐
+Sprachliche Prüf. │          ▼              ▼
+Übergreifende Pr. ┘   Kartendaten    Informationen
+                        anpassen       bearbeiten
+```
+
+Fachlich heisst das: Befunde aus allen vier Prüfschritten fliessen in dieselben
+zwei Bearbeitungsmasken zurück — Geometrie und Text. Für das Prototyping ist das
+die zentrale Schleife: Ein Befund muss von der Prüfansicht aus direkt an die
+Stelle im Objektbeschrieb oder auf der Karte führen, an der er zu erledigen ist,
+und der Weg zurück muss dokumentiert werden.
+
+### 4.6 Das Prüfprotokoll
+
+Die `[AH]`-Karten beschreiben ein durchgehendes Artefakt, das die alte Karte
+nicht kannte. Verbindlich für das Prototyping:
+
+- Das **Prüfprotokoll** basiert auf **Checkliste 1** und ist **in jedem
+  Objektbeschrieb integriert** — kein separates Dokument.
+- Das **Fachlektorat (R-06)** hält darin seine Befunde fest, inklusive
+  Korrekturen an der IVS-Karte.
+- Die **Inventarisierenden (R-05)** halten darin fest, welche Befunde sie
+  umgesetzt haben; **Abweichungen müssen festgehalten und begründet werden**.
+- Die **Fachliche Prüfstelle (R-07)** braucht **kein** Prüfprotokoll pro
+  Beschrieb, sondern ein **Kommentarfeld pro Objekt**. Auf Kantonsebene wird
+  hingegen ein **Prüfbericht für die gesamte IVS-Dokumentation eines Kantons**
+  im Tool integriert.
+- Das **Sprachlektorat** darf **keine inhaltlichen Änderungen** vornehmen.
+- Strittige Fälle gehen mit Stellungnahme an ein **Fachgremium**, das ebenfalls
+  Kommentare zu einzelnen Beschrieben erfassen kann.
+- **Karte und Beschrieb müssen für die Prüfung in separaten Fenstern geöffnet
+  werden können.**
+
+Das Verhältnis zwischen «Prüfprotokoll» (aus der Arbeitshilfe) und
+«Prüfregister QS wie SBB Tool» (aus dem Workshop) ist auf dem Board nicht
+aufgelöst — siehe Abschnitt 10.
 
 ## 5. Funktionale Anforderungen
 
@@ -495,7 +613,11 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
 11. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
     plus Geometrie-Overlay alt/neu auf der Karte.
 12. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
-    SBB-Referenz existiert keine Vorlage.
+    SBB-Referenz existiert keine Vorlage. Die überarbeitete Story Map gibt
+    inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
+    Fachlektorats, Umsetzungsvermerk der Inventarisierenden, begründete
+    Abweichungen, Kommentare der Fachlichen Prüfstelle pro Objekt — alles im
+    Objektbeschrieb verankert, nicht als separates Dokument.
 13. **Exporte** (Excel-Listen, Einsatzlisten, PDF-Report, INTERLIS): funktionslose
     Buttons genügen.
 
@@ -536,14 +658,42 @@ Beim Lesen aufgefallen, noch nicht geklärt:
   **09.05** geführt.
 - **ID 12.02 fehlt** in der Nummerierung.
 - **Rollenabgrenzung R-06/R-07:** Beide beanspruchen die «1. Stufe der
-  Qualitätsprüfung»; die Aufgabenteilung zwischen Fachlektorat und Fachlicher
-  Prüfstelle ist nicht trennscharf beschrieben.
+  Qualitätsprüfung». Die überarbeitete Story Map schärft das teilweise: R-06
+  macht die fachliche und (als Sprachlektorat) die sprachliche Prüfung mit
+  Prüfprotokoll pro Beschrieb, R-07 die übergreifende Prüfung mit Prüfbericht
+  pro Kanton und Kommentaren pro Objekt. Die verbleibende Überschneidung ist das
+  Kommentieren, das beide Rollen ausüben.
 - **Kein separater Attributkatalog:** Für 07.04 («Validierung gemäss
   Datenmodell») existiert keine eigene Feldliste. Als Orientierung dienen der
   Referenz-Prototyp und der Aufbau der echten Objektbeschriebe.
 - **Kein formales Statusdiagramm:** Die Stati in Abschnitt 7 sind aus
   Spezifikation und Story Map konsolidiert und abgestimmt, aber nicht aus einer
   verbindlichen Quelle übernommen.
+
+Neu hinzugekommen mit der überarbeiteten User Story Map:
+
+- **Wer gibt frei?** Die Story Map nennt für «Freigeben» sowohl R-07 als auch
+  R-03. Abschnitt 7 und Anforderung 11.01 kennen nur R-03. Offen ist, ob R-07
+  mitzeichnet, vorgängig zustimmt oder nur informiert wird.
+- **Prüfprotokoll vs. Prüfregister:** Die Arbeitshilfe verlangt ein
+  Prüfprotokoll auf Basis von Checkliste 1, integriert in jeden Objektbeschrieb.
+  Der Workshop verlangt ein «Prüfregister QS wie SBB Tool». Ob das dasselbe
+  Artefakt in zwei Formulierungen ist oder zwei getrennte Dinge, ist nicht
+  geklärt. **Checkliste 1 selbst liegt nicht vor.**
+- **Fachgremium ist keine Rolle:** Strittige Fälle gehen «an das Fachgremium».
+  In Abschnitt 2 taucht das Fachgremium nur als Referenz der Arbeitshilfe
+  innerhalb von R-07 auf, nicht als eigene Zugriffsrolle. Ob das Gremium im Tool
+  arbeitet oder ausserhalb entscheidet, ist offen — es soll aber «Kommentare zu
+  einzelnen Beschrieben erfassen» können, was auf Tool-Zugriff hindeutet.
+- **Keine Persona für «Verwalten von Auswahllisten» und «Zusammenfassung
+  prüfen».** Für die Auswahllisten nennt Anforderung 02.01 den Fachlichen Admin
+  (R-03); für die Zusammenfassung ist nichts festgelegt.
+- **Persona für 360-Grad-Bilder und Reports weiterhin offen** (`?` auf dem
+  Board), bei Reports zusätzlich das Ziel.
+- **«Karte und Beschriebe in separaten Fenstern»** aus der Arbeitshilfe steht
+  quer zu einer Single-Page-Werkbank. Für das Prototyping ist zu entscheiden, ob
+  das als zweites Browserfenster, als abkoppelbares Panel oder als
+  Split-View umgesetzt wird.
 
 ---
 
@@ -552,7 +702,7 @@ Beim Lesen aufgefallen, noch nicht geklärt:
 | Quelle | Pfad / URL |
 |---|---|
 | Detailspezifikation | `~/Downloads/Detailspezifikation_IVS_IT_Fachapplikation.docx` |
-| User Story Map | `~/Downloads/IVS User Story Map.pdf` |
+| User Story Map (überarbeitete Fassung, eingelesen 28.07.2026) | `~/Downloads/IVS User Story Map.pdf` |
 | Objektbeschrieb Strecke (VS 1, 19 Seiten) | `~/Downloads/Strecke.pdf` |
 | Objektbeschrieb Linienführung (VS 1.2) | `~/Downloads/Linienführung.pdf` |
 | Objektbeschrieb Abschnitt (VS 1.2.14) | `~/Downloads/Abschnitt.pdf` |
