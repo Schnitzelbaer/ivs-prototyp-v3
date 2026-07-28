@@ -63,7 +63,7 @@ export class HlmMenubarTrigger {
 
     classes(
       () =>
-        'hover:bg-muted aria-expanded:bg-muted rounded-sm px-1.5 py-[2px] text-sm font-medium flex items-center outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50',
+        'hover:bg-muted aria-expanded:bg-muted rounded-sm px-2 py-1 text-sm font-medium flex items-center outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50',
     );
   }
 }

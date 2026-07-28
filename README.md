@@ -35,7 +35,8 @@ Was dort steht, ist geklärt und gilt, bis es ausdrücklich geändert wird.
 |---|---|---|
 | Angular | 22 | Standalone, kein SSR (ArcGIS-SDK ist browser-only) |
 | Tailwind CSS | 4 | via `@tailwindcss/postcss`, konfiguriert in `.postcssrc.json` |
-| spartan/ui | 1.1.2 | alle 57 Primitives generiert unter `libs/ui`, Theme «neutral», Style «nova» |
+| spartan/ui | 1.1.2 | alle 57 Primitives generiert unter `libs/ui`, Style «vega» |
+| Theme | shadcn-Preset `bInUyNX` | Indigo auf neutraler Basis, Radius 0.45 rem, Noto Sans, Lucide |
 | ArcGIS Maps SDK | 5 | `@arcgis/core`, für die Karte ohne Lizenzschlüssel nutzbar |
 | pnpm | 11 | Paketmanager |
 
@@ -43,6 +44,14 @@ spartan/ui kopiert seinen Quellcode ins Projekt (shadcn-Prinzip) — die
 Komponenten unter `libs/ui` sind unser Code und dürfen angepasst werden. Der
 Import läuft über den Alias `@spartan-ng/helm/*`, gemappt in `tsconfig.json`.
 Konfiguration des Generators: `components.json`.
+
+Das Theme stammt aus dem shadcn-Preset-Builder (Code `bInUyNX`). Übernommen
+wurde nur der Inhalt, nicht der Mechanismus: `shadcn apply --preset` würde
+React-Komponenten installieren und `components.json` umschreiben und ist für
+uns nicht nutzbar. Die Tokens liegen in `src/styles.css`, der Style in
+`components.json`. **Ein Wechsel des Styles erfordert, `libs/ui` zu verwerfen
+und alle Komponenten neu zu generieren** — eigene Anpassungen an den
+Komponenten gingen dabei verloren.
 
 ## Entwicklung
 

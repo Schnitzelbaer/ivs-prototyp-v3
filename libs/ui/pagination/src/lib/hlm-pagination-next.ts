@@ -60,6 +60,6 @@ export class HlmPaginationNext {
   );
 
   protected readonly _computedClass = computed(() =>
-    hlm(!this.iconOnly() && 'pe-1.5!', this.userClass()),
+    hlm(!this.iconOnly() && 'pe-2!', this.userClass()),
   );
 }

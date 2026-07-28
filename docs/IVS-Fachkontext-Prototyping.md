@@ -667,7 +667,13 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
     (WCAG-Konformität ist erst für die Umsetzung relevant).
 17. **Tablet-Tauglichkeit** (N12, ab 768 px, Touch inkl. Karte) von Beginn an
     mitdenken.
-18. **Gestaltung:** vorerst neutrales Standard-Theme, keine Bundes-CD-Vorgaben.
+18. **Gestaltung:** keine Bundes-CD-Vorgaben. Als Theme gilt das shadcn-Preset
+    **`bInUyNX`** — Style `vega`, Farbthema `indigo` auf neutraler Basis, Radius
+    `small` (0.45 rem), Schrift **Noto Sans**, Icons **Lucide**. Es ersetzt das
+    zuvor vorgesehene neutrale Standard-Theme. Die Tokens sind zwischen shadcn
+    und spartan/ui namensgleich und liegen in `src/styles.css`; der Style ist in
+    `components.json` gesetzt und bestimmt den generierten Komponenten-Quellcode
+    unter `libs/ui`.
 
 ### 9.6 Referenz-Prototyp
 

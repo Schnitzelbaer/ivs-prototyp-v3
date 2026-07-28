@@ -14,7 +14,7 @@ import { classes } from '@spartan-ng/helm/utils';
   },
   template: `
     <div
-      class="bg-muted mx-auto mt-4 hidden h-1 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block"
+      class="bg-muted mx-auto mt-4 hidden h-1.5 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block"
     ></div>
     <ng-content />
   `,
