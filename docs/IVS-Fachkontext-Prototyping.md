@@ -1,0 +1,563 @@
+# IVS-Nachführungstool — Fachkontext für das Prototyping
+
+> **Zweck dieses Dokuments.** Es bündelt den gesamten fachlichen Kontext für das
+> Prototyping des IVS-Nachführungstools: die Detailspezifikation, die User Story
+> Map, den Aufbau der echten IVS-Objektbeschriebe, die verfügbaren Testdaten und
+> die bereits getroffenen Vorgaben. Es enthält bewusst **keine** Angaben zum
+> technischen Stack (UI-Bibliothek, Framework, Design-System) und **keine**
+> Beschreibung bereits gebauter Prototypen.
+>
+> **Verwendung.** In eine neue Session einfügen oder als Datei referenzieren.
+> Was hier steht, ist geklärt und muss nicht erneut erfragt werden.
+
+---
+
+## 1. Ausgangslage
+
+Das **IVS-Nachführungstool** ermöglicht die kollaborative, rollenbasierte Pflege
+und Publikation des **Bundesinventars der historischen Verkehrswege der Schweiz
+(IVS)**. Das Web-GIS umfasst:
+
+- Bearbeitung von **Geo- und Sachdaten**
+- ein **mehrstufiges fachliches Review**
+- die **Freigabe für die Publikation** an swisstopo
+- **Reports** während der Bearbeitung und als Bestandteil der rechtsverbindlichen
+  Inventarpublikation nach Abschluss und Genehmigung der Nachführung
+
+Auftraggeber ist das ASTRA. Betrieb beim Bund (BIT), Authentifizierung über eIAM.
+
+---
+
+## 2. Rollen
+
+Die Spalte «Ref. Arbeitshilfe» zeigt die Rollen der Arbeitshilfe, welche die
+entsprechende Zugriffsrolle erhalten. Eine Person kann mehrere Rollen erhalten
+(z. B. Ausbildungsverantwortliche).
+
+| ID | Rolle | Ref. Arbeitshilfe | Beschreibung | Hauptverantwortung im Prozess |
+|---|---|---|---|---|
+| R-01 | Alle Benutzer | — | Authentifizierte Personen | Anmeldung via eIAM; Erstellung von Reports |
+| R-02 | Technische Administration | — | Verantwortlich für Systemzugriff | Verwaltung Accounts, Berechtigungen, technische Konfiguration |
+| R-03 | Fachliche Administration | PL ASTRA, Gesamtkoordination | Fachverantwortliche Stellen | Verwaltung von Auswahllisten/Stammdaten, Freigabe von Versionen, Zusammenstellen von Arbeitspaketen |
+| R-04 | Regionale Koordination | Teamleitung | Verantwortlicher eines oder mehrerer Inventarisierungsteams | Koordiniert die Inventarisierenden seines Gebietes |
+| R-05 | Inventarisierende | Inventarisierungsteam, Inventarisierende, Ausbildungsverantwortliche | Externe/interne Bearbeitende | Erfassung und Aktualisierung von Bundes-Objekten |
+| R-06 | Fachlektorat | Fachlektorat, Sprachlektorat, Ausbildungsverantwortliche | Fachliches Review, 1. Stufe der Qualitätsprüfung | Prüfung, Kommentierung, Rückmeldung an Inventarisierende, Editieren |
+| R-07 | Fachliche Prüfstelle | Fachexperte/in, Kantonale IVS-Fachstellen, Fachgremium | Prüfung während des Genehmigungsverfahrens, 1. und 2. Stufe der Qualitätsprüfung | Kann gewisse Felder kommentieren. Nur bei Objekten in festgelegten Gebieten resp. schweizweit |
+| R-08 | System | — | Automatisierte Prozesse | Statuswechsel, Zuweisungen |
+
+---
+
+## 3. Objektmodell und Notation
+
+### 3.1 Hierarchie
+
+```
+Strecke              VS 1          Brig/Glis - Gondo (- Domodossola); Simplonpass
+  └ Linienführung    VS 1.2        Saumweg (Mittelalter und Stockalper)
+      └ Abschnitt    VS 1.2.14     Sengg - Simplon Dorf
+Wegbegleiter (Punktobjekte)        Gasthaus, Brücke, Stundenstein, …
+```
+
+Die Notation ist **kantonskürzel + fortlaufende Nummerierung**, punktgetrennt je
+Ebene. Objekte sind untereinander verlinkt (Parent/Child) und referenzieren sich
+im Text gegenseitig (z. B. «s. VS 1.2.4»).
+
+### 3.2 Aufbau eines Objektbeschriebs (aus den Originaldokumenten)
+
+Kopfbereich jeder Seite:
+
+- Links: `IVS — INVENTAR HISTORISCHER VERKEHRSWEGE DER SCHWEIZ`
+- Rechts, invertierter Balken: die Signatur, z. B. `VS 1`, `VS 1.2`, `VS 1.2.14`
+- Zeilen: `IVS Dokumentation`, `Kanton Wallis`, `Bedeutung National`, `Seite N`
+
+Standardisierte Vorbemerkung (rot) auf Seite 1:
+
+> «Die Dokumentation beschreibt auch Objekte (Strecken, Linienführungen,
+> Abschnitte), welche nur noch wenig oder keine historische Wegsubstanz
+> enthalten. Diese sind in der Inventarkarte als graue Linien dargestellt. Sie
+> sind historische Verkehrswege von nationaler Bedeutung, sind aber nicht Teil
+> des Bundesinventars (Art. 3 VIVS).»
+
+Identifikationsblock (je nach Ebene):
+
+```
+Strecke  VS 1          Brig/Glis - Gondo (- Domodossola); Simplonpass
+Linienführung  2       Saumweg (Mittelalter und Stockalper)
+Abschnitt  14          Sengg - Simplon Dorf
+Landeskarte            1289, 1309
+```
+
+Kapitel:
+
+- **GESCHICHTE** — mit Bearbeitungsvermerk `Stand  Juli 1993 / RF, Ae`.
+  Fliesstext über mehrere Absätze, chronologisch gegliedert (Ur- und
+  Frühgeschichte, Römische Zeit, Hochmittelalter, …), mit Literaturzitaten im
+  Stil `(ANDEREGG 1986: 38)`, `(BÜTTNER 1953: 583)`, `(GREMAUD 1875/I: 199)`
+  und Querverweisen `(s. VS 1.2)`.
+- **GELÄNDE** — mit Aufnahmevermerk `Aufnahme  24. Juli 1992 / RF`.
+  Beschreibung der erhaltenen Wegsubstanz: Hangweg, Stützmauern, Pflästerung,
+  Querabschläge (steilgestellte Steinplatten), Trockenmauern, Breitenangaben
+  in Metern, Zustand und Datierung von Ausbaustufen.
+- **Abbildungen** mit Legende im linken Seitenrand, z. B.
+  «Frei gelegte Pflästerung oberhalb Simplon Dorf. Abb. 1 (RF, 23. 7. 1992)».
+- Auf Streckenebene zusätzlich **Nachträge** mit eigenem Vermerk, z. B.
+  «Ergänzung der Fassung von 1992/94 von Roland Flückiger (Klaus Aerni,
+  10. 1. 2003)» mit nummerierten Punkten.
+- Abschluss: `—— Ende des Beschriebs ——`
+
+**Merkmale für realistische Mock-Texte:** wissenschaftlicher, nüchterner Ton;
+lange Absätze; Kürzel für Bearbeitende (RF, Ae); Jahreszahlen und
+Quellenangaben; Verweise auf benachbarte Objekte; Beschriebe auf tieferen Ebenen
+sind kürzer und konkreter als auf Streckenebene.
+
+### 3.3 Fachliche Attribute
+
+- **Bedeutung:** national / regional / lokal
+- **Substanzgrad:** viel Substanz / mit Substanz / wenig Substanz / ohne Substanz
+- **Weitere Stammdaten:** Wegoberflächen, Wegformen, Wegbegleiter, Kunstbauten,
+  Typ des GIS-Objekts, Status der Bearbeitung
+- **Versionierung:** Inventarversionen (z. B. IVS 1.0 als Basis, IVS 2.0 als
+  laufende Nachführung)
+
+---
+
+## 4. Prozess (User Story Map)
+
+Der Backbone von links nach rechts, mit Persona und Ziel je Abschnitt.
+
+| Aufgabe (Backbone) | Persona | Ziel |
+|---|---|---|
+| Anmelden | Alle, Technischer Admin | Zugriff aufs IVS beschränken |
+| Zutritte verteilen (manuell) | Technischer Admin | Zugriff aufs IVS beschränken |
+| Verwalten von Auswahllisten | Technischer Admin / Fachlicher Admin | Basis für Erfassung und Beurteilung schaffen |
+| 360-Grad-Bilder importieren | (offen) | Basis für Erfassung und Beurteilung schaffen |
+| Lücken bestimmen | Kantone, Fachlicher Admin | Koordination der Erfassung |
+| Arbeitspakete zuweisen | Fachlicher Admin | Koordination der Erfassung |
+| Bearbeitungsstand prüfen | Fachlektor, Inventarisierer | Inventar auf neuesten Stand bringen und halten |
+| Bildmaterial ergänzen | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
+| Kartendaten anpassen | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
+| Informationen bearbeiten | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
+| Bedeutung einschätzen | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
+| Bericht generieren | Inventarisierer | Inventar auf neuesten Stand bringen und halten |
+| Status wechseln | Inventarisierer, Fachlektor | Qualität des Inventars sicherstellen |
+| Versionen vergleichen | Inventarisierer, Fachlektor | Qualität des Inventars sicherstellen |
+| Fachliche Prüfung | Fachlektor | Qualität des Inventars sicherstellen |
+| Sprachliche Prüfung | Sprachlektor | Qualität des Inventars sicherstellen |
+| Übergreifende Prüfung | Kantone, Externe | Qualität des Inventars sicherstellen |
+| Kommentieren | Fachlektor, Kantone/Externe, Inventarisierer | Qualität des Inventars sicherstellen |
+| Zusammenfassung prüfen | Fachlektor | Qualität des Inventars sicherstellen |
+| Rückmeldungen einarbeiten | Inventarisierer | Qualität des Inventars sicherstellen |
+| Version definitiv setzen | Fachlicher Admin | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Freigeben | Fachlicher Admin | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Publizieren | System, swisstopo | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Reports erstellen | (offen) | (offen) |
+
+### 4.1 Teilaufgaben je Abschnitt
+
+**Anmelden / Zutritte verteilen:** Accounts on-boarden · Zugriffsstufen · Rollen
+verwalten (erstellen, umbenennen, löschen) · Rechte verwalten (erstellen,
+umbenennen, löschen, an Rolle zuweisen) · Benutzer erfassen, disablen, für
+Bearbeitung sperren · Rolle & Rechte zuweisen/entfernen
+
+**Auswahllisten:** Auswahllisten von GIS-Objekten · Auswahllisten von
+Objektbeschrieben · *(offen: noch andere Stammdaten verwalten?)*
+
+**360-Grad-Bilder importieren:** Die Schweiz wird gesamthaft aufgezeichnet · als
+eigener Layer in der Karte verfügbar · zu IVS-Objekten verlinkt
+
+**Lücken bestimmen:** *(provisorisch?)* auf Karte erfassen mit leerem
+Objektbeschrieb
+
+**Arbeitspakete zuweisen:** Layer mit vordefinierten Gebieten · Bearbeiter
+zuweisen (Auswahl 1..n) · Prüfenden manuell zuweisen · Gebiete zusammenstellen ·
+Gebiete werden an Anbieter (automatisch?) zugewiesen · Gebiete an Personen
+zuweisen · Einsatzlisten generieren
+
+**Bearbeitungsstand prüfen:** Grafische Übersicht mit Filter (gesamte Schweiz,
+Gebiete) · Übersicht IVS-Objekte (Liste mit Filter, Sortierung, Status,
+Versionen, Zuständiger) · Ändern des Status direkt in der Liste · Übersicht über
+eigene/zugewiesene Gebiete · Export gefilterter und sortierter Liste ·
+Volltextsuche
+
+**Bildmaterial ergänzen:** Fotos (auch historische) · Metadaten bearbeiten
+(insbesondere Aufnahmedatum, Fotograf, Quelle, Aufnahmestandort) · mehrere
+Bilder möglich
+
+**Kartendaten anpassen:** Layer dazuschalten (IVS-Geländekarte, Dufourkarte) ·
+Validierung gegen INTERLIS-Modell · Historisierung mit Datum und Name der Person
+pro Änderung am GIS-Objekt · GIS-Objekte verlinken (dazu auffordern) · Segment
+hinzufügen zu IVS-Objekt, zusammenfassen, attribuieren · Kartendaten filtern ·
+**Zeichnen (Geografien) mit Tablet muss möglich sein**
+
+**Informationen bearbeiten:** Texte bearbeiten (Bearbeitungsmaske analog ISOS) ·
+**automatisches Speichern** · Links zu anderen IVS-Objekten · Historisierung mit
+Datum und Name der Person pro Änderung/Löschung · *(soll)* gelöschte Inhalte für
+spätere Bearbeitung zur Verfügung stellen (Redo?) · Objekte auf nicht-existent
+oder wieder existent setzen · Export IVS-Objekt · **Notizen im Feld machen**
+
+**Bedeutung einschätzen:** National oder Regional · *(soll)* Liste mit Punkten
+durchgehen, woraus die Bedeutung vorgeschlagen wird
+
+**Status wechseln:** Zuweisung an Rolle · **Notification** · Zur Prüfung · An
+Fachlektor · Zurück zur Inventarisierung · Freigabe · Zurück zum fachlichen Admin
+
+**Versionen vergleichen:** Versionen nebeneinander · **Änderungsmodus (analog
+Word-Dokument)** · Änderungen sollten ersichtlich sein
+
+**Fachliche Prüfung:** Zeitstempel der Prüfung · Objektbeschrieb als geprüft
+kennzeichnen
+
+**Sprachliche Prüfung:** Es wird nur in der Sprache der Region dokumentiert
+(Applikation jedoch mehrsprachig)
+
+**Kommentieren:** **Prüfregister QS wie SBB-Tool** · Kommentar erstellen ·
+Kommentar bearbeiten · Kommentar erledigen · auf Kommentar antworten ·
+**Kommentare werden für Inventarisierende erst ersichtlich, wenn der Status
+wieder auf «In Bearbeitung» oder «Korrektur» o. ä. steht**
+
+**Zusammenfassung prüfen:** Abstract des Objektbeschriebs als Orientierung für
+die allgemeine Bevölkerung hilfreich
+
+**Rückmeldungen einarbeiten:** Korrekturen annehmen · Korrekturen ablehnen
+
+**Freigeben:** Entscheid dokumentieren · Zeitstempel der Freigabe ·
+Publikationsversion angeben · IVS-Objekt sperren nach Freigabe · **auf einen
+Schlag freigeben**
+
+**Publizieren:** Export
+
+**Reports erstellen:** Mutationshistorie · Zustände · Aktivitäten
+
+### 4.2 Markierungen auf dem Board
+
+- **Blau hervorgehoben:** «Muss im Feld möglich sein»
+- **Orange hervorgehoben:** «Ergänzungen im Workshop» (nachträglich eingebracht)
+
+---
+
+## 5. Funktionale Anforderungen
+
+Die Spalte «Ref.» bezieht sich auf die Referenz der entsprechenden
+Grobanforderungen. Priorität: **M** (Muss), **S** (Soll), **K** (Kann).
+
+### 5.1 Accounts- und Rollenverwaltung
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 01.01 | — | eIAM-Login | Alle (R-01) | Authentifizierung über eIAM gemäss BIT-Standard | Erfolgreicher SSO-Login | M |
+| 01.02 | — | Rollenbasierte Berechtigung | System (R-08) | Rollenspezifische Funktionen nach Login | UI zeigt nur erlaubte Aktionen | M |
+| 01.03 | 0502, 0503 | Account-Verwaltung | Tech. Admin (R-02) | Anlegen / Deaktivieren | Accounts können erstellt / gelöscht werden | M |
+| 01.04 | 0501 | Rollen-Verwaltung | Tech. Admin (R-02) | Rollen erstellen, umbenennen, löschen | Rollen zuweisbar / entziehbar | M |
+| 01.05 | — | Session-Handling | System (R-08) | Auto-Logout nach Inaktivität gemäss BIT | Logout nach definierter Zeit | M |
+
+### 5.2 Auswahllisten / Stammdaten verwalten
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 02.01 | 0601 | Inhalte der Auswahllisten verwalten | Fachl. Admin (R-03) | CRUD für Stammdaten (Wegoberflächen, -formen und -begleiter, Kunstbauten, Bedeutungsstufen national/regional/lokal, Substanzgrad, Typ des GIS-Objekts, Status der Bearbeitung) | Werte hinzufügen / ändern / deaktivieren | S |
+| 02.02 | — | Mehrsprachigkeit der Listeninhalte | Fachl. Admin (R-03) | Stammdaten in DE/FR/IT pflegbar | Übersetzungen pro Eintrag | S |
+
+### 5.3 Vorbereitungen Arbeitspakete (Push-Methode)
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 03.01 | — | Arbeitspakete bilden | Fachl. Admin (R-03) | Zusammenstellung von Bundes-Objekten zu Paketen (z. B. nach Kanton / Region) | Paket erstellbar, benennbar | M |
+| 03.02 | — | Push-Zuweisung von Arbeitspaketen | Fachl. Admin (R-03) | Aktive Zuweisung eines Pakets an Regionale Koordination | Regionale Koordination sieht Arbeitspakete und dazugehörige Objekte | M |
+| 03.03 | — | Push-Zuweisung an Inventarisierende | Reg. Koordination (R-04) | Aktive Zuweisung eines Objekts an Inventarisierende | Inventarisierende sehen Objekte im Dashboard | M |
+| 03.04 | — | Einsatzlisten generieren | Fachl. Admin (R-03), Reg. Koordination (R-04) | Export von Arbeitspaketen als Excel-File mit Bundes-Objekten und Bearbeitenden | Excel-File herunterladbar, enthält Strecke mit allen Linienführungen und Abschnitten inkl. Objektname, Objektnummer, Kilometer pro Objekt, Region, Kanton und Bearbeitern | S |
+
+### 5.4 Bearbeitungsstand prüfen / Übersicht
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 04.01 | — | Übersicht | Alle (R-01) | Übersicht aller Objekte inkl. Status und Fortschritt | Alle Objekte werden gemäss Berechtigungen aufgelistet | M |
+| 04.01 | — | Dashboard | Alle (R-01) | Darstellung von vorgefilterten Objekten für eine spezifische Aufgabe | Einstiegsseite für spezifische Aufgaben zeigt alle zu bearbeitenden Objekte | S |
+| 04.02 | 0102, 0201, 0701, 0702 | Suche & Filter | Alle (R-01) | Volltext- und Attributsuche; Filter nach allen Stammdaten inkl. Bedeutungsattribut, Status, Bearbeiter, Region, Substanzgrad, Alter, Objekt-Typ | Trefferliste mit Sprung zu Karte/Detail | M |
+| 04.03 | 0703 | Sortierung | Alle (R-01) | Nach allen Spalten der Übersichtstabelle sortierbar | Übersicht auf- und absteigend sortiert | K |
+| 04.04 | — | Gleichzeitige Bearbeitung von Attributen | Fachl. Admin (R-03), Inventarisierende (R-05), Fachlektorat (R-06) | Mehrere Objekte selektieren, gemeinsames Attribut wählen, neuen Wert definieren; Änderung wird auf alle ausgewählten Objekte angewendet | Ein Wert wird für mehrere gewählte Objekte gleichzeitig geändert | S |
+| 04.05 | 0704 | Export einer gefilterten und sortierten Liste | Alle (R-01) | Gefilterte und sortierte Tabelle als Excel-File | Excel enthält alle im UI sichtbaren Spalten mit den gefilterten Zeilen, gleich sortiert wie im UI | M |
+
+### 5.5 Kartenfunktionen
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 05.01 | — | Kartendarstellung (ESRI) | Alle (R-01) | Kartenviewer auf ESRI SDK mit swisstopo-Hintergrundkarten | Karte lädt mit korrekten Layern | M |
+| 05.02 | 0701 | Filter | Alle (R-01) | Filter analog Liste nach allen Stammdaten inkl. Status, Region, Bearbeiter, Bedeutung, Substanzgrad, Alter, Objekt-Typ | Nur dem Filter entsprechende Bundes-Objekte werden angezeigt | M |
+| 05.03 | — | Geographischer Filter | Alle (R-01) | Filtern mithilfe einer Bounding-Box | Nur Objekte innerhalb der gezeichneten Bounding-Box werden angezeigt | M |
+| 05.04 | 0103 | Zusätzliche Layer einblenden | Alle (R-01) | Inhalte aus der BGDI (IVS-Geländekarte, Dufourkarte etc.) und weitere Webservices (z. B. Inventarobjekte ASTRA) als Layer | Layer zu- oder wegschaltbar, Daten entsprechend ein-/ausgeblendet | M |
+| 05.05 | 0104 | Geometrien erstellen und editieren | Inventarisierende (R-05) | Linien- und Punkt-Geometrien: zeichnen, verschieben, löschen, verlängern und verkürzen, **verschneiden, zusammenfügen** | Änderungen gespeichert | M |
+| 05.06 | — | Validierung | System (R-08) | Erfasste und geänderte Geometrien werden automatisch gegen INTERLIS validiert | Validierungsmeldung bei Fehlschlag | M |
+| 05.07 | 0113 | Historisierung Änderungen an Geometrie | System (R-08) | Jede Änderung an der Geometrie wird protokolliert | Historie textuell einsehbar mit Zeitstempel, Bearbeiter, Bearbeitung (neu, mutiert, gelöscht) | S |
+| 05.08 | 0113, 1001 | Geometrie-Versionen vergleichen | Alle (R-01) | Frühere und aktuelle Geometrieversionen vergleichbar | Differenz-Ansicht zeigt alte und neue Geometrieversion übereinander | S |
+| 05.09 | — | Snapping / Tracing | Inventarisierende (R-05) | Beim Zeichnen und Bearbeiten optionales Snapping/Tracing auf TLM (Digitale Landschaftsmodelle) von swisstopo oder an bestehender Geometrie | Erfasste Geometrien sind konsistent | M |
+| 05.10 | — | Legende | Alle (R-01) | Legende mit allen Karten-Bestandteilen sichtbar, wenn eine Karte angezeigt wird | Legende zeigt alle verwendeten Symbole und Farben für Geometrien und Hintergrundkarten | M |
+| 05.11 | — | Räumliche Notizen | Alle (R-01) | Notizen an beliebigem Ort auf der Karte erfassbar | Notiz wird als Symbol an der gewählten Position angezeigt | S |
+
+### 5.6 360°-Bilder
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 06.01 | — | 360°-Bilder Viewer | Alle (R-01) | Von ASTRA bereitgestellte 360°-Bilder sind im Tool verfügbar und als Preview zu öffnen | Für jedes 360°-Bild lässt sich eine Bildvorschau direkt im Tool öffnen | M |
+| 06.02 | 0101 | Lokalisierung 360°-Bilder | Alle (R-01) | Position und Blickrichtung des aktuell ausgewählten Bildes werden auf einer Karte visualisiert | Karte zeigt Standort und Blickrichtung des aktiven 360°-Bildes | M |
+| 06.03 | — | Navigation auf 360°-Bildern | Alle (R-01) | Es kann zwischen den 360°-Bildern navigiert werden | Vor- und Rückwärtsnavigation ist möglich | M |
+
+### 5.7 Objekte bearbeiten (Fokus Bundes-Objekte)
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 07.01 | 0109 | Bilder hochladen/löschen | Inventarisierende (R-05) | Mehrere Bilder pro Objekt; Auswahl von lokalem Speicherort oder aus zentraler Medienbibliothek | Bilder zugeordnet und gespeichert; Bild und Metadaten löschbar | M |
+| 07.02 | 0109 | Metadaten zu Bildern | Inventarisierende (R-05) | Dateiname, Bildlegende, Quelle, Urheber, Aufnahmedatum, Aufnahmestandort, Lizenz | Pflichtfelder validiert | M |
+| 07.03 | — | Bildvorschau | Alle (R-01) | Bilder als Vorschau einsehbar | Hochgeladene Bilder können angeschaut werden | S |
+| 07.04 | 0101, 0105, 0111, 0303 | Attributformular | Inventarisierende (R-05) | Formularbasierte Sachdatenerfassung | Validierung gemäss Datenmodell; nicht bearbeitbare Attribute gesperrt; Hinweis auf betroffene verlinkte Objekte | M |
+| 07.05 | — | Objekt löschen | Inventarisierende (R-05) | Objekt bis zur Publikation löschbar | Objekt gelöscht; nach Publikation nicht mehr löschbar | M |
+| 07.06 | — | Einschätzung der Bedeutung | Inventarisierende (R-05) | Empfehlung für Bedeutung wird vom System berechnet | Bedeutung wird vorgeschlagen, lässt sich annehmen oder ändern | K |
+| 07.07 | — | Zusammenfassung ausfüllen | Inventarisierende (R-05) | Zusammenfassung pro Objekt erfassen/ändern | Zusammenfassung wird gespeichert | M |
+| 07.08 | 0101 | Zuweisung 360-Grad-Aufnahme | Inventarisierende (R-05) | 360-Grad-Aufnahme aus bestehender Datenbank einem Objekt zuweisen | Aufnahme wird zum Objektbeschrieb angezeigt | K |
+| 07.09 | 0108 | Verlinkung von Objekten | Inventarisierende (R-05) | Bezug zur über-/untergeordneten Strecke, Linienführung, Abschnitt oder Wegbegleiter herstellen oder ändern | Parent/Child des Objekts aufrufbar | M |
+| 07.10 | — | Darstellung verlinkte Objekte | Alle (R-01) | Zusammengehörigkeit zwischen verlinkten Objekten klar und nachvollziehbar dargestellt | Beziehung ist visuell erkennbar | M |
+| 07.11 | — | Selektion verlinkter Objekte | Inventarisierende (R-05) | Zwischen verlinkten Objekten unterschiedlichen Typs (Strecke, Linienführung, Abschnitt) einfach wechseln | Verlinkte Objekte anderen Typs können geöffnet und bearbeitet werden | M |
+| 07.12 | 0113 | Historisierung | System (R-08) | Jede Änderung wird protokolliert | Historie einsehbar mit Zeitstempel, Bearbeiter, Bearbeitung (neu, mutiert, gelöscht) | M |
+| 07.13 | 0901 | Versionen anzeigen | Alle (R-01) | Jede abgenommene Version eines Objekts ist einsehbar | Alte Versionen anzeigbar | M |
+| 07.14 | 0704 | Export | Fachl. Admin (R-03) | Objektbeschreibungen als PDF; Geodaten vollständig als INTERLIS (gemäss neuem MGDM) oder FileGeodatabase inkl. aller Attribute, verlinkter Dokumente und Fotos | PDF mit allen Attributen und Bildern; Geodaten vollständig exportierbar | M |
+| 07.15 | — | Begründung erfassen | Inventarisierende (R-05) | Textuelle Begründung der Einstufung | Pflichtfeld bei Klassifikation | M |
+| 07.16 | 0106, 0107 | Nicht-existent setzen oder aufheben | Inventarisierende (R-05) | Objekt auf nicht-existent oder wieder existent setzen, mit Begründung | Warnhinweis mit Konsequenzen beim Setzen; nicht-existente und verlinkte Objekte gekennzeichnet; verlinkte Objekte müssen überprüft werden | M |
+| 07.17 | — | Text-Formatierung | Inventarisierende (R-05) | Texte formatieren zur Kommunikation oder um eigene Todos zu markieren (einfärben, durchstreichen, fett etc.) | Formatierungsoptionen stehen für Textinhalte zur Verfügung | S |
+| 07.18 | — | Bibliografie erstellen | Inventarisierende (R-05) | Zusammenstellung aller Quellen aus dem Objektbeschrieb, Abfrage über eine oder mehrere Literaturdatenbanken | Bibliografie mit allen im Text zitierten Titeln wird angezeigt | S |
+
+### 5.8 Status und Versionierung
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 08.01 | 0203, 0301, 0401, 0402 | Status setzen | Fachl. Admin (R-03), Fachlektorat (R-06), Inventarisierende (R-05) | z. B. «in Bearbeitung» → «bereit für Prüfung» | Status sichtbar in Übersicht | M |
+| 08.02 | — | Objektstatus mitführen | System (R-08) | Voller Workflow (Review/Freigabe) abgebildet | Jedes Objekt verfügt über einen Status gemäss Workflow | M |
+| 08.03 | — | Zuweisung an Rolle | Fachl. Admin (R-03), Fachlektorat (R-06), Inventarisierende (R-05), System | Übergabe durch Inventarisierende an Fachlektorat und umgekehrt | Fachlektorat kann Objekt lesen und bearbeiten | M |
+| 08.04 | 0113 | Historie anschauen | Alle (R-01) | Log mit allen Änderungen | Log mit Mutationstyp (neu/geändert/gelöscht), Zeitstempel, Bearbeiter, Änderung | M |
+| 08.05 | 0113, 1001 | Versionen vergleichen | Alle (R-01) | Vergleich Geometrie und Sachdaten | Älterer Stand aufrufbar; Unterschiede zwischen zwei Versionen hervorgehoben | S |
+
+### 5.9 Prüfen und Kommentieren
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 09.01 | 0201 | Objekt prüfen | Fachlektorat (R-06) | Status des Objekts auf «prüfen» ändern | Status «in Prüfung» gesetzt | M |
+| 09.02 | 0203 | Objekt als geprüft kennzeichnen | Fachlektorat (R-06) | Status des Objekts auf «geprüft» ändern | Status «geprüft» gesetzt inkl. Zeitstempel | M |
+| 09.03 | 0202, 0302 | Kommentare erfassen | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Kommentare zu Attributen/Geometrien/Bildern | Kommentar referenziert Attribut | M |
+| 09.04 | 0202 | Inline-Kommentare mit Textbezug | Fachlektorat (R-06) | Kommentare in einem Text an spezifischen Stellen hinzufügen | In einem Textfeld mehrere Kommentare auf verschiedenen Textstellen | K |
+| 09.05 | — | Kommentare bearbeiten | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Eigene Kommentare anpassen | Kommentar gespeichert | S |
+
+### 5.10 Rückmeldungen einarbeiten
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 10.01 | — | Kommentare einsehen | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Liste offener Kommentare | Filterbar nach Status | M |
+| 10.02 | — | Kommentar als erledigt markieren | Inventarisierende (R-05) | Als «erledigt» markieren | Status des Kommentars ändert | S |
+| 10.03 | — | Rückgabe an Fachlektorat | Inventarisierende (R-05) | Erneute Zuweisung an Fachlektorat | Iteration möglich | M |
+
+### 5.11 Übersetzungen, Freigabe
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 11.01 | 0401 | Freigabe | Fachl. Admin (R-03) | Formelle Freigabe mit dokumentiertem Entscheid | Audit-Eintrag mit Nutzer und Zeitstempel, Objekt gesperrt | M |
+| 11.02 | — | Neue Version anlegen | Fachl. Admin (R-03) | Neue Version für das gesamte Inventar erfassen | Neue Version auswählbar; Daten wieder bearbeitbar in neuester Version | S |
+
+### 5.12 Reports
+
+| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|---|---|
+| 12.01 | 0704 | Objekt-Report generieren | Alle (R-01) | Jeder authentifizierte Benutzer kann Reports erstellen | Funktion für alle Rollen verfügbar; muss an Externe ohne Zugriff oder Personen ohne PC zustellbar sein | M |
+| 12.03 | — | Hinterlegung als Gesetzesgrundlage | Fachl. Admin (R-03), System | Verbindlicher Report und Karteneinträge werden unveränderlich (read-only) archiviert und als Gesetzesgrundlage hinterlegt | Report und Karte nach Hinterlegung unveränderbar; abrufbar inkl. Zeitstempel und verantwortlicher Person | M |
+| 12.04 | — | Standard-Reports | Fachl. Admin (R-03), Reg. Koordination (R-04) | Vordefinierte Berichte (Bearbeitungsstand, Statistiken, Inventarliste) | Export PDF / Excel | S |
+
+---
+
+## 6. Nicht-funktionale Anforderungen
+
+| ID | Anforderung | Beschreibung | Akzeptanzkriterium | Prio |
+|---|---|---|---|---|
+| N01 | Sicherheit | eIAM-Integration, BIT-Sicherheitsstandards | BIT-Audit bestanden | M |
+| N02 | Sicherheit | Rollenbasierte Zugriffsrechte (RBAC) | Zugriffsmatrix dokumentiert und getestet | M |
+| N03 | Verfügbarkeit | SLA gemäss BIT-Vorgaben | Verträge unterzeichnet und akzeptiert | M |
+| N04 | Performance | Kartenansicht < 3 s Initial-Load | Lasttest dokumentiert | S |
+| N05 | Mehrsprachigkeit | UI in DE/FR/IT | i18n-Verwaltung | M |
+| N06 | Browser-Support | Chrome, Edge, Firefox, Safari (aktuell) | Cross-Browser-Test | M |
+| N07 | Barrierefreiheit | WCAG 2.1 AA (Bundes-Vorgabe P028) | Audit bestanden | M |
+| N08 | Datenschutz | DSG/DSGVO | DSFA durchgeführt | M |
+| N09 | Audit / Nachvollziehbarkeit | Vollständige Änderungshistorie pro Objekt | Audit-Log abrufbar | M |
+| N10 | Skalierbarkeit | Gleichzeitige Bearbeitende | Lasttest mit Zielwert | S |
+| N11 | Hosting | Betrieb beim Bund (BIT) | Infrastruktur BIT-konform | M |
+| N12 | Geräteunterstützung | Webapplikation muss auf Tablets mit einer Bildschirmbreite von mindestens 768 Pixeln mit Touch bedienbar sein, inkl. Kartenoperationen | Manuelle Tests auf einem gängigen Android-Tablet und einem iPad | M |
+| N13 | Hilfekonzept | Webapplikation zeigt Hilfestellungen zum Prozess | Kontextuelle Hilfe aufrufbar | M |
+| N14 | Exklusive Bearbeitung | Bearbeitung eines Objekts nur für einen Benutzer zeitgleich möglich | Nur die zugewiesene Person kann Objekte bearbeiten | M |
+
+---
+
+## 7. Workflow-Stati (abgestimmt)
+
+Spezifikation und User Story Map nennen Stati nur beispielhaft. Für das
+Prototyping gilt diese konsolidierte Liste als verbindlich:
+
+```
+zugewiesen
+  → in_bearbeitung
+      → bereit_zur_pruefung
+          → in_pruefung
+              → korrektur ──┐ (zurück zu in_bearbeitung)
+              → geprueft    │
+                  → freigegeben
+                      → publiziert
+```
+
+Deutsche Bezeichnungen: Zugewiesen · In Bearbeitung · Bereit zur Prüfung ·
+In Prüfung · Korrektur · Geprüft · Freigegeben · Publiziert
+
+Zusätzlich das orthogonale Kennzeichen **nicht-existent** (mit Pflicht-Begründung,
+siehe 07.16).
+
+Zuständigkeiten pro Übergang (aus den Rollen abgeleitet):
+
+- **R-05 Inventarisierende** bearbeiten in `zugewiesen`, `in_bearbeitung`,
+  `korrektur` und übergeben an die Prüfung
+- **R-06 Fachlektorat** bearbeitet in `bereit_zur_pruefung`, `in_pruefung`,
+  setzt `geprueft` oder weist nach `korrektur` zurück
+- **R-07 Fachliche Prüfstelle** kommentiert, prüft übergreifend
+- **R-03 Fachliche Administration** gibt frei (`freigegeben`) und setzt die
+  Publikationsversion
+- **R-04 Regionale Koordination** weist Objekte innerhalb ihres Gebiets zu
+
+---
+
+## 8. Verfügbare Testdaten
+
+Projekt: **`/Users/wis/claude/ivs-map`** — statische Webkarte (ArcGIS Maps SDK
+for JavaScript, swisstopo-WMTS-Hintergrund in Graustufen), Auswertungsergebnisse
+aus `Results_ASTRA.gdb`, Testgebiet **Bern**. Die GeoJSON-Dateien liegen in
+`data/` und sind nach WGS 84 reprojiziert.
+
+| Datei | Inhalt |
+|---|---|
+| `routen_bern_korrigiert.geojson` | Routen-Linien (Basis) |
+| `routen_bern_teilsegmente.geojson` | 2753 Teilsegmente; Attribute `seg_id`, `route_nr`, `seg_nr`, `seg_anzahl`, `seg_von_m`, `seg_bis_m`, `seg_laenge_m`, `ivs_ivsfk`, `ivs_signatur` |
+| `routen_bern_segmentgrenzen.geojson` | Marken an den Segmentgrenzen |
+| `prototyp2_ivs_punktobjekte_bern_with_text_new.geojson` | 176 Punktobjekte; Attribute `ivs_deutsc` (z. B. «Profanes Gebäude»), `ivs_franzo`, `easyocr` (erkannter Name, z. B. «Gasthaus Traube»), `weight`, `route_nr`, `route_dist_m` |
+| `wegformen_segmented_lines.geojson` | Wegformen (Lockermaterial) |
+| `wegoberflaechen_bern_segmentiert.geojson` | Wegoberflächen |
+| `detection_bruecken_raw.geojson` | Per Deep Learning erkannte Brücken |
+
+Mengengerüst: **1116 Routen**, längste rund 3.3 km. Die zehn längsten
+`route_nr`: 964 (3.26 km), 916 (3.20), 968 (3.06), 917 (2.99), 966 (2.92),
+761 (2.78), 762 (2.68), 983 (2.48), 969 (2.40), 1000 (2.32).
+
+Diese Daten dürfen als Grundlage für Mock-Objekte verwendet werden: Strecken aus
+`route_nr`, Abschnitte aus den Teilsegmenten, Wegbegleiter-Namen aus dem
+`easyocr`-Feld der Punktobjekte; fachliche Texte fiktiv, aber im Stil der echten
+Beschriebe (Abschnitt 3.2).
+
+---
+
+## 9. Vorgaben für das Prototyping
+
+Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werden.
+
+### 9.1 Zweck und Zuschnitt
+
+1. **Zweck:** UX-Validierung mit Stakeholdern; zugleich bereits feine Vorarbeit
+   für die eigentliche Umsetzung.
+2. **Fokus:** Kern-Workflow in voller Tiefe — Übersicht/Dashboard (04) →
+   Objektbearbeitung (07) → Prüfen und Kommentieren (09/10). Nebenblöcke
+   (Accounts, Stammdaten, Arbeitspakete, 360°, Reports) als einfachere, aber
+   vorhandene Screens.
+3. **Vier Varianten** als eigenständige Prototypen, erreichbar über die
+   Prototypen-Übersicht. Benennung: Variante a/b/c/d plus kurze Beschreibung im
+   Namen (z. B. «Karte», «Tablet»).
+4. **Gemeinsame Basis:** Mock-Daten und Basiskomponenten werden zwischen den
+   Varianten geteilt.
+
+### 9.2 Rollen und Berechtigungen
+
+5. **Rollen-Umschalter** ist gewünscht (Wechsel der Perspektive im Prototyp).
+6. Wählbar sind die **fünf fachlich relevanten Rollen** R-03 bis R-07. R-01,
+   R-02 und R-08 werden aufgelistet, aber **disabled**.
+
+### 9.3 Karte und Geometrie
+
+7. **ESRI SDK real einbinden** — Vorgehen wie im Projekt `ivs-map`
+   (ArcGIS Maps SDK mit swisstopo-WMTS-Hintergrund; für die Karte selbst wird
+   kein Lizenzschlüssel benötigt). Ein Lizenzschlüssel existiert, steht für den
+   Prototyp aber noch nicht zur Verfügung.
+8. **Geometrie-Editing ist eine der zu validierenden Kern-Interaktionen** —
+   inklusive Snapping/Tracing sowie **Verschneiden und Zusammenfügen**.
+9. **Objekthierarchie** (Strecke → Linienführung → Abschnitt, plus Wegbegleiter)
+   in **allen** Varianten als voll navigierbarer Baum.
+
+### 9.4 Weitere Funktionen
+
+10. **360°:** echt drehbares Panorama, inklusive Vor-/Zurück-Navigation und
+    Karten-Marker für Position und Blickrichtung. Platzhalter-Bilder genügen.
+11. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
+    plus Geometrie-Overlay alt/neu auf der Karte.
+12. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
+    SBB-Referenz existiert keine Vorlage.
+13. **Exporte** (Excel-Listen, Einsatzlisten, PDF-Report, INTERLIS): funktionslose
+    Buttons genügen.
+
+### 9.5 Bewusste Vereinfachungen
+
+14. **eIAM-Login:** komplett auslassen, direkt eingeloggt starten.
+15. **Mehrsprachigkeit:** ein Sprachen-Wechsler wird platziert, ist aber **nicht
+    funktional**.
+16. **Barrierefreiheit:** Prototypen müssen nicht ernsthaft barrierefrei sein
+    (WCAG-Konformität ist erst für die Umsetzung relevant).
+17. **Tablet-Tauglichkeit** (N12, ab 768 px, Touch inkl. Karte) von Beginn an
+    mitdenken.
+18. **Gestaltung:** vorerst neutrales Standard-Theme, keine Bundes-CD-Vorgaben.
+
+### 9.6 Referenz-Prototyp
+
+Ein älterer Prototyp existiert unter
+**<https://ivs-prototyp-variant-b.vercel.app/>** (Listen-zentrierte Werkbank:
+dunkle Seitenleiste mit Aufgaben/Objekte/360°/Reports, Aufgaben als
+Status-Gruppen, Objekt-Tabelle, Detail als Seitenpanel).
+
+Er darf **höchstens für eine** der Varianten als Inspiration dienen, und auch
+dort ist er gemäss der neuen Detailspezifikation zu überarbeiten — er kennt nur
+drei Rollen (Bearbeiter/Administrator/Betrachter) und die Stati
+Backlog/In Arbeit/Done statt des heutigen Workflows; Arbeitspakete, Prüfregister
+und der Freigabeprozess fehlen.
+
+---
+
+## 10. Offene Punkte und Ungereimtheiten der Spezifikation
+
+Beim Lesen aufgefallen, noch nicht geklärt:
+
+- **ID 04.01 ist doppelt vergeben** — einmal für «Übersicht», einmal für
+  «Dashboard».
+- **ID 08.05 existiert zweimal** — in Kapitel 8 als «Versionen vergleichen» und
+  in Kapitel 9 als «Kommentare bearbeiten». Letztere ist in diesem Dokument als
+  **09.05** geführt.
+- **ID 12.02 fehlt** in der Nummerierung.
+- **Rollenabgrenzung R-06/R-07:** Beide beanspruchen die «1. Stufe der
+  Qualitätsprüfung»; die Aufgabenteilung zwischen Fachlektorat und Fachlicher
+  Prüfstelle ist nicht trennscharf beschrieben.
+- **Kein separater Attributkatalog:** Für 07.04 («Validierung gemäss
+  Datenmodell») existiert keine eigene Feldliste. Als Orientierung dienen der
+  Referenz-Prototyp und der Aufbau der echten Objektbeschriebe.
+- **Kein formales Statusdiagramm:** Die Stati in Abschnitt 7 sind aus
+  Spezifikation und Story Map konsolidiert und abgestimmt, aber nicht aus einer
+  verbindlichen Quelle übernommen.
+
+---
+
+## 11. Quellen
+
+| Quelle | Pfad / URL |
+|---|---|
+| Detailspezifikation | `~/Downloads/Detailspezifikation_IVS_IT_Fachapplikation.docx` |
+| User Story Map | `~/Downloads/IVS User Story Map.pdf` |
+| Objektbeschrieb Strecke (VS 1, 19 Seiten) | `~/Downloads/Strecke.pdf` |
+| Objektbeschrieb Linienführung (VS 1.2) | `~/Downloads/Linienführung.pdf` |
+| Objektbeschrieb Abschnitt (VS 1.2.14) | `~/Downloads/Abschnitt.pdf` |
+| Testdaten und Referenz-Kartenimplementation | `/Users/wis/claude/ivs-map` |
+| Älterer Prototyp (begrenzte Inspiration) | <https://ivs-prototyp-variant-b.vercel.app/> |
+
+**Sprache:** Alle Inhalte auf Deutsch in Schweizer Rechtschreibung — niemals
+«ß», immer «ss».
