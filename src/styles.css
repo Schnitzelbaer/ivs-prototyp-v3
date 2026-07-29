@@ -212,12 +212,19 @@
   }
 
   /*
-   * Die Tabs-Leiste hat eine feste Höhe (h-9). Wächst der Trigger auf 44 px,
-   * ragt er sonst über den Hintergrund hinaus.
+   * Behälter mit fester Höhe, deren Kinder auf 44 px wachsen: ohne
+   * Nachziehen ragen Hintergrund und Aktiv-Auszeichnung über den Rand.
+   * Der Zuschlag entspricht dem jeweiligen Innenabstand — p-[3px] bei der
+   * Tabs-Leiste, p-1 bei der Menubar.
    */
   [data-slot='tabs-list'] {
     height: auto;
     min-height: calc(var(--touch-target) + 6px);
+  }
+
+  [data-slot='menubar'] {
+    height: auto;
+    min-height: calc(var(--touch-target) + 8px);
   }
 
   /*
