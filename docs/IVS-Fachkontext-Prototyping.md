@@ -619,55 +619,50 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
    Objektbearbeitung (07) → Prüfen und Kommentieren (09/10). Nebenblöcke
    (Accounts, Stammdaten, Arbeitspakete, 360°, Reports) als einfachere, aber
    vorhandene Screens.
-3. **Vier Varianten** als eigenständige Prototypen, erreichbar über die
-   Prototypen-Übersicht. Benennung: Variante a/b/c/d plus kurze Beschreibung im
-   Namen (z. B. «Karte», «Tablet»).
-4. **Gemeinsame Basis:** Mock-Daten und Basiskomponenten werden zwischen den
-   Varianten geteilt.
 
 ### 9.2 Rollen und Berechtigungen
 
-5. **Rollen-Umschalter** ist gewünscht (Wechsel der Perspektive im Prototyp).
-6. Wählbar sind die **fünf fachlich relevanten Rollen** R-03 bis R-07. R-01,
+3. **Rollen-Umschalter** ist gewünscht (Wechsel der Perspektive im Prototyp).
+4. Wählbar sind die **fünf fachlich relevanten Rollen** R-03 bis R-07. R-01,
    R-02 und R-08 werden aufgelistet, aber **disabled**.
 
 ### 9.3 Karte und Geometrie
 
-7. **ESRI SDK real einbinden** — Vorgehen wie im Projekt `ivs-map`
+5. **ESRI SDK real einbinden** — Vorgehen wie im Projekt `ivs-map`
    (ArcGIS Maps SDK mit swisstopo-WMTS-Hintergrund; für die Karte selbst wird
    kein Lizenzschlüssel benötigt). Ein Lizenzschlüssel existiert, steht für den
    Prototyp aber noch nicht zur Verfügung.
-8. **Geometrie-Editing ist eine der zu validierenden Kern-Interaktionen** —
+6. **Geometrie-Editing ist eine der zu validierenden Kern-Interaktionen** —
    inklusive Snapping/Tracing sowie **Verschneiden und Zusammenfügen**.
-9. **Objekthierarchie** (Strecke → Linienführung → Abschnitt, plus Wegbegleiter)
-   in **allen** Varianten als voll navigierbarer Baum.
+7. **Objekthierarchie** (Strecke → Linienführung → Abschnitt, plus Wegbegleiter)
+   als voll navigierbarer Baum.
 
 ### 9.4 Weitere Funktionen
 
-10. **360°:** echt drehbares Panorama, inklusive Vor-/Zurück-Navigation und
-    Karten-Marker für Position und Blickrichtung. Platzhalter-Bilder genügen.
-11. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
-    plus Geometrie-Overlay alt/neu auf der Karte.
-12. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
+8. **360°:** echt drehbares Panorama, inklusive Vor-/Zurück-Navigation und
+   Karten-Marker für Position und Blickrichtung. Platzhalter-Bilder genügen.
+9. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
+   plus Geometrie-Overlay alt/neu auf der Karte.
+10. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
     SBB-Referenz existiert keine Vorlage. Die überarbeitete Story Map gibt
     inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
     Fachlektorats, Umsetzungsvermerk der Inventarisierenden, begründete
     Abweichungen, Kommentare der Fachlichen Prüfstelle pro Objekt — alles im
     Objektbeschrieb verankert, nicht als separates Dokument. Der Fragenteil ist
     mit Checkliste 1 (Abschnitt 4.7) vorgegeben.
-13. **Exporte** (Excel-Listen, Einsatzlisten, PDF-Report, INTERLIS): funktionslose
+11. **Exporte** (Excel-Listen, Einsatzlisten, PDF-Report, INTERLIS): funktionslose
     Buttons genügen.
 
 ### 9.5 Bewusste Vereinfachungen
 
-14. **eIAM-Login:** komplett auslassen, direkt eingeloggt starten.
-15. **Mehrsprachigkeit:** ein Sprachen-Wechsler wird platziert, ist aber **nicht
+12. **eIAM-Login:** komplett auslassen, direkt eingeloggt starten.
+13. **Mehrsprachigkeit:** ein Sprachen-Wechsler wird platziert, ist aber **nicht
     funktional**.
-16. **Barrierefreiheit:** Prototypen müssen nicht ernsthaft barrierefrei sein
+14. **Barrierefreiheit:** Prototypen müssen nicht ernsthaft barrierefrei sein
     (WCAG-Konformität ist erst für die Umsetzung relevant).
-17. **Tablet-Tauglichkeit** (N12, ab 768 px, Touch inkl. Karte) von Beginn an
+15. **Tablet-Tauglichkeit** (N12, ab 768 px, Touch inkl. Karte) von Beginn an
     mitdenken.
-18. **Gestaltung:** keine Bundes-CD-Vorgaben. Als Theme gilt das shadcn-Preset
+16. **Gestaltung:** keine Bundes-CD-Vorgaben. Als Theme gilt das shadcn-Preset
     **`bInUyNX`** — Style `vega`, Farbthema `indigo` auf neutraler Basis, Radius
     `small` (0.45 rem), Schrift **Noto Sans**, Icons **Lucide**. Es ersetzt das
     zuvor vorgesehene neutrale Standard-Theme. Die Tokens sind zwischen shadcn
@@ -737,11 +732,11 @@ Ein älterer Prototyp existiert unter
 dunkle Seitenleiste mit Aufgaben/Objekte/360°/Reports, Aufgaben als
 Status-Gruppen, Objekt-Tabelle, Detail als Seitenpanel).
 
-Er darf **höchstens für eine** der Varianten als Inspiration dienen, und auch
-dort ist er gemäss der neuen Detailspezifikation zu überarbeiten — er kennt nur
-drei Rollen (Bearbeiter/Administrator/Betrachter) und die Stati
-Backlog/In Arbeit/Done statt des heutigen Workflows; Arbeitspakete, Prüfregister
-und der Freigabeprozess fehlen.
+Er darf **allenfalls als Inspiration** dienen, und auch dann ist er gemäss der
+neuen Detailspezifikation zu überarbeiten — er kennt nur drei Rollen
+(Bearbeiter/Administrator/Betrachter) und die Stati Backlog/In Arbeit/Done statt
+des heutigen Workflows; Arbeitspakete, Prüfregister und der Freigabeprozess
+fehlen.
 
 ---
 

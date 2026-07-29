@@ -23,8 +23,6 @@ Was dort steht, ist geklärt und gilt, bis es ausdrücklich geändert wird.
   Objektbearbeitung (07) → Prüfen und Kommentieren (09/10). Nebenblöcke
   (Accounts, Stammdaten, Arbeitspakete, 360°, Reports) als einfachere,
   aber vorhandene Screens.
-- **Vier Varianten** als eigenständige Prototypen über eine Prototypen-Übersicht
-  erreichbar, mit gemeinsamer Basis aus Mock-Daten und Basiskomponenten.
 - **Karte:** ArcGIS Maps SDK for JavaScript mit swisstopo-WMTS-Hintergrund,
   Vorgehen wie im Projekt `ivs-map`.
 - **Tablet-Tauglichkeit** ab 768 px inkl. Touch von Beginn an mitgedacht.
@@ -79,15 +77,14 @@ keine Unit-Tests vorgesehen.
 
 Unter `/kitchen-sink` liegt eine Referenzseite mit **allen** spartan/ui-Primitives
 im Theme des Projekts, mit Beispielinhalten aus der IVS-Fachdomäne und einem
-Umschalter für hell/dunkel. Sie dient als Nachschlagewerk beim Bauen der
-Varianten — Quellcode unter `src/app/kitchen-sink/`, je ein Abschnitt pro
+Umschalter für hell/dunkel. Sie dient als Nachschlagewerk beim Bauen des
+Prototyps — Quellcode unter `src/app/kitchen-sink/`, je ein Abschnitt pro
 Themengruppe.
 
 ## Stand
 
-Setup und Kitchen Sink stehen, die Prototypen-Varianten sind noch nicht gebaut.
-`/` leitet vorerst auf `/kitchen-sink` um; später übernimmt dort die
-Prototypen-Übersicht.
+Setup und Kitchen Sink stehen, der Prototyp selbst ist noch nicht gebaut.
+`/` leitet vorerst auf `/kitchen-sink` um.
 
 ## Verwandte Projekte
 
