@@ -17,6 +17,7 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { HlmSliderImports } from '@spartan-ng/helm/slider';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
@@ -50,6 +51,7 @@ interface Option {
     HlmNativeSelectImports,
     HlmRadioGroupImports,
     HlmSelectImports,
+    HlmSeparatorImports,
     HlmSliderImports,
     HlmSwitchImports,
     HlmTextareaImports,
@@ -153,20 +155,33 @@ interface Option {
       </hlm-radio-group>
     </ks-block>
 
-    <ks-block title="Switch" anchor="switch" note="Ein- und Ausschalter">
+    <ks-block title="Switch" anchor="switch" note="Ein- und Ausschalter, unten die Grössen">
       <div class="space-y-3">
         <label class="flex items-center gap-2 text-sm" hlmLabel>
           <hlm-switch [checked]="true" />
           Snapping auf TLM aktiv
         </label>
         <label class="flex items-center gap-2 text-sm" hlmLabel>
-          <hlm-switch size="sm" />
+          <hlm-switch />
           Nicht-existente Objekte einblenden
         </label>
         <label class="flex items-center gap-2 text-sm" hlmLabel>
           <hlm-switch disabled />
           Deaktiviert
         </label>
+
+        <div hlmSeparator class="my-4"></div>
+
+        <div class="flex flex-wrap items-center gap-6">
+          <span class="flex items-center gap-2 text-sm">
+            <hlm-switch size="sm" [checked]="true" />
+            <span class="text-muted-foreground text-xs">size sm</span>
+          </span>
+          <span class="flex items-center gap-2 text-sm">
+            <hlm-switch [checked]="true" />
+            <span class="text-muted-foreground text-xs">size default</span>
+          </span>
+        </div>
       </div>
     </ks-block>
 

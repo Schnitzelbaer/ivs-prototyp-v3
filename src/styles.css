@@ -200,24 +200,47 @@
   }
 
   /*
+   * Elemente, die durch min-height höher werden, aber ihren Text nicht selbst
+   * zentrieren. Ohne das sitzt die Beschriftung oben in der Box und wirkt
+   * gegenüber den Nachbarn nach oben verschoben (z. B. Breadcrumb-Trenner).
+   */
+  [data-slot='breadcrumb-link'],
+  [data-slot='breadcrumb-page'],
+  [data-slot='navigation-menu-link'] {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /*
+   * Die Tabs-Leiste hat eine feste Höhe (h-9). Wächst der Trigger auf 44 px,
+   * ragt er sonst über den Hintergrund hinaus.
+   */
+  [data-slot='tabs-list'] {
+    height: auto;
+    min-height: calc(var(--touch-target) + 6px);
+  }
+
+  /*
    * Kleine Schalter lassen sich nicht vergrössern, ohne die Gestaltung zu
    * zerstören. Stattdessen bekommen sie eine unsichtbare Trefferfläche, die
    * über das sichtbare Element hinausragt.
    *
    * hlm-checkbox und hlm-switch stehen auf `display: contents` und erzeugen
    * selbst keine Box — die Regeln müssen am inneren Button hängen.
+   *
+   * Der Slider-Griff ist bewusst nicht dabei: er ist absolut positioniert und
+   * bringt bereits eine eigene Trefferfläche mit. Er wird weiter unten nur
+   * vergrössert, nicht umpositioniert.
    */
   [data-slot='checkbox'] button,
   [data-slot='radio-group-item'],
-  [data-slot='switch'] button,
-  [data-slot='slider-thumb'] {
+  [data-slot='switch'] button {
     position: relative;
   }
 
   [data-slot='checkbox'] button::after,
   [data-slot='radio-group-item']::after,
-  [data-slot='switch'] button::after,
-  [data-slot='slider-thumb']::after {
+  [data-slot='switch'] button::after {
     content: '';
     position: absolute;
     inset: 50% auto auto 50%;
@@ -226,6 +249,16 @@
     min-height: var(--touch-target);
     width: 100%;
     height: 100%;
+  }
+
+  /*
+   * Der Slider-Griff hat bereits eine eigene Trefferfläche (`after:-inset-2`,
+   * also 8 px ringsum). Bei 16 px Griffgrösse reicht das nicht; wir weiten
+   * allein den Abstand auf 14 px, damit 44 px erreicht werden. Position und
+   * Grösse des Griffs bleiben unangetastet.
+   */
+  [data-slot='slider-thumb']::after {
+    inset: -14px;
   }
 
   /* Zeilen mit Schalter: Label als Trefferfläche mitwachsen lassen. */

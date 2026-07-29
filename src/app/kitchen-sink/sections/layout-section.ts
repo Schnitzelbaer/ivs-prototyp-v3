@@ -5,6 +5,7 @@ import { HlmCarouselImports } from '@spartan-ng/helm/carousel';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmResizableImports } from '@spartan-ng/helm/resizable';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { DemoBlock } from '../demo-block';
 
 @Component({
@@ -18,6 +19,7 @@ import { DemoBlock } from '../demo-block';
     HlmCollapsibleImports,
     HlmResizableImports,
     HlmScrollAreaImports,
+    NgScrollbar,
   ],
   template: `
     <ks-block title="Accordion" anchor="accordion" note="Kapitel eines Objektbeschriebs, einzeln aufklappbar">
