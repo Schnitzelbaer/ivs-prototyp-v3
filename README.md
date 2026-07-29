@@ -28,6 +28,9 @@ Was dort steht, ist geklärt und gilt, bis es ausdrücklich geändert wird.
 - **Karte:** ArcGIS Maps SDK for JavaScript mit swisstopo-WMTS-Hintergrund,
   Vorgehen wie im Projekt `ivs-map`.
 - **Tablet-Tauglichkeit** ab 768 px inkl. Touch von Beginn an mitgedacht.
+  Auf Geräten mit ungenauer Eingabe (`@media (pointer: coarse)`) werden alle
+  Bedienelemente automatisch auf mindestens 44 px vergrössert — ohne Umschalter,
+  siehe `src/styles.css`.
 
 ## Technischer Stack
 

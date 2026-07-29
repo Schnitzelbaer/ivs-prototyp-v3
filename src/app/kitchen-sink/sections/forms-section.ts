@@ -171,7 +171,7 @@ interface Option {
     </ks-block>
 
     <ks-block title="Native Select" anchor="native-select" note="Einfaches HTML-Select">
-      <hlm-native-select class="max-w-xs">
+      <hlm-native-select class="max-w-xs" value="mit">
         <optgroup hlmNativeSelectOptGroup label="Substanzgrad">
           <option hlmNativeSelectOption value="viel">viel Substanz</option>
           <option hlmNativeSelectOption value="mit">mit Substanz</option>

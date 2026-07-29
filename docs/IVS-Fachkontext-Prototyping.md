@@ -709,6 +709,27 @@ durch Auslösen der Ereignisse im laufenden DOM:
 Für die als «Muss im Feld möglich sein» markierten Aufgaben (Abschnitt 4.2)
 dürfen diese drei daher keine Information oder Aktion exklusiv tragen.
 
+**Umgesetzte Massnahme.** In `src/styles.css` vergrössert ein Block unter
+`@media (pointer: coarse)` alle Bedienelemente auf mindestens 44 px. Die
+Erkennung läuft über die Eingabepräzision, nicht über User-Agent oder
+Bildschirmbreite:
+
+- Ein Tablet oder Telefon meldet `coarse` und bekommt grosse Ziele.
+- Ein schmales Desktop-Fenster meldet `fine` und bleibt kompakt.
+- Ein Tablet mit angeschlossener Maus meldet `fine` — bewusst so.
+
+Es gibt **keinen Umschalter**; die Anpassung geschieht automatisch. Die Regeln
+hängen an den `data-slot`-Attributen, die spartan/ui auf jedem Primitive setzt,
+damit `libs/ui` unangetastet bleibt und neu generierte Primitives automatisch
+abgedeckt sind. Checkbox, Radio, Switch und Slider-Griff behalten ihre
+Darstellung und bekommen eine unsichtbare Trefferfläche über ein Pseudo-Element,
+weil `hlm-checkbox` und `hlm-switch` auf `display: contents` stehen und selbst
+keine Box erzeugen.
+
+Nachgemessen mit aktivierter Regel: von 137 Bedienelementen liegen noch **drei**
+unter 44 px — die visuell versteckten `input[type=radio]`, die hinter den
+sichtbaren Radiobuttons liegen und nicht selbst angetippt werden.
+
 ### 9.7 Referenz-Prototyp
 
 Ein älterer Prototyp existiert unter

@@ -109,3 +109,142 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * Feldeinsatz (N12): Auf Geräten, deren primäres Eingabegerät ungenau ist —
+ * Finger statt Maus — werden alle Bedienelemente auf mindestens 44 px
+ * vergrössert. Das ist die Mindestgrösse für Touch (Apple 44 pt, Google 48 dp).
+ *
+ * Erkennung über `pointer: coarse` statt über User-Agent oder Bildschirmbreite:
+ * die Media Query fragt die tatsächliche Eingabepräzision ab und trifft damit
+ * Tablets und Telefone, aber nicht ein schmales Desktop-Fenster. Ein Tablet mit
+ * angeschlossener Maus meldet `fine` und bleibt kompakt — das ist gewollt.
+ *
+ * Die Regeln hängen an den `data-slot`-Attributen, die spartan/ui auf jedem
+ * Primitive setzt. Dadurch bleibt libs/ui unangetastet und ein neu generiertes
+ * Primitive ist automatisch mit abgedeckt.
+ */
+@media (pointer: coarse) {
+  :root {
+    --touch-target: 44px;
+  }
+
+  /* Flächige Bedienelemente: Höhe anheben, Innenabstand mitziehen. */
+  [data-slot='button'],
+  [data-slot='select-trigger'],
+  [data-slot='combobox-trigger'],
+  [data-slot='date-picker-trigger'],
+  [data-slot='native-select'],
+  [data-slot='input'],
+  [data-slot='input-group'],
+  [data-slot='input-group-control'],
+  [data-slot='command-input'],
+  [data-slot='sidebar-menu-button'],
+  [data-slot='dropdown-menu-item'],
+  [data-slot='dropdown-menu-sub-trigger'],
+  [data-slot='command-item'],
+  [data-slot='menubar-trigger'],
+  [data-slot='navigation-menu-trigger'],
+  [data-slot='navigation-menu-link'],
+  [data-slot='tabs-trigger'],
+  [data-slot='toggle'],
+  [data-slot='toggle-group-item'],
+  [data-slot='pagination-link'],
+  [data-slot='breadcrumb-link'],
+  [data-slot='accordion-trigger'],
+  [data-slot='alert-dialog-action'],
+  [data-slot='alert-dialog-cancel'],
+  [data-slot='input-otp-slot'],
+  [data-slot='input-group-button'],
+  [data-slot='collapsible-trigger'],
+  [data-slot='carousel-previous'],
+  [data-slot='carousel-next'],
+  [data-slot='sidebar-trigger'],
+  /*
+   * Trigger, die zusätzlich hlmBtn tragen: ihre eigene data-slot-Angabe
+   * überschreibt 'button', deshalb hier einzeln aufgeführt.
+   */
+  [data-slot='dialog-trigger'],
+  [data-slot='alert-dialog-trigger'],
+  [data-slot='sheet-trigger'],
+  [data-slot='drawer-trigger'],
+  [data-slot='popover-trigger'],
+  [data-slot='hover-card-trigger'],
+  [data-slot='dropdown-menu-trigger'],
+  [data-slot='context-menu-trigger'],
+  /* Kalendertage tragen keinen eigenen Slot. */
+  [data-slot='calendar'] td button,
+  [data-slot='month-year-calendar'] td button {
+    min-height: var(--touch-target);
+  }
+
+  /* Quadratische Elemente brauchen zusätzlich Breite. */
+  [data-slot='button'][data-size^='icon'],
+  [data-slot='input-group-button'],
+  [data-slot='input-otp-slot'],
+  [data-slot='sidebar-trigger'],
+  [data-slot='carousel-previous'],
+  [data-slot='carousel-next'],
+  [data-slot='combobox-clear'],
+  [data-slot='autocomplete-clear'],
+  [data-slot='pagination-link'] {
+    min-width: var(--touch-target);
+  }
+
+  /* Textfelder: Zeilenhöhe reicht nicht, Innenabstand erhöhen. */
+  [data-slot='input'],
+  [data-slot='textarea'],
+  [data-slot='command-input'],
+  [data-slot='sidebar-input'] {
+    padding-block: 0.625rem;
+  }
+
+  /*
+   * Kleine Schalter lassen sich nicht vergrössern, ohne die Gestaltung zu
+   * zerstören. Stattdessen bekommen sie eine unsichtbare Trefferfläche, die
+   * über das sichtbare Element hinausragt.
+   *
+   * hlm-checkbox und hlm-switch stehen auf `display: contents` und erzeugen
+   * selbst keine Box — die Regeln müssen am inneren Button hängen.
+   */
+  [data-slot='checkbox'] button,
+  [data-slot='radio-group-item'],
+  [data-slot='switch'] button,
+  [data-slot='slider-thumb'] {
+    position: relative;
+  }
+
+  [data-slot='checkbox'] button::after,
+  [data-slot='radio-group-item']::after,
+  [data-slot='switch'] button::after,
+  [data-slot='slider-thumb']::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    translate: -50% -50%;
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Zeilen mit Schalter: Label als Trefferfläche mitwachsen lassen. */
+  label:has([data-slot='checkbox']),
+  label:has([data-slot='radio-group-item']),
+  label:has([data-slot='switch']) {
+    min-height: var(--touch-target);
+  }
+
+  /* Tabellenzeilen und Listeneinträge antippbar machen. */
+  [data-slot='table-cell'],
+  [data-slot='table-head'] {
+    padding-block: 0.75rem;
+  }
+
+  [data-slot='item'],
+  [data-slot='select-item'],
+  [data-slot='combobox-item'],
+  [data-slot='autocomplete-item'] {
+    min-height: var(--touch-target);
+  }
+}
