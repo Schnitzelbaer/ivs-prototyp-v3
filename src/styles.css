@@ -6,6 +6,9 @@
 @import '@spartan-ng/brain/hlm-tailwind-preset.css';
 @import '@fontsource-variable/noto-sans';
 
+/* Das ArcGIS-Widget-CSS (helles Thema) wird in angular.json als eigener
+   styles-Eintrag geladen — als @import hier gäbe es @charset-Warnungen. */
+
 /*
  * Theme aus dem shadcn-Preset bInUyNX (Style vega, Theme indigo, Basis neutral,
  * Radius small, Schrift Noto Sans). Die Variablennamen sind zwischen shadcn und
