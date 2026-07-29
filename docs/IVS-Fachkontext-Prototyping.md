@@ -675,7 +675,41 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
     `components.json` gesetzt und bestimmt den generierten Komponenten-Quellcode
     unter `libs/ui`.
 
-### 9.6 Referenz-Prototyp
+### 9.6 Tablet-Tauglichkeit — gemessener Ausgangszustand
+
+Gemessen an der Kitchen-Sink-Seite bei 768 × 1024 px (29.07.2026), also der
+Mindestbreite aus N12. **Das Layout hält**, kein Umbruch, kein nennenswerter
+horizontaler Überlauf (5 px durch das Seitengrössen-Select der Pagination).
+
+Die **Trefferflächen** sind dagegen durchgehend zu klein. Von 143 sichtbaren
+Bedienelementen liegen **139 unter 44 px** Höhe — der üblichen Mindestgrösse für
+Touch (Apple 44 pt, Google 48 dp, WCAG 2.5.8 mindestens 24 px):
+
+| Element | Grösse | Bemerkung |
+|---|---|---|
+| Checkbox, Radio, Slider-Griff | 16 × 16 px | kritisch |
+| Switch | 32 × 18 px, klein 24 × 14 px | kritisch |
+| Button `xs` | 24 px hoch | kritisch |
+| Button `sm`, Icon-Button | 28–32 px hoch | knapp |
+| Button Standard | 36 px hoch | knapp |
+| Eingabefelder | 36 px hoch | knapp |
+
+Teilweise entschärft: Checkbox, Radio und Switch stehen in `<label>`-Elementen,
+die sich über die volle Zeilenbreite erstrecken (rund 678 px) und den Schalter
+mit auslösen. Die Trefferfläche ist damit **breit, aber nur 14–18 px hoch**.
+
+**Drei Komponenten sind auf Touch grundsätzlich nicht bedienbar** — verifiziert
+durch Auslösen der Ereignisse im laufenden DOM:
+
+- **Hover Card** öffnet ausschliesslich auf `mouseenter`, nicht auf Klick.
+- **Tooltip** ebenso.
+- **Context Menu** hört nur auf das `contextmenu`-Ereignis. Long-press verhält
+  sich zwischen iOS und Android uneinheitlich.
+
+Für die als «Muss im Feld möglich sein» markierten Aufgaben (Abschnitt 4.2)
+dürfen diese drei daher keine Information oder Aktion exklusiv tragen.
+
+### 9.7 Referenz-Prototyp
 
 Ein älterer Prototyp existiert unter
 **<https://ivs-prototyp-variant-b.vercel.app/>** (Listen-zentrierte Werkbank:
