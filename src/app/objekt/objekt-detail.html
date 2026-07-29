@@ -1,0 +1,844 @@
+@if (objekt(); as o) {
+  <div class="flex h-full flex-col">
+    <!-- Kopfzeile -->
+    <header class="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
+      <div class="flex min-w-0 items-center gap-2">
+        <h1 class="truncate text-base font-semibold">{{ o.signatur }} – {{ o.name }}</h1>
+        <span hlmBadge variant="secondary">{{ statusLabel[o.status] }}</span>
+        @if (o.inexistent) {
+          <span hlmBadge variant="destructive">inexistent</span>
+        }
+        <!-- Hierarchie: Wechsel zwischen Parent- und Child-Objekten -->
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          class="rounded-full"
+          type="button"
+          [hlmDropdownMenuTrigger]="hierarchieMenu"
+          align="start"
+          aria-label="Objekthierarchie öffnen"
+        >
+          <ng-icon name="lucideChevronDown" />
+        </button>
+      </div>
+
+      <div class="ml-auto flex items-center gap-1.5">
+        <!-- Löschen (07.05: bis zur Publikation) -->
+        <hlm-alert-dialog>
+          <button
+            hlmAlertDialogTrigger
+            hlmBtn
+            variant="outline"
+            size="icon"
+            type="button"
+            [disabled]="o.status === 'publiziert'"
+            [hlmTooltip]="o.status === 'publiziert' ? 'Nach Publikation nicht mehr löschbar' : 'Objekt löschen'"
+            aria-label="Objekt löschen"
+          >
+            <ng-icon name="lucideTrash2" />
+          </button>
+          <hlm-alert-dialog-content *hlmAlertDialogPortal>
+            <hlm-alert-dialog-header>
+              <h3 hlmAlertDialogTitle>{{ o.signatur }} löschen?</h3>
+              <p hlmAlertDialogDescription>
+                Das Objekt wird mitsamt allen untergeordneten Objekten aus dem Arbeitsbestand entfernt.
+                Bis zur Publikation ist das Löschen zulässig (07.05).
+              </p>
+            </hlm-alert-dialog-header>
+            <hlm-alert-dialog-footer>
+              <button hlmAlertDialogCancel>Abbrechen</button>
+              <button hlmAlertDialogAction (click)="loeschen()">Löschen</button>
+            </hlm-alert-dialog-footer>
+          </hlm-alert-dialog-content>
+        </hlm-alert-dialog>
+
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          type="button"
+          hlmTooltip="Export PDF / INTERLIS (im Prototyp ohne Funktion)"
+          aria-label="Exportieren"
+        >
+          <ng-icon name="lucideDownload" />
+        </button>
+
+        <!-- Historie -->
+        <button hlmBtn variant="outline" size="sm" type="button" [hlmDropdownMenuTrigger]="historieMenu" align="end">
+          <ng-icon name="lucideHistory" />
+          Historie
+          <ng-icon name="lucideChevronDown" />
+        </button>
+        <ng-template #historieMenu>
+          <hlm-dropdown-menu class="w-64">
+            <button hlmDropdownMenuItem disabled>
+              Versionsvergleich
+              <span class="ml-auto text-xs text-muted-foreground">folgt</span>
+            </button>
+            <button hlmDropdownMenuItem (triggered)="logOffen.set(true)">Bearbeitungslog</button>
+          </hlm-dropdown-menu>
+        </ng-template>
+
+        <!-- Statusübergänge der aktiven Rolle -->
+        @for (uebergang of uebergaenge(); track uebergang.nach) {
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="uebergangAusfuehren(uebergang)">
+            {{ uebergang.aktion }}
+          </button>
+        }
+
+        <div class="mx-1 h-5 w-px bg-border"></div>
+
+        <!-- View ↔ Edit -->
+        <button
+          hlmBtn
+          size="icon"
+          type="button"
+          (click)="modusUmschalten()"
+          [disabled]="!darfBearbeiten()"
+          [hlmTooltip]="
+            !darfBearbeiten()
+              ? 'Bearbeitung im Status «' + statusLabel[o.status] + '» für ' + einstellungen.aktiveRolle().name + ' nicht möglich'
+              : istEdit()
+                ? 'Bearbeitung abschliessen'
+                : 'Bearbeiten'
+          "
+          position="left"
+          [attr.aria-label]="istEdit() ? 'Bearbeitung abschliessen' : 'Bearbeiten'"
+        >
+          <ng-icon [name]="istEdit() ? 'lucideCheck' : 'lucidePencil'" />
+        </button>
+      </div>
+    </header>
+
+    <!-- Hierarchie-Menü -->
+    <ng-template #hierarchieMenu>
+      <hlm-dropdown-menu class="w-96">
+        @for (eintrag of hierarchie(); track eintrag.id) {
+          <button
+            hlmDropdownMenuItem
+            (triggered)="wechsleZu(eintrag)"
+            [class.bg-accent]="eintrag.id === o.id"
+            [class.font-semibold]="eintrag.id === o.id"
+          >
+            <span
+              class="flex min-w-0 items-center gap-2"
+              [class.pl-0]="eintrag.ebene === 'strecke'"
+              [class.pl-4]="eintrag.ebene === 'linienfuehrung' || eintrag.ebene === 'wegbegleiter'"
+              [class.pl-8]="eintrag.ebene === 'abschnitt'"
+            >
+              @switch (eintrag.ebene) {
+                @case ('strecke') {
+                  <ng-icon name="lucideMinus" class="shrink-0 text-muted-foreground" />
+                  <span class="truncate">{{ eintrag.signatur }} {{ eintrag.name }}</span>
+                }
+                @case ('linienfuehrung') {
+                  <ng-icon name="lucideSlash" class="shrink-0 text-muted-foreground" />
+                  <span class="truncate">{{ eintrag.signatur.slice(3) }} {{ eintrag.name }}</span>
+                }
+                @case ('abschnitt') {
+                  <ng-icon name="lucideAlignJustify" class="shrink-0 text-muted-foreground" />
+                  <span class="truncate">{{ eintrag.signatur.slice(3) }} {{ eintrag.name }}</span>
+                }
+                @case ('wegbegleiter') {
+                  <span class="size-2.5 shrink-0 rounded-full bg-primary"></span>
+                  <span class="truncate">{{ eintrag.name }}</span>
+                }
+              }
+            </span>
+          </button>
+        }
+      </hlm-dropdown-menu>
+    </ng-template>
+
+    <div class="flex min-h-0 flex-1">
+      <!-- Formular -->
+      <section class="min-w-0 flex-1 overflow-y-auto px-4 py-3">
+        @if (istEdit()) {
+          <p class="mb-2 text-xs text-muted-foreground">
+            Bearbeitungsmodus — Änderungen werden automatisch gespeichert.
+          </p>
+        }
+        <div class="flex flex-col gap-4 pb-8">
+          <!-- ===================================================== Eckdaten -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('eckdaten')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('eckdaten')" />
+              Eckdaten
+            </button>
+            @if (!eingeklappt().has('eckdaten')) {
+              <div class="p-4">
+                @if (istEdit()) {
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-1.5 sm:col-span-2">
+                      <label hlmLabel for="f-status">Workflow-Status</label>
+                      <hlm-native-select
+                        [ngModel]="o.status"
+                        (ngModelChange)="statusSetzen($event)"
+                        [disabled]="statusOptionen().length === 1"
+                      >
+                        @for (option of statusOptionen(); track option.wert) {
+                          <option hlmNativeSelectOption [value]="option.wert">{{ option.label }}</option>
+                        }
+                      </hlm-native-select>
+                      <p class="text-xs text-muted-foreground">
+                        Steuert die Einordnung im Aufgaben-Bereich (Backlog / In Arbeit / Done).
+                      </p>
+                    </div>
+
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-name">Objektname <span class="text-destructive">*</span></label>
+                      <input hlmInput id="f-name" [ngModel]="o.name" (ngModelChange)="patch({ name: $event })" />
+                    </div>
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-nhg">NHG-Wert</label>
+                      <hlm-native-select id="f-nhg" [ngModel]="o.nhgWert" (ngModelChange)="patch({ nhgWert: $event })">
+                        <option hlmNativeSelectOption value="national">national</option>
+                        <option hlmNativeSelectOption value="regional">regional</option>
+                        <option hlmNativeSelectOption value="lokal">lokal</option>
+                      </hlm-native-select>
+                    </div>
+
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-substanz">Substanzgrad</label>
+                      <hlm-native-select
+                        id="f-substanz"
+                        [ngModel]="o.substanzgrad ?? ''"
+                        (ngModelChange)="patch({ substanzgrad: $event || null })"
+                      >
+                        <option hlmNativeSelectOption value="">—</option>
+                        <option hlmNativeSelectOption value="viel_substanz">Viel Substanz</option>
+                        <option hlmNativeSelectOption value="mit_substanz">Mit Substanz</option>
+                        <option hlmNativeSelectOption value="wenig_substanz">Wenig Substanz</option>
+                        <option hlmNativeSelectOption value="ohne_substanz">Ohne Substanz</option>
+                      </hlm-native-select>
+                    </div>
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-bauzeit">Bauzeit</label>
+                      <input hlmInput id="f-bauzeit" [ngModel]="o.bauzeit" (ngModelChange)="patch({ bauzeit: $event })" />
+                    </div>
+
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-bauherr">Bauherrschaft</label>
+                      <input hlmInput id="f-bauherr" [ngModel]="o.bauherrschaft" (ngModelChange)="patch({ bauherrschaft: $event })" />
+                    </div>
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-planer">Planer</label>
+                      <input hlmInput id="f-planer" [ngModel]="o.planer" (ngModelChange)="patch({ planer: $event })" />
+                    </div>
+
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-signatur">IVS-Signatur</label>
+                      <input hlmInput id="f-signatur" [ngModel]="o.signatur" disabled />
+                    </div>
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-kanton">Kanton <span class="text-destructive">*</span></label>
+                      <input hlmInput id="f-kanton" [ngModel]="o.kanton" disabled />
+                    </div>
+
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-gemeinden">Gemeinden</label>
+                      <input hlmInput id="f-gemeinden" [ngModel]="o.gemeinden" (ngModelChange)="patch({ gemeinden: $event })" />
+                    </div>
+                    <div class="grid gap-1.5">
+                      <label hlmLabel for="f-jahr">Aufnahmejahr</label>
+                      <input
+                        hlmInput
+                        id="f-jahr"
+                        type="number"
+                        [ngModel]="o.aufnahmejahr"
+                        (ngModelChange)="patch({ aufnahmejahr: $event || null })"
+                      />
+                    </div>
+
+                    @if (o.ebene === 'wegbegleiter') {
+                      <div class="grid gap-1.5 sm:col-span-2">
+                        <label hlmLabel for="f-typ">Objektart</label>
+                        <input hlmInput id="f-typ" [ngModel]="o.wegbegleiterTyp" (ngModelChange)="patch({ wegbegleiterTyp: $event })" />
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <dl class="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Workflow-Status</dt>
+                      <dd>{{ statusLabel[o.status] }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Zuständig</dt>
+                      <dd>{{ o.zustaendigName }} ({{ o.zustaendigRolle }})</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Objektname</dt>
+                      <dd>{{ o.name }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">NHG-Wert</dt>
+                      <dd>{{ nhgLabel[o.nhgWert] }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Substanzgrad</dt>
+                      <dd>{{ o.substanzgrad ? substanzLabel[o.substanzgrad] : '—' }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Bauzeit</dt>
+                      <dd>{{ o.bauzeit || '—' }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Bauherrschaft</dt>
+                      <dd>{{ o.bauherrschaft || '—' }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Planer</dt>
+                      <dd>{{ o.planer || '—' }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">IVS-Signatur</dt>
+                      <dd>{{ o.signatur }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Kanton</dt>
+                      <dd>{{ o.kanton }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Gemeinden</dt>
+                      <dd>{{ o.gemeinden || '—' }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Aufnahmejahr</dt>
+                      <dd>{{ o.aufnahmejahr ?? '—' }}</dd>
+                    </div>
+                    @if (o.ebene === 'wegbegleiter') {
+                      <div>
+                        <dt class="text-xs text-muted-foreground">Objektart</dt>
+                        <dd>{{ o.wegbegleiterTyp || '—' }}</dd>
+                      </div>
+                    }
+                    <div>
+                      <dt class="text-xs text-muted-foreground">Ebene</dt>
+                      <dd>{{ ebeneLabel[o.ebene] }}</dd>
+                    </div>
+                  </dl>
+                }
+
+                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div class="flex min-h-44 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border bg-muted/40 p-4 text-center">
+                    <p class="text-xs text-muted-foreground">
+                      Gesamt-/Luftaufnahme bzw. objektcharakterisierende Aufnahme
+                    </p>
+                    @if (istEdit()) {
+                      <button hlmBtn variant="ghost" size="sm" type="button" hlmTooltip="Bild-Upload im Prototyp ohne Funktion">
+                        <ng-icon name="lucideUpload" />
+                        Bild hochladen
+                      </button>
+                    }
+                  </div>
+                  <figure class="overflow-hidden rounded-md border border-border">
+                    @if (situierungsUrl(); as url) {
+                      <img [src]="url" alt="Kartenausschnitt zur Situierung (Dufourkarte)" class="aspect-4/3 w-full object-cover" />
+                    } @else {
+                      <div class="flex aspect-4/3 w-full items-center justify-center bg-muted/40 text-xs text-muted-foreground">
+                        Kartenausschnitt wird geladen …
+                      </div>
+                    }
+                    <figcaption class="border-t border-border px-2 py-1 text-xs text-muted-foreground">
+                      Kartenausschnitt zur Situierung · © swisstopo
+                    </figcaption>
+                  </figure>
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- ===================================== Schutzbegründung / Bewertung -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('bewertung')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('bewertung')" />
+              Schutzbegründung / Bewertung [NHG 5.1.b]
+            </button>
+            @if (!eingeklappt().has('bewertung')) {
+              <div class="space-y-4 p-4">
+                <p class="text-xs text-muted-foreground">
+                  Schutzbegründung/Bewertung [NHG 5.1.b] — gegliedert nach Geschichte, Morphologie, Substanzwert
+                  (gemäss Methodik IVS 1.0). Mittel: {{ bewertungText(o.bewertung) }}
+                </p>
+
+                @for (teil of bewertungsTeile; track teil.schluessel) {
+                  <div class="rounded-md border border-border p-3">
+                    <div class="flex items-center justify-between gap-3">
+                      <h4 class="text-sm font-semibold">{{ teil.titel }}</h4>
+                      <ivs-bewertungs-punkte
+                        [wert]="o.bewertung[teil.schluessel].punkte"
+                        [nurLesen]="!istEdit()"
+                        (wertChange)="patchBewertung(teil.schluessel, { punkte: $event })"
+                      />
+                    </div>
+                    <p class="mt-0.5 text-xs text-muted-foreground">{{ teil.hinweis }}</p>
+                    @if (istEdit()) {
+                      <textarea
+                        hlmTextarea
+                        class="mt-2 min-h-20 w-full"
+                        [ngModel]="o.bewertung[teil.schluessel].text"
+                        (ngModelChange)="patchBewertung(teil.schluessel, { text: $event })"
+                      ></textarea>
+                    } @else {
+                      <p class="mt-2 text-sm whitespace-pre-line">{{ o.bewertung[teil.schluessel].text || '—' }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </section>
+
+          <!-- ================================================= Empfehlungen -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('empfehlungen')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('empfehlungen')" />
+              Empfehlungen
+            </button>
+            @if (!eingeklappt().has('empfehlungen')) {
+              <div class="space-y-4 p-4">
+                <div class="grid gap-1.5">
+                  <label hlmLabel for="f-erhaltungsziel">Erhaltungsziel [NHG 5.1.e]</label>
+                  <p class="text-xs text-muted-foreground">Standardtext zu den allgemeinen Erhaltungszielen der VIVS.</p>
+                  @if (istEdit()) {
+                    <textarea
+                      hlmTextarea
+                      id="f-erhaltungsziel"
+                      class="min-h-24 w-full"
+                      [ngModel]="o.erhaltungsziel"
+                      (ngModelChange)="patch({ erhaltungsziel: $event })"
+                    ></textarea>
+                  } @else {
+                    <p class="text-sm whitespace-pre-line">{{ o.erhaltungsziel || '—' }}</p>
+                  }
+                </div>
+                <div class="grid gap-1.5">
+                  <label hlmLabel for="f-gefahren">Gefahren, Schutzmassnahmen, Verbesserungen [NHG 5.1.c, d, f]</label>
+                  <p class="text-xs text-muted-foreground">Individueller Text, angepasst an das jeweilige IVS-Objekt.</p>
+                  @if (istEdit()) {
+                    <textarea
+                      hlmTextarea
+                      id="f-gefahren"
+                      class="min-h-24 w-full"
+                      [ngModel]="o.gefahrenMassnahmen"
+                      (ngModelChange)="patch({ gefahrenMassnahmen: $event })"
+                    ></textarea>
+                  } @else {
+                    <p class="text-sm whitespace-pre-line">{{ o.gefahrenMassnahmen || '—' }}</p>
+                  }
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- ============================================ Geschichte & Gelände -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('geschichte')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('geschichte')" />
+              Geschichte &amp; Gelände
+            </button>
+            @if (!eingeklappt().has('geschichte')) {
+              <div class="space-y-4 p-4">
+                <div class="grid gap-1.5">
+                  <label hlmLabel for="f-geschichte">Geschichte</label>
+                  <p class="text-xs text-muted-foreground">
+                    I. d. R. aus IVS 1.0 übernommen. Zu Beginn Hinweis, ob Text identisch mit Erstbeschrieb
+                    (mit Datum) oder ergänzt/angepasst.
+                  </p>
+                  @if (istEdit()) {
+                    <textarea
+                      hlmTextarea
+                      id="f-geschichte"
+                      class="min-h-40 w-full"
+                      [ngModel]="o.geschichteText"
+                      (ngModelChange)="patch({ geschichteText: $event })"
+                    ></textarea>
+                  } @else {
+                    <p class="text-sm whitespace-pre-line">{{ o.geschichteText || '—' }}</p>
+                  }
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="grid gap-1.5">
+                    <label hlmLabel for="f-dat-g10">Datierung Geschichtsbeschrieb IVS 1.0</label>
+                    @if (istEdit()) {
+                      <input
+                        hlmInput
+                        id="f-dat-g10"
+                        type="date"
+                        [ngModel]="o.datierungGeschichte10"
+                        (ngModelChange)="patch({ datierungGeschichte10: $event || null })"
+                      />
+                    } @else {
+                      <p class="text-sm">{{ formatDatum(o.datierungGeschichte10) }}</p>
+                    }
+                  </div>
+                  <div class="grid gap-1.5">
+                    <label hlmLabel for="f-dat-g20">Datierung Geschichtsbeschrieb IVS 2.0</label>
+                    @if (istEdit()) {
+                      <input
+                        hlmInput
+                        id="f-dat-g20"
+                        type="date"
+                        [ngModel]="o.datierungGeschichte20"
+                        (ngModelChange)="patch({ datierungGeschichte20: $event || null })"
+                      />
+                    } @else {
+                      <p class="text-sm">{{ formatDatum(o.datierungGeschichte20) }}</p>
+                    }
+                  </div>
+                </div>
+
+                <div class="grid gap-1.5">
+                  <label hlmLabel for="f-gelaende">Gelände (max. 3000 Zeichen)</label>
+                  <p class="text-xs text-muted-foreground">
+                    Neuer Text basierend auf der aktuellen Wegsubstanz. Ersetzt den alten Geländebeschrieb.
+                    Mit Standardhinweis.
+                  </p>
+                  @if (istEdit()) {
+                    <textarea
+                      hlmTextarea
+                      id="f-gelaende"
+                      class="min-h-32 w-full"
+                      maxlength="3000"
+                      [ngModel]="o.gelaendeText"
+                      (ngModelChange)="patch({ gelaendeText: $event })"
+                    ></textarea>
+                    <p class="text-right text-xs text-muted-foreground">{{ o.gelaendeText.length }}/3000</p>
+                  } @else {
+                    <p class="text-sm whitespace-pre-line">{{ o.gelaendeText || '—' }}</p>
+                  }
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="grid gap-1.5">
+                  <label hlmLabel for="f-dat-gel20">Datierung Geländebeschrieb IVS 2.0</label>
+                  @if (istEdit()) {
+                    <input
+                      hlmInput
+                      id="f-dat-gel20"
+                      type="date"
+                      [ngModel]="o.datierungGelaende20"
+                      (ngModelChange)="patch({ datierungGelaende20: $event || null })"
+                    />
+                  } @else {
+                    <p class="text-sm">{{ formatDatum(o.datierungGelaende20) }}</p>
+                  }
+                  </div>
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- ======================================================= Anhang -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('anhang')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('anhang')" />
+              Anhang
+            </button>
+            @if (!eingeklappt().has('anhang')) {
+              <div class="space-y-4 p-4">
+                <div class="grid gap-1.5">
+                  <label hlmLabel for="f-biblio">Bibliografie</label>
+                  <p class="text-xs text-muted-foreground">
+                    Liste mit ausgeschriebenen Titeln der zitierten Quellen/Literatur.
+                  </p>
+                  @if (istEdit()) {
+                    <textarea
+                      hlmTextarea
+                      id="f-biblio"
+                      class="min-h-24 w-full"
+                      [ngModel]="o.bibliografie"
+                      (ngModelChange)="patch({ bibliografie: $event })"
+                    ></textarea>
+                  } @else {
+                    <p class="text-sm whitespace-pre-line">{{ o.bibliografie || '—' }}</p>
+                  }
+                </div>
+
+                <div class="grid gap-1.5">
+                  <span class="text-sm font-medium">Neue Geländeaufnahmen &amp; Abbildungen (inkl. Bildlegenden)</span>
+                  <p class="text-sm text-muted-foreground">Noch keine Abbildungen.</p>
+                  @if (istEdit()) {
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      size="sm"
+                      class="w-fit"
+                      type="button"
+                      hlmTooltip="Bild-Upload im Prototyp ohne Funktion"
+                    >
+                      <ng-icon name="lucideImagePlus" />
+                      Bild hinzufügen
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- ============================================== Prüfen / Freigabe -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('pruefen')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('pruefen')" />
+              Prüfen / Freigabe
+            </button>
+            @if (!eingeklappt().has('pruefen')) {
+              <div class="space-y-4 p-4">
+                <div class="grid gap-1.5">
+                  <label hlmLabel for="f-pruefkommentar">Prüfkommentar</label>
+                  @if (istEdit() && einstellungen.aktiveRolleId() === 'R-06') {
+                    <textarea
+                      hlmTextarea
+                      id="f-pruefkommentar"
+                      class="min-h-24 w-full"
+                      [ngModel]="o.pruefkommentar"
+                      (ngModelChange)="patch({ pruefkommentar: $event })"
+                    ></textarea>
+                  } @else {
+                    <p class="text-sm whitespace-pre-line">{{ o.pruefkommentar || '—' }}</p>
+                  }
+                </div>
+                <button
+                  hlmBtn
+                  size="sm"
+                  type="button"
+                  [disabled]="einstellungen.aktiveRolleId() !== 'R-06' || o.status !== 'in_pruefung'"
+                  (click)="statusSetzen('geprueft')"
+                  [hlmTooltip]="
+                    einstellungen.aktiveRolleId() !== 'R-06'
+                      ? 'Nur das Fachlektorat (R-06) kennzeichnet Objekte als geprüft'
+                      : o.status !== 'in_pruefung'
+                        ? 'Nur im Status «In Prüfung» möglich'
+                        : 'Setzt den Status auf «Geprüft»'
+                  "
+                >
+                  Als geprüft kennzeichnen
+                </button>
+                <p class="text-xs text-muted-foreground">
+                  Das Prüfprotokoll (Checkliste 1 mit Befunden) folgt in einer späteren Etappe.
+                </p>
+              </div>
+            }
+          </section>
+
+          <!-- ==================================================== Inexistent -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('inexistent')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('inexistent')" />
+              Inexistent
+            </button>
+            @if (!eingeklappt().has('inexistent')) {
+              <div class="space-y-3 p-4">
+                @if (o.inexistent; as inexistent) {
+                  <div class="flex items-start gap-3 rounded-md border border-destructive/50 bg-destructive/5 p-3">
+                    <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-destructive" />
+                    <div class="space-y-1 text-sm">
+                      <p class="font-medium">Als inexistent geführt seit {{ formatDatum(inexistent.seit) }}.</p>
+                      <p class="text-muted-foreground">{{ inexistent.begruendung }}</p>
+                    </div>
+                  </div>
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    [disabled]="!darfBearbeiten()"
+                    (click)="wiederExistentSetzen()"
+                  >
+                    Wieder als existent führen
+                  </button>
+                } @else {
+                  <hlm-alert-dialog>
+                    <button
+                      hlmAlertDialogTrigger
+                      hlmBtn
+                      variant="destructive"
+                      size="sm"
+                      type="button"
+                      [disabled]="!darfBearbeiten()"
+                    >
+                      <ng-icon name="lucideTriangleAlert" />
+                      Auf inexistent setzen
+                    </button>
+                    <hlm-alert-dialog-content *hlmAlertDialogPortal>
+                      <hlm-alert-dialog-header>
+                        <h3 hlmAlertDialogTitle>{{ o.signatur }} auf inexistent setzen?</h3>
+                        <p hlmAlertDialogDescription>
+                          Verlinkte Objekte werden gekennzeichnet und müssen überprüft werden (07.16).
+                          Eine Begründung ist Pflicht.
+                        </p>
+                      </hlm-alert-dialog-header>
+                      <div class="grid gap-1.5 py-2">
+                        <label hlmLabel for="f-inexistent">Begründung <span class="text-destructive">*</span></label>
+                        <textarea
+                          hlmTextarea
+                          id="f-inexistent"
+                          class="min-h-20 w-full"
+                          [ngModel]="inexistentBegruendung()"
+                          (ngModelChange)="inexistentBegruendung.set($event)"
+                        ></textarea>
+                      </div>
+                      <hlm-alert-dialog-footer>
+                        <button hlmAlertDialogCancel>Abbrechen</button>
+                        <button hlmAlertDialogAction [disabled]="!inexistentBegruendung().trim()" (click)="inexistentSetzen()">
+                          Auf inexistent setzen
+                        </button>
+                      </hlm-alert-dialog-footer>
+                    </hlm-alert-dialog-content>
+                  </hlm-alert-dialog>
+                  <p class="text-xs text-muted-foreground">Öffnet einen Warnhinweis mit Pflichtbegründung.</p>
+                }
+              </div>
+            }
+          </section>
+
+          <!-- ==================================================== Lognotizen -->
+          <section class="rounded-md border border-border">
+            <button type="button" class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold" (click)="abschnittUmschalten('lognotizen')">
+              <ng-icon name="lucideChevronDown" class="text-muted-foreground transition-transform" [class.-rotate-90]="eingeklappt().has('lognotizen')" />
+              Lognotizen (manuell)
+            </button>
+            @if (!eingeklappt().has('lognotizen')) {
+              <div class="space-y-4 p-4">
+                @if (lognotizenAbsteigend().length === 0) {
+                  <p class="text-sm text-muted-foreground">Noch keine Notizen erfasst.</p>
+                } @else {
+                  <ul class="space-y-3">
+                    @for (notiz of lognotizenAbsteigend(); track $index) {
+                      <li class="rounded-md border border-border p-3 text-sm">
+                        <p class="text-xs text-muted-foreground">
+                          {{ formatDatum(notiz.datum) }} · {{ notiz.autor }} ({{ notiz.rolle }})
+                        </p>
+                        <p class="mt-1 whitespace-pre-line">{{ notiz.text }}</p>
+                      </li>
+                    }
+                  </ul>
+                }
+                @if (istEdit()) {
+                  <div class="grid gap-1.5">
+                    <label hlmLabel for="f-lognotiz">Neue Lognotiz</label>
+                    <textarea
+                      hlmTextarea
+                      id="f-lognotiz"
+                      class="min-h-20 w-full"
+                      placeholder="Was wurde angepasst und warum?"
+                      [ngModel]="neueLognotiz()"
+                      (ngModelChange)="neueLognotiz.set($event)"
+                    ></textarea>
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      size="sm"
+                      class="w-fit"
+                      type="button"
+                      [disabled]="!neueLognotiz().trim()"
+                      (click)="lognotizHinzufuegen()"
+                    >
+                      <ng-icon name="lucidePlus" />
+                      Eintrag hinzufügen
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </div>
+      </section>
+
+      <!-- Kartenpanel -->
+      <aside class="flex w-[42%] min-w-96 shrink-0 flex-col border-l border-border">
+        <hlm-tabs tab="karte" class="flex min-h-0 flex-1 flex-col">
+          <div class="flex items-center gap-2 border-b border-border px-2 py-1.5">
+            <hlm-tabs-list aria-label="Kartenpanel">
+              <button hlmTabsTrigger="karte">Karte</button>
+              <button hlmTabsTrigger="bilder360">360° Bilder</button>
+              <button hlmTabsTrigger="kommentare">Kommentare</button>
+            </hlm-tabs-list>
+            <div class="ml-auto flex items-center gap-1">
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                disabled
+                hlmTooltip="Geometrie bearbeiten — folgt in einer späteren Etappe"
+                aria-label="Geometrie bearbeiten"
+              >
+                <ng-icon name="lucidePencil" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                (click)="layerPanel()"
+                hlmTooltip="Layer-Auswahl ein-/ausblenden"
+                aria-label="Layer-Auswahl"
+              >
+                <ng-icon name="lucideLayers" />
+              </button>
+              <div class="mx-1 h-5 w-px bg-border"></div>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                (click)="inNeuemTabOeffnen()"
+                hlmTooltip="Karte in neuem Tab öffnen (synchronisiert)"
+                aria-label="Karte in neuem Tab öffnen"
+              >
+                <ng-icon name="lucideExternalLink" />
+              </button>
+            </div>
+          </div>
+
+          <div hlmTabsContent="karte" class="min-h-0 flex-1">
+            <ivs-karte class="block h-full" [selektion]="selektion()" (objektKlick)="oeffneSignatur($event)" />
+          </div>
+          <div hlmTabsContent="bilder360" class="min-h-0 flex-1 overflow-y-auto p-4">
+            <p class="text-sm text-muted-foreground">
+              360°-Panorama mit Vor-/Zurück-Navigation und Karten-Marker — folgt in einer späteren Etappe.
+            </p>
+          </div>
+          <div hlmTabsContent="kommentare" class="min-h-0 flex-1 overflow-y-auto p-4">
+            <p class="text-sm text-muted-foreground">
+              Kommentare zum aktiven Objekt — wird zusammen mit dem Prüfen-und-Kommentieren-Block spezifiziert.
+            </p>
+          </div>
+        </hlm-tabs>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Bearbeitungslog -->
+  <hlm-sheet side="right" [state]="logOffen() ? 'open' : 'closed'" (stateChanged)="logOffen.set($event === 'open')">
+    <hlm-sheet-content *hlmSheetPortal>
+      <hlm-sheet-header>
+        <h3 hlmSheetTitle>Bearbeitungslog</h3>
+        <p hlmSheetDescription>{{ o.signatur }} – {{ o.name }}</p>
+      </hlm-sheet-header>
+      <div class="space-y-3 overflow-y-auto px-4 pb-4">
+        @if (lognotizenAbsteigend().length === 0) {
+          <p class="text-sm text-muted-foreground">Noch keine Einträge.</p>
+        }
+        @for (notiz of lognotizenAbsteigend(); track $index) {
+          <div class="rounded-md border border-border p-3 text-sm">
+            <p class="text-xs text-muted-foreground">
+              {{ formatDatum(notiz.datum) }} · {{ notiz.autor }} ({{ notiz.rolle }})
+            </p>
+            <p class="mt-1 whitespace-pre-line">{{ notiz.text }}</p>
+          </div>
+        }
+      </div>
+    </hlm-sheet-content>
+  </hlm-sheet>
+} @else {
+  <div class="p-6">
+    <h1 class="text-lg font-semibold">Objekt nicht gefunden</h1>
+    <p class="mt-2 text-sm text-muted-foreground">
+      Unter dieser Adresse existiert kein Objekt — möglicherweise wurde es gelöscht.
+    </p>
+  </div>
+}
