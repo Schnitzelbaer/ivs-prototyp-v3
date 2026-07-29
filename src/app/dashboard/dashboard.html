@@ -1,0 +1,282 @@
+<div class="flex h-full flex-col">
+  <!-- Kopfzeile -->
+  <header class="flex items-center justify-between gap-4 border-b border-border px-4 py-2.5">
+    <h1 class="text-base font-semibold">Dashboard</h1>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      type="button"
+      hlmTooltip="Gefilterte Liste exportieren (im Prototyp ohne Funktion)"
+      position="left"
+      aria-label="Exportieren"
+    >
+      <ng-icon name="lucideDownload" />
+    </button>
+  </header>
+
+  <!-- Filterleiste -->
+  <div class="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
+    <div hlmInputGroup class="w-72 max-w-full">
+      <div hlmInputGroupAddon>
+        <ng-icon name="lucideSearch" />
+      </div>
+      <input
+        hlmInputGroupInput
+        type="search"
+        placeholder="Objekt suchen"
+        [ngModel]="suche()"
+        (ngModelChange)="suche.set($event)"
+      />
+    </div>
+
+    <hlm-popover sideOffset="6">
+      <button hlmPopoverTrigger hlmBtn variant="outline" size="sm" type="button">
+        <ng-icon name="lucideListFilter" />
+        Alle Filter
+      </button>
+      <hlm-popover-content *hlmPopoverPortal align="start" class="w-80">
+        <hlm-popover-header>
+          <div hlmPopoverTitle>Alle Filter</div>
+          <p hlmPopoverDescription>
+            Volltextsuche und Schnellfilter sind funktional; weitere Attribut- und Stammdaten-Filter folgen in
+            einer späteren Etappe.
+          </p>
+        </hlm-popover-header>
+        <button hlmBtn variant="outline" size="sm" class="mt-3 w-full" type="button" (click)="filterZuruecksetzen()">
+          <ng-icon name="lucideRotateCw" />
+          Filter zurücksetzen
+        </button>
+      </hlm-popover-content>
+    </hlm-popover>
+
+    <hlm-native-select class="w-36" size="sm" [ngModel]="gruppenFilter()" (ngModelChange)="gruppenFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Alle Gruppen</option>
+      <option hlmNativeSelectOption value="backlog">Backlog</option>
+      <option hlmNativeSelectOption value="in_arbeit">In Arbeit</option>
+      <option hlmNativeSelectOption value="done">Done</option>
+    </hlm-native-select>
+
+    <hlm-native-select class="w-40" size="sm" [ngModel]="regionFilter()" (ngModelChange)="regionFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Region</option>
+      <option hlmNativeSelectOption value="bern_mittelland">Bern-Mittelland</option>
+    </hlm-native-select>
+
+    <hlm-native-select class="w-36" size="sm" [ngModel]="bedeutungFilter()" (ngModelChange)="bedeutungFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Bedeutung</option>
+      <option hlmNativeSelectOption value="national">national</option>
+      <option hlmNativeSelectOption value="regional">regional</option>
+      <option hlmNativeSelectOption value="lokal">lokal</option>
+    </hlm-native-select>
+
+    <hlm-native-select class="w-40" size="sm" [ngModel]="substanzFilter()" (ngModelChange)="substanzFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Substanzgrad</option>
+      <option hlmNativeSelectOption value="viel_substanz">Viel Substanz</option>
+      <option hlmNativeSelectOption value="mit_substanz">Mit Substanz</option>
+      <option hlmNativeSelectOption value="wenig_substanz">Wenig Substanz</option>
+      <option hlmNativeSelectOption value="ohne_substanz">Ohne Substanz</option>
+    </hlm-native-select>
+
+    <hlm-native-select class="w-32" size="sm" [ngModel]="alterFilter()" (ngModelChange)="alterFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Alter</option>
+      <option hlmNativeSelectOption value="2024">2024</option>
+      <option hlmNativeSelectOption value="2025">2025</option>
+    </hlm-native-select>
+
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon"
+      type="button"
+      (click)="filterZuruecksetzen()"
+      hlmTooltip="Filter zurücksetzen"
+      aria-label="Filter zurücksetzen"
+    >
+      <ng-icon name="lucideRotateCw" />
+    </button>
+
+    @if (polygonSignaturen(); as polygon) {
+      <span hlmBadge variant="secondary">Polygon-Filter aktiv</span>
+    }
+  </div>
+
+  <div class="flex min-h-0 flex-1">
+    <!-- Aufgabenliste -->
+    <section class="min-w-0 flex-1 overflow-y-auto px-4 py-3">
+      <div class="flex flex-col gap-4">
+        @for (block of bloecke(); track block.gruppe) {
+          <div class="rounded-md border border-border">
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold"
+              (click)="gruppeUmschalten(block.gruppe)"
+            >
+              <ng-icon
+                name="lucideChevronDown"
+                class="text-muted-foreground transition-transform"
+                [class.-rotate-90]="eingeklappt()[block.gruppe]"
+              />
+              {{ block.label }}
+              <span hlmBadge class="ml-auto">{{ block.objekte.length }}</span>
+            </button>
+
+            @if (!eingeklappt()[block.gruppe]) {
+              @if (block.objekte.length === 0) {
+                <p class="px-3 py-3 text-sm text-muted-foreground">Keine Objekte in dieser Gruppe.</p>
+              } @else {
+                <div hlmTableContainer>
+                  <table hlmTable>
+                    <thead hlmTHead>
+                      <tr hlmTr>
+                        <th hlmTh class="w-10"></th>
+                        <th hlmTh>
+                          <button
+                            type="button"
+                            class="flex items-center gap-1"
+                            (click)="sortAufsteigend.set(!sortAufsteigend())"
+                          >
+                            Signatur
+                            <ng-icon
+                              name="lucideChevronDown"
+                              class="text-xs transition-transform"
+                              [class.rotate-180]="!sortAufsteigend()"
+                            />
+                          </button>
+                        </th>
+                        <th hlmTh>Bezeichnung</th>
+                        <th hlmTh class="w-16">Kanton</th>
+                        <th hlmTh class="w-24">Bewertung</th>
+                        <th hlmTh class="w-56">Workflow-Status</th>
+                      </tr>
+                    </thead>
+                    <tbody hlmTBody>
+                      @for (o of block.objekte; track o.id) {
+                        <tr hlmTr class="cursor-pointer" (click)="oeffneObjekt(o)">
+                          <td hlmTd (click)="$event.stopPropagation()">
+                            <hlm-checkbox
+                              [ngModel]="ausgewaehlt().has(o.id)"
+                              (ngModelChange)="auswahlUmschalten(o.id, $event)"
+                              [attr.aria-label]="o.signatur + ' auswählen'"
+                            />
+                          </td>
+                          <td hlmTd class="font-mono text-xs">{{ o.signatur }}</td>
+                          <td hlmTd class="max-w-0 truncate font-medium">
+                            {{ o.name }}
+                            @if (o.inexistent) {
+                              <span hlmBadge variant="destructive" class="ml-1">inexistent</span>
+                            }
+                          </td>
+                          <td hlmTd>{{ o.kanton }}</td>
+                          <td hlmTd class="text-muted-foreground">{{ bewertungText(o.bewertung) }}</td>
+                          <td hlmTd (click)="$event.stopPropagation()">
+                            @if (statusOptionen(o); as optionen) {
+                              <hlm-native-select
+                                size="sm"
+                                [ngModel]="o.status"
+                                (ngModelChange)="statusWechseln(o, $event)"
+                                [disabled]="optionen.length === 1"
+                              >
+                                @for (option of optionen; track option.wert) {
+                                  <option hlmNativeSelectOption [value]="option.wert">{{ option.label }}</option>
+                                }
+                              </hlm-native-select>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Kartenpanel -->
+    @if (karteOffen()) {
+      <aside class="flex w-[46%] min-w-96 shrink-0 flex-col border-l border-border">
+        <hlm-tabs tab="karte" class="flex min-h-0 flex-1 flex-col">
+          <div class="flex items-center gap-2 border-b border-border px-2 py-1.5">
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              type="button"
+              (click)="karteOffen.set(false)"
+              hlmTooltip="Karte einklappen"
+              aria-label="Karte einklappen"
+            >
+              <ng-icon name="lucideChevronRight" />
+            </button>
+            <hlm-tabs-list aria-label="Kartenpanel">
+              <button hlmTabsTrigger="karte">Karte</button>
+              <button hlmTabsTrigger="kommentare">Kommentare</button>
+            </hlm-tabs-list>
+            <div class="ml-auto flex items-center gap-1">
+              <button
+                hlmBtn
+                [variant]="polygonAktiv() || polygonSignaturen() ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="polygonWerkzeug()"
+                hlmTooltip="Polygon-Selektion: Objekte innerhalb einer gezeichneten Fläche filtern"
+                aria-label="Polygon-Selektion"
+              >
+                <ng-icon name="lucideLasso" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                (click)="layerPanel()"
+                hlmTooltip="Layer-Auswahl ein-/ausblenden"
+                aria-label="Layer-Auswahl"
+              >
+                <ng-icon name="lucideLayers" />
+              </button>
+              <div class="mx-1 h-5 w-px bg-border"></div>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                (click)="inNeuemTabOeffnen()"
+                hlmTooltip="Karte in neuem Tab öffnen"
+                aria-label="Karte in neuem Tab öffnen"
+              >
+                <ng-icon name="lucideExternalLink" />
+              </button>
+            </div>
+          </div>
+
+          <div hlmTabsContent="karte" class="min-h-0 flex-1">
+            <ivs-karte class="block h-full" (objektKlick)="oeffneSignatur($event)" (polygonFilter)="setzePolygon($event)" />
+          </div>
+          <div hlmTabsContent="kommentare" class="min-h-0 flex-1 overflow-y-auto p-4">
+            <p class="text-sm text-muted-foreground">
+              Kommentare zum aktiven Objekt — wird zusammen mit dem Prüfen-und-Kommentieren-Block spezifiziert.
+            </p>
+          </div>
+        </hlm-tabs>
+      </aside>
+    } @else {
+      <aside class="flex w-9 shrink-0 flex-col items-center border-l border-border py-2">
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          (click)="karteOffen.set(true)"
+          hlmTooltip="Karte ausklappen"
+          position="left"
+          aria-label="Karte ausklappen"
+        >
+          <ng-icon name="lucideChevronLeft" />
+        </button>
+      </aside>
+    }
+  </div>
+</div>
