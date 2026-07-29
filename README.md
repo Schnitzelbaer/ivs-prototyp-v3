@@ -15,7 +15,11 @@ die bereits getroffenen Prototyping-Vorgaben — liegt in:
 
 - [docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md)
 
-Was dort steht, ist geklärt und gilt, bis es ausdrücklich geändert wird.
+Was dort steht, ist geklärt und gilt, bis es ausdrücklich geändert wird. Das
+Dokument enthält neben dem Fachkontext auch den festgelegten Stack (Abschnitt 12)
+und die **Leitplanken für die Zusammenarbeit** (Abschnitt 13) — insbesondere:
+nicht vom Stack abweichen und keine neuen Komponenten bauen, ohne vorher zu
+fragen. Es ist so gebaut, dass es sich in eine neue Session einspeisen lässt.
 
 ## Zuschnitt
 

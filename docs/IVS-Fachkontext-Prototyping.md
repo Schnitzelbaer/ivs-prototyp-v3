@@ -1,14 +1,18 @@
-# IVS-Nachführungstool — Fachkontext für das Prototyping
+# IVS-Nachführungstool — Kontext für das Prototyping
 
-> **Zweck dieses Dokuments.** Es bündelt den gesamten fachlichen Kontext für das
-> Prototyping des IVS-Nachführungstools: die Detailspezifikation, die User Story
-> Map, den Aufbau der echten IVS-Objektbeschriebe, die verfügbaren Testdaten und
-> die bereits getroffenen Vorgaben. Es enthält bewusst **keine** Angaben zum
-> technischen Stack (UI-Bibliothek, Framework, Design-System) und **keine**
-> Beschreibung bereits gebauter Prototypen.
+> **Zweck dieses Dokuments.** Es bündelt den gesamten Kontext für das Prototyping
+> des IVS-Nachführungstools: den fachlichen Teil (Abschnitte 1–11) aus
+> Detailspezifikation, User Story Map, dem Aufbau der echten IVS-Objektbeschriebe
+> und den verfügbaren Testdaten — sowie den technischen Teil (Abschnitte 12–13)
+> mit dem festgelegten Stack, dem Stand der Arbeit und den Leitplanken für die
+> Zusammenarbeit.
 >
 > **Verwendung.** In eine neue Session einfügen oder als Datei referenzieren.
 > Was hier steht, ist geklärt und muss nicht erneut erfragt werden.
+>
+> **Vor dem Loslegen bitte Abschnitt 13 lesen.** Dort stehen die verbindlichen
+> Leitplanken — insbesondere: **nicht vom Stack abweichen** und **keine neuen
+> Komponenten bauen**, ohne vorher zu fragen.
 
 ---
 
@@ -619,50 +623,51 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
    Objektbearbeitung (07) → Prüfen und Kommentieren (09/10). Nebenblöcke
    (Accounts, Stammdaten, Arbeitspakete, 360°, Reports) als einfachere, aber
    vorhandene Screens.
+3. **Umfang:** Es wird **ein** Prototyp gebaut, keine Variantenreihe.
 
 ### 9.2 Rollen und Berechtigungen
 
-3. **Rollen-Umschalter** ist gewünscht (Wechsel der Perspektive im Prototyp).
-4. Wählbar sind die **fünf fachlich relevanten Rollen** R-03 bis R-07. R-01,
+4. **Rollen-Umschalter** ist gewünscht (Wechsel der Perspektive im Prototyp).
+5. Wählbar sind die **fünf fachlich relevanten Rollen** R-03 bis R-07. R-01,
    R-02 und R-08 werden aufgelistet, aber **disabled**.
 
 ### 9.3 Karte und Geometrie
 
-5. **ESRI SDK real einbinden** — Vorgehen wie im Projekt `ivs-map`
+6. **ESRI SDK real einbinden** — Vorgehen wie im Projekt `ivs-map`
    (ArcGIS Maps SDK mit swisstopo-WMTS-Hintergrund; für die Karte selbst wird
    kein Lizenzschlüssel benötigt). Ein Lizenzschlüssel existiert, steht für den
    Prototyp aber noch nicht zur Verfügung.
-6. **Geometrie-Editing ist eine der zu validierenden Kern-Interaktionen** —
+7. **Geometrie-Editing ist eine der zu validierenden Kern-Interaktionen** —
    inklusive Snapping/Tracing sowie **Verschneiden und Zusammenfügen**.
-7. **Objekthierarchie** (Strecke → Linienführung → Abschnitt, plus Wegbegleiter)
+8. **Objekthierarchie** (Strecke → Linienführung → Abschnitt, plus Wegbegleiter)
    als voll navigierbarer Baum.
 
 ### 9.4 Weitere Funktionen
 
-8. **360°:** echt drehbares Panorama, inklusive Vor-/Zurück-Navigation und
+9. **360°:** echt drehbares Panorama, inklusive Vor-/Zurück-Navigation und
    Karten-Marker für Position und Blickrichtung. Platzhalter-Bilder genügen.
-9. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
+10. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
    plus Geometrie-Overlay alt/neu auf der Karte.
-10. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
+11. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
     SBB-Referenz existiert keine Vorlage. Die überarbeitete Story Map gibt
     inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
     Fachlektorats, Umsetzungsvermerk der Inventarisierenden, begründete
     Abweichungen, Kommentare der Fachlichen Prüfstelle pro Objekt — alles im
     Objektbeschrieb verankert, nicht als separates Dokument. Der Fragenteil ist
     mit Checkliste 1 (Abschnitt 4.7) vorgegeben.
-11. **Exporte** (Excel-Listen, Einsatzlisten, PDF-Report, INTERLIS): funktionslose
+12. **Exporte** (Excel-Listen, Einsatzlisten, PDF-Report, INTERLIS): funktionslose
     Buttons genügen.
 
 ### 9.5 Bewusste Vereinfachungen
 
-12. **eIAM-Login:** komplett auslassen, direkt eingeloggt starten.
-13. **Mehrsprachigkeit:** ein Sprachen-Wechsler wird platziert, ist aber **nicht
+13. **eIAM-Login:** komplett auslassen, direkt eingeloggt starten.
+14. **Mehrsprachigkeit:** ein Sprachen-Wechsler wird platziert, ist aber **nicht
     funktional**.
-14. **Barrierefreiheit:** Prototypen müssen nicht ernsthaft barrierefrei sein
+15. **Barrierefreiheit:** Prototypen müssen nicht ernsthaft barrierefrei sein
     (WCAG-Konformität ist erst für die Umsetzung relevant).
-15. **Tablet-Tauglichkeit** (N12, ab 768 px, Touch inkl. Karte) von Beginn an
+16. **Tablet-Tauglichkeit** (N12, ab 768 px, Touch inkl. Karte) von Beginn an
     mitdenken.
-16. **Gestaltung:** keine Bundes-CD-Vorgaben. Als Theme gilt das shadcn-Preset
+17. **Gestaltung:** keine Bundes-CD-Vorgaben. Als Theme gilt das shadcn-Preset
     **`bInUyNX`** — Style `vega`, Farbthema `indigo` auf neutraler Basis, Radius
     `small` (0.45 rem), Schrift **Noto Sans**, Icons **Lucide**. Es ersetzt das
     zuvor vorgesehene neutrale Standard-Theme. Die Tokens sind zwischen shadcn
@@ -804,6 +809,156 @@ Neu hinzugekommen mit der überarbeiteten User Story Map:
 | Objektbeschrieb Abschnitt (VS 1.2.14) | `~/Downloads/Abschnitt.pdf` |
 | Testdaten und Referenz-Kartenimplementation | `/Users/wis/claude/ivs-map` |
 | Älterer Prototyp (begrenzte Inspiration) | <https://ivs-prototyp-variant-b.vercel.app/> |
+| Repository | <https://github.com/Schnitzelbaer/ivs-prototyp-v3> (privat) |
 
-**Sprache:** Alle Inhalte auf Deutsch in Schweizer Rechtschreibung — niemals
-«ß», immer «ss».
+Zur Sprachregel siehe Abschnitt 13.5.
+
+---
+
+## 12. Technischer Stack
+
+Der Stack ist gesetzt und über mehrere Entscheide gewachsen. Er gilt als
+verbindlich — siehe die Leitplanken in Abschnitt 13.
+
+### 12.1 Grundgerüst
+
+| Baustein | Version | Bemerkung |
+|---|---|---|
+| Angular | 22 | standalone, **kein SSR** (der ArcGIS-SDK ist browser-only) |
+| TypeScript | 6.0 | |
+| pnpm | 11 | Paketmanager; Build-Skripte in `pnpm-workspace.yaml` unter `allowBuilds` freigegeben |
+| Tailwind CSS | 4.3 | via `@tailwindcss/postcss`, konfiguriert in `.postcssrc.json` |
+| spartan/ui | 1.1.2 | `@spartan-ng/brain` + generierter Helm-Code, CLI `@spartan-ng/cli` |
+| ArcGIS Maps SDK | 5.1 | `@arcgis/core`; für die Karte selbst kein Lizenzschlüssel nötig |
+| Icons | Lucide | `@ng-icons/lucide` |
+| Schrift | Noto Sans | `@fontsource-variable/noto-sans` |
+
+Weitere Abhängigkeiten kommen als Peers von spartan/ui: `ngx-scrollbar`
+(Scroll Area), `embla-carousel` und `embla-carousel-angular` (Carousel),
+`class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css`.
+
+### 12.2 spartan/ui im Detail
+
+spartan/ui liefert Komponenten **nicht als Paket, sondern als generierten
+Quellcode** im Projekt (shadcn-Prinzip). Alle **57 Primitives** sind bereits
+generiert.
+
+- Ablage: `libs/ui/<primitive>/src/`
+- Import-Alias: `@spartan-ng/helm/<primitive>`, gemappt in `tsconfig.json`
+- Generator-Konfiguration: `components.json` (`style: "vega"`)
+- Nachgenerieren: `pnpm ng g @spartan-ng/cli:ui <name>`
+
+Der Code unter `libs/ui` ist unserer und darf angepasst werden. **Ein Wechsel
+des Styles verwirft aber alle Dateien** und generiert sie neu — eigene
+Anpassungen gingen dabei verloren.
+
+### 12.3 Theme
+
+Aus dem shadcn-Preset-Builder, Code **`bInUyNX`**: Style `vega`, Farbthema
+`indigo` auf neutraler Basis, Radius `small` (0.45 rem), Schrift Noto Sans,
+Icons Lucide. Übernommen wurde nur der **Inhalt** des Presets, nicht der
+Mechanismus — `shadcn apply --preset` zielt auf React und würde
+`components.json` überschreiben.
+
+Die Tokens liegen in `src/styles.css`, hell und dunkel. Die Variablennamen sind
+zwischen shadcn und spartan/ui identisch. Ergänzt sind dort die Chart-Farben und
+`--font-heading`, die Spartans `hlm-tailwind-preset` nicht auf
+Tailwind-Utilities mappt.
+
+### 12.4 Projektstruktur
+
+```
+docs/          Fachkontext (dieses Dokument) und Story-Map-PDF
+libs/ui/       57 generierte spartan/ui-Primitives
+src/styles.css Theme-Tokens, Touch-Regeln
+src/app/
+  app.routes.ts
+  kitchen-sink/          Referenzseite, ein Abschnitt je Themengruppe
+```
+
+### 12.5 Stand der Arbeit
+
+Gebaut sind bisher **nur** Setup und Referenzseite — der Prototyp selbst noch
+nicht.
+
+- **Kitchen Sink** unter `/kitchen-sink`: alle 57 Primitives in 54 Blöcken, mit
+  Beispielinhalten aus der IVS-Fachdomäne und einem Umschalter hell/dunkel.
+  Dient als Nachschlagewerk beim Bauen.
+- `/` leitet vorerst auf `/kitchen-sink` um.
+- **Touch-Vergrösserung** aktiv (Abschnitt 9.6).
+- Für die Prototypen sind **keine Unit-Tests** vorgesehen; `pnpm test` meldet
+  entsprechend «No tests found».
+
+### 12.6 Fallstricke aus der bisherigen Arbeit
+
+Fehler, die schon einmal Zeit gekostet haben:
+
+- **Der Angular-Compiler prüft Attribut-Direktiven nicht.** Ein erfundener
+  Direktiven-Name wie `hlmAlertIcon` kompiliert klaglos und tut nichts. Neue
+  Markup-Muster gehören im Browser verifiziert, nicht nur gebaut.
+- **`HlmScrollAreaImports` enthält nur die Direktive**, nicht die
+  `NgScrollbar`-Komponente. Ohne zusätzlichen Import aus `ngx-scrollbar` gibt es
+  gar keinen Scroll-Viewport — der Inhalt läuft einfach über.
+- **`hlm-checkbox` und `hlm-switch` stehen auf `display: contents`** und
+  erzeugen selbst keine Box. Styles müssen am inneren `button` hängen.
+- **Trigger überschreiben `data-slot`.** Ein Button mit `hlmBtn` und
+  `hlmDialogTrigger` trägt `data-slot="dialog-trigger"`, nicht `"button"`.
+- **Beim Neugenerieren** hält der Generator vorhandene Primitives für
+  installiert, solange die Pfade in `tsconfig.json` stehen — die müssen vorher
+  geleert werden.
+- **`hlm-native-select` bringt sein eigenes `<select>` mit**; Optionen gehören
+  direkt hinein, nicht in ein zusätzliches Element. Ohne gesetzten `value`
+  bleibt die Anzeige leer.
+- **Touch-Regeln dürfen nur additiv sein.** Sobald sie `position`, `display`
+  oder `height` eines Primitives überschreiben, bricht dessen internes Layout —
+  so geschehen beim Slider-Griff, bei der Tabs-Leiste und bei der Menubar.
+
+---
+
+## 13. Arbeitsweise und Leitplanken
+
+Verbindlich für die Zusammenarbeit an diesem Projekt.
+
+### 13.1 Stack nicht ohne Rückfrage ändern
+
+Der Stack aus Abschnitt 12 ist gesetzt. **Nicht davon abweichen** — keine
+zusätzliche UI-Bibliothek, kein anderes Framework, kein Ersatz für den
+ArcGIS-SDK, kein Wechsel des Paketmanagers.
+
+Gibt es einen guten Grund für eine Abweichung, gilt: **zuerst fragen**, mit
+Begründung und Alternativen. Erst nach ausdrücklicher Zustimmung umsetzen.
+Dasselbe gilt für das Hinzufügen neuer Abhängigkeiten.
+
+### 13.2 Keine neuen Komponenten ohne Rückfrage
+
+Vor dem Bauen einer neuen Komponente ist zu prüfen, ob sich das Gewünschte aus
+den vorhandenen 57 spartan/ui-Primitives zusammensetzen lässt — die Kitchen Sink
+unter `/kitchen-sink` zeigt alle im Einsatz.
+
+Reicht das nicht, wird die neue Komponente **zuerst vorgeschlagen und
+abgestimmt**, nicht einfach gebaut. Zum Vorschlag gehört, warum die vorhandenen
+Primitives nicht genügen.
+
+### 13.3 Weitreichende Änderungen vorlegen
+
+Änderungen, die schwer umkehrbar sind oder viele Dateien betreffen, werden
+vorgelegt und nicht direkt ausgeführt. Dazu zählen insbesondere:
+
+- Neugenerieren von `libs/ui` oder Wechsel des spartan-Styles
+- Wechsel oder grössere Änderung des Themes
+- Löschen von Verzeichnissen
+- Umbau der Projektstruktur
+
+Recherche, Lesen und das Zusammentragen von Informationen sind davon nicht
+betroffen — nur schreibende Schritte am Projekt brauchen ein Ja.
+
+### 13.4 Verifizieren statt annehmen
+
+Ein erfolgreicher Build belegt nicht, dass etwas funktioniert (siehe 12.6).
+Sichtbare Änderungen gehören im Browser geprüft, Messwerte statt Schätzungen.
+
+### 13.5 Sprache
+
+Alle Inhalte auf Deutsch in **Schweizer Rechtschreibung** — niemals «ß», immer
+«ss». Das gilt für Oberflächentexte, Kommentare, Commit-Nachrichten und
+Dokumentation.
