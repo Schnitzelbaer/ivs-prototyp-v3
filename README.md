@@ -87,8 +87,37 @@ Themengruppe.
 
 ## Stand
 
-Setup und Kitchen Sink stehen, der Prototyp selbst ist noch nicht gebaut.
-`/` leitet vorerst auf `/kitchen-sink` um.
+Der Kern-Workflow des Prototyps steht in erster Ausbaustufe:
+
+- **Shell** (`src/app/shell/`): Icon-Leiste mit verstecktem **Rollenmenü**
+  hinter dem IVS-Logo (R-03…R-07 wählbar, übrige aufgeführt aber gesperrt),
+  Dark-Mode, Profil mit «Demodaten zurücksetzen», Sprachwechsler (Attrappe).
+- **Dashboard** (`/dashboard`): rollenspezifisch vorgefilterte Aufgabenliste,
+  gruppiert nach Backlog / In Arbeit / Done (Mapping der acht Workflow-Stati),
+  Volltextsuche, Schnellfilter, Inline-Statuswechsel gemäss Rollenrechten,
+  Polygon-Selektion auf der Karte als geographischer Filter.
+- **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
+  Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
+  via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte
+  & Gelände, Anhang, Prüfen/Freigabe, Inexistent mit Pflichtbegründung,
+  Lognotizen), Hierarchie-Dropdown zum Wechsel zwischen Parent-/Child-Objekten,
+  Statusübergänge je Rolle mit automatischem Logeintrag, Bearbeitungslog-Sheet.
+- **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS, allen
+  `ivs-map`-Layern und den Objekt-Layern; Selektion mit Hervorhebung/Zoom.
+  `/karte` öffnet ein eigenständiges Kartenfenster, das per BroadcastChannel
+  bidirektional mit dem Hauptfenster synchronisiert (Selektion, Objekt-Klick).
+- **Mock-Daten** (`src/app/core/seed-data.ts`): 46 Objekte im Testgebiet Bern
+  (5 Strecken, 9 Linienführungen, 22 Abschnitte, 10 Wegbegleiter), abgeleitet
+  aus den echten Gruppierungen der Testdaten (`ivs_ivsfk`, `ivs_signatur`);
+  Änderungen überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
+
+Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Kommentare, 360°,
+Versionsvergleich, Geometrie-Editing, Objekte-Übersicht, Nebenblöcke.
+
+Die Objekt-Geometrien erzeugt `tools/build-objekte.mjs` aus den Testdaten
+(`node tools/build-objekte.mjs` → `public/data/ivs-objekte.geojson` und
+`ivs-wegbegleiter.geojson` — getrennt, weil ein GeoJSONLayer nur einen
+Geometrietyp trägt).
 
 ## Verwandte Projekte
 

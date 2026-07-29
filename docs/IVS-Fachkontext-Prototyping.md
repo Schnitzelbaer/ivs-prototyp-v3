@@ -868,26 +868,62 @@ Tailwind-Utilities mappt.
 ### 12.4 Projektstruktur
 
 ```
-docs/          Fachkontext (dieses Dokument) und Story-Map-PDF
-libs/ui/       57 generierte spartan/ui-Primitives
-src/styles.css Theme-Tokens, Touch-Regeln
+docs/            Fachkontext (dieses Dokument) und Story-Map-PDF
+libs/ui/         57 generierte spartan/ui-Primitives
+public/data/     Geodaten (Kopien aus ivs-map) + generierte Objekt-Geometrien
+tools/           build-objekte.mjs (Signatur → Geometrie, erzeugt public/data)
+src/styles.css   Theme-Tokens, Touch-Regeln
 src/app/
   app.routes.ts
-  kitchen-sink/          Referenzseite, ein Abschnitt je Themengruppe
+  core/          Modell, Stati, Rollen, Seed-Daten, Stores (localStorage)
+  shell/         Icon-Leiste mit Rollenmenü (hinter dem IVS-Logo)
+  dashboard/     Aufgabenliste + Karte
+  objekt/        Objektbearbeitung (View/Edit, Hierarchie, Formular)
+  karte/         ArcGIS-Komponente, Layer, Fenster-Sync, Geo-Hilfen
+  kitchen-sink/  Referenzseite, ein Abschnitt je Themengruppe
 ```
 
 ### 12.5 Stand der Arbeit
 
-Gebaut sind bisher **nur** Setup und Referenzseite — der Prototyp selbst noch
-nicht.
+Gebaut ist die **erste Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
 
-- **Kitchen Sink** unter `/kitchen-sink`: alle 57 Primitives in 54 Blöcken, mit
-  Beispielinhalten aus der IVS-Fachdomäne und einem Umschalter hell/dunkel.
-  Dient als Nachschlagewerk beim Bauen.
-- `/` leitet vorerst auf `/kitchen-sink` um.
-- **Touch-Vergrösserung** aktiv (Abschnitt 9.6).
-- Für die Prototypen sind **keine Unit-Tests** vorgesehen; `pnpm test` meldet
-  entsprechend «No tests found».
+- **Shell** mit verstecktem Rollenmenü (Klick aufs IVS-Logo; R-03…R-07
+  wählbar, R-01/R-02/R-08 aufgeführt aber gesperrt), Dark-Mode, Profil mit
+  «Demodaten zurücksetzen», Sprachwechsler als Attrappe.
+- **Dashboard (04)**: je Rolle vorgefilterte Aufgaben, gruppiert
+  Backlog / In Arbeit / Done (Mapping der acht Stati: zugewiesen → Backlog ·
+  in Bearbeitung, Korrektur, bereit zur Prüfung, in Prüfung → In Arbeit ·
+  geprüft, freigegeben, publiziert → Done), Suche, Schnellfilter,
+  Inline-Statuswechsel gemäss Rollenrechten, Polygon-Selektion als
+  geographischer Filter (05.03).
+- **Objektbearbeitung (07)**: View-/Edit-Modus mit automatischem Speichern
+  und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
+  Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
+  Punkteskalen 0–4, Ø angezeigt), Empfehlungen, Geschichte & Gelände
+  (3000-Zeichen-Limite), Anhang, Prüfen/Freigabe, Inexistent (07.16, mit
+  Pflichtbegründung), Lognotizen; Hierarchie-Dropdown (Strecke → LF →
+  Abschnitt, Wegbegleiter) zum Objektwechsel; Statusübergänge je Rolle mit
+  automatischem Logeintrag; Bearbeitungslog als Sheet; Löschen mit
+  Warndialog (07.05, gesperrt nach Publikation).
+- **Karte**: ArcGIS Maps SDK mit swisstopo-WMTS, alle Layer aus `ivs-map`
+  plus zwei Objekt-Layer (Linien/Punkte getrennt — ein GeoJSONLayer trägt
+  nur einen Geometrietyp); Selektion mit Abblendung und Zoom; separates
+  Kartenfenster `/karte` mit bidirektionaler Synchronisation über
+  BroadcastChannel (Selektion hin, Objekt-Klick zurück).
+- **Mock-Daten**: 46 Objekte im Testgebiet Bern — BE 7 (Murtenstrasse,
+  publiziert/freigegeben), BE 21 (Frauenkappelen–Gümmenen, in Arbeit,
+  enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse, in Prüfung),
+  BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft). Hierarchie
+  aus den echten Gruppierungen `ivs_ivsfk`/`ivs_signatur` abgeleitet;
+  Persistenz im localStorage, `SEED_VERSION` erhöhen verwirft Stände.
+- **Kitchen Sink** unter `/kitchen-sink` als Nachschlagewerk;
+  **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
+  vorgesehen (`pnpm test` meldet «No tests found»).
+
+Noch nicht gebaut: Prüfprotokoll/Checkliste 1 (Etappe folgt), Kommentare
+(Spezifikation folgt), 360°-Panorama, Versionsvergleich, Geometrie-Editing,
+vollständige Objekte-Übersicht, Nebenblöcke (Accounts, Stammdaten,
+Arbeitspakete, Reports).
 
 ### 12.6 Fallstricke aus der bisherigen Arbeit
 
