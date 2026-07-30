@@ -24,6 +24,7 @@ import {
   lucideHistory,
   lucideImagePlus,
   lucideLayers,
+  lucideMessageSquarePlus,
   lucideMinus,
   lucidePencil,
   lucidePlus,
@@ -35,6 +36,7 @@ import {
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
@@ -44,6 +46,7 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
+import { KommentarStore } from '../core/kommentare';
 import {
   BewertungsTeil,
   EBENE_LABEL,
@@ -60,6 +63,7 @@ import { STATUS_LABEL, StatusUebergang, uebergaengeFuer } from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
+import { KommentarPanel } from '../kommentare/kommentar-panel';
 import { BewertungsPunkte } from './bewertungs-punkte';
 
 type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
@@ -81,6 +85,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     HlmAlertDialogImports,
     HlmBadgeImports,
     HlmButtonImports,
+    HlmDialogImports,
     HlmDropdownMenuImports,
     HlmInputImports,
     HlmLabelImports,
@@ -91,6 +96,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     HlmTooltipImports,
     BewertungsPunkte,
     Karte,
+    KommentarPanel,
   ],
   providers: [
     provideIcons({
@@ -104,6 +110,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideHistory,
       lucideImagePlus,
       lucideLayers,
+      lucideMessageSquarePlus,
       lucideMinus,
       lucidePencil,
       lucidePlus,
@@ -120,6 +127,7 @@ export class ObjektDetail implements OnDestroy {
   private readonly router = inject(Router);
   private readonly sync = inject(KarteSync);
   private readonly geo = inject(ObjektGeo);
+  private readonly kommentarStore = inject(KommentarStore);
   protected readonly einstellungen = inject(EinstellungenStore);
 
   private readonly karte = viewChild(Karte);
@@ -142,12 +150,30 @@ export class ObjektDetail implements OnDestroy {
     return !!o && darfEditieren(this.einstellungen.aktiveRolleId(), o.status);
   });
 
+  /**
+   * Löschen (07.05): den Inventarisierenden (R-05) in ihren Bearbeitungs-
+   * stati sowie der Fachlichen Administration (R-03) vorbehalten; nach der
+   * Publikation generell gesperrt.
+   */
+  protected readonly darfLoeschen = computed(() => {
+    const o = this.objekt();
+    if (!o || o.status === 'publiziert') return false;
+    const rolle = this.einstellungen.aktiveRolleId();
+    if (rolle === 'R-03') return true;
+    return rolle === 'R-05' && darfEditieren(rolle, o.status);
+  });
+
   protected readonly istEdit = computed(() => this.gewuenschterModus() === 'edit' && this.darfBearbeiten());
 
-  protected readonly selektion = computed<KartenSelektion | null>(() => {
-    const o = this.objekt();
-    return o ? { ebene: o.ebene, signatur: o.signatur } : null;
-  });
+  protected readonly selektion = computed<KartenSelektion | null>(
+    () => {
+      const o = this.objekt();
+      return o ? { ebene: o.ebene, signatur: o.signatur } : null;
+    },
+    // Formular-Edits erzeugen pro Tastendruck eine neue Objektreferenz —
+    // ohne Wertvergleich würde jede Eingabe Karten-goTo und Broadcast auslösen
+    { equal: (a, b) => a?.signatur === b?.signatur && a?.ebene === b?.ebene },
+  );
 
   /** 360°-Aufnahmen liegen im Prototyp entlang von BE 7.2 (07.08). */
   protected readonly hat360Aufnahmen = computed(() => {
@@ -191,6 +217,17 @@ export class ObjektDetail implements OnDestroy {
   protected readonly neueLognotiz = signal('');
   protected readonly logOffen = signal(false);
 
+  /** Aktiver Tab des Kartenpanels — wechselbar auch programmatisch (Pin-Klick). */
+  protected readonly kartenTab = signal('karte');
+  protected readonly kommentarModusAktiv = computed(() => this.karte()?.kommentarModus() ?? false);
+
+  // Dialog «Kommentar auf Karte» (05.11)
+  protected readonly kartenKommentarOffen = signal(false);
+  protected readonly kartenKommentarPosition = signal<{ lon: number; lat: number } | null>(null);
+  protected readonly kartenKommentarTitel = signal('');
+  protected readonly kartenKommentarText = signal('');
+  protected readonly kartenKommentarZuweisung = signal('');
+
   /** Die drei Teile der NHG-Bewertung mit ihren Hinweistexten. */
   protected readonly bewertungsTeile: readonly { schluessel: BewertungsSchluessel; titel: string; hinweis: string }[] = [
     {
@@ -216,14 +253,16 @@ export class ObjektDetail implements OnDestroy {
       this.sync.setzeSelektion(this.selektion());
     });
 
-    // Situierungsbild (Dufourkarte) beim Objektwechsel nachladen
+    // Situierungsbild (Dufourkarte) beim Objektwechsel nachladen — getrackt
+    // wird nur die Selektion (mit Wertvergleich), nicht die Objektreferenz,
+    // sonst würde jeder Formular-Tastendruck das Bild neu aufbauen
     effect(() => {
-      const o = this.objekt();
+      const auswahl = this.selektion();
       untracked(() => this.situierungsUrl.set(null));
-      if (!o) return;
-      void this.geo.situierungsBild(o.ebene, o.signatur).then((url) => {
+      if (!auswahl) return;
+      void this.geo.situierungsBild(auswahl.ebene, auswahl.signatur).then((url) => {
         // nur setzen, wenn das Objekt inzwischen nicht gewechselt hat
-        if (untracked(() => this.objekt())?.id === o.id) this.situierungsUrl.set(url);
+        if (untracked(() => this.objekt())?.signatur === auswahl.signatur) this.situierungsUrl.set(url);
       });
     });
   }
@@ -258,8 +297,8 @@ export class ObjektDetail implements OnDestroy {
   protected statusSetzen(status: string): void {
     const o = this.objekt();
     if (!o || status === o.status) return;
-    this.store.setStatus(o.id, status as WorkflowStatus);
-    this.protokolliere(o.id, `Status: ${STATUS_LABEL[o.status]} → ${STATUS_LABEL[status as WorkflowStatus]}`);
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.store.statusWechseln(o.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
   }
 
   protected uebergangAusfuehren(uebergang: StatusUebergang): void {
@@ -270,7 +309,7 @@ export class ObjektDetail implements OnDestroy {
 
   protected loeschen(): void {
     const o = this.objekt();
-    if (!o) return;
+    if (!o || !this.darfLoeschen()) return;
     this.store.loeschen(o.id);
     void this.router.navigate(['/dashboard']);
   }
@@ -331,6 +370,57 @@ export class ObjektDetail implements OnDestroy {
 
   protected layerPanel(): void {
     this.karte()?.panelUmschalten();
+  }
+
+  // ----------------------------------------------------------- Kommentare
+
+  /** Alle Objekte für die Zuweisungs-Auswahl im Karten-Kommentar-Dialog. */
+  protected readonly alleObjekte = computed(() =>
+    [...this.store.alle()].sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true })),
+  );
+
+  protected kommentarWerkzeug(): void {
+    this.karte()?.kommentarWerkzeugUmschalten();
+  }
+
+  protected kommentarPositionGewaehlt(position: { lon: number; lat: number }): void {
+    this.kartenKommentarPosition.set(position);
+    this.kartenKommentarZuweisung.set(this.objekt()?.signatur ?? '');
+    this.kartenKommentarTitel.set('');
+    this.kartenKommentarText.set('');
+    this.kartenKommentarOffen.set(true);
+  }
+
+  protected kartenKommentarSpeichern(): void {
+    const position = this.kartenKommentarPosition();
+    const text = this.kartenKommentarText().trim();
+    if (!position || !text) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.kommentarStore.hinzufuegen({
+      objektSignatur: this.kartenKommentarZuweisung() || null,
+      position,
+      titel: this.kartenKommentarTitel().trim(),
+      text,
+      autor: NAME_FUER_ROLLE[rolle],
+      rolle,
+      zeit: new Date().toISOString().slice(0, 19),
+      erledigt: false,
+      antworten: [],
+    });
+    this.kartenKommentarOffen.set(false);
+  }
+
+  protected kommentarPinGeklickt(): void {
+    this.kartenTab.set('kommentare');
+  }
+
+  /** Scrollt im Formular zum referenzierten Attribut und hebt es kurz hervor. */
+  protected scrolleZuAttribut(anker: string): void {
+    const element = document.getElementById(anker);
+    if (!element) return;
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    element.classList.add('ring-2', 'ring-primary', 'rounded-md');
+    setTimeout(() => element.classList.remove('ring-2', 'ring-primary', 'rounded-md'), 1800);
   }
 
   protected lognotizenAbsteigend = computed(() => {

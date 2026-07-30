@@ -17,6 +17,7 @@ import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
+import { KommentarStore } from '../core/kommentare';
 import { RolleId } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN } from '../core/rollen';
@@ -61,6 +62,7 @@ import { KarteSync } from '../karte/karte-sync';
 export class Shell {
   protected readonly einstellungen = inject(EinstellungenStore);
   private readonly objektStore = inject(ObjektStore);
+  private readonly kommentarStore = inject(KommentarStore);
   private readonly sync = inject(KarteSync);
   private readonly router = inject(Router);
 
@@ -83,5 +85,6 @@ export class Shell {
 
   protected demodatenZuruecksetzen(): void {
     this.objektStore.zuruecksetzen();
+    this.kommentarStore.zuruecksetzen();
   }
 }

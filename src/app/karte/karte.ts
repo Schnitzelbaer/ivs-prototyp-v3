@@ -5,14 +5,17 @@ import {
   OnDestroy,
   AfterViewInit,
   effect,
+  inject,
   input,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import Basemap from '@arcgis/core/Basemap.js';
 import EsriMap from '@arcgis/core/Map.js';
 import type Polygon from '@arcgis/core/geometry/Polygon.js';
+import { KommentarStore } from '../core/kommentare';
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer.js';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer.js';
@@ -122,11 +125,19 @@ export class Karte implements AfterViewInit, OnDestroy {
   readonly objektKlick = output<string>();
   /** Signaturen innerhalb des gezeichneten Polygons, null = Filter aufgehoben. */
   readonly polygonFilter = output<string[] | null>();
+  /** Beim Klick auf einen Kommentar-Pin: Kommentar-Id. */
+  readonly kommentarKlick = output<string>();
+  /** Nach dem Platzieren mit dem Kommentar-Werkzeug: gewählte Position. */
+  readonly kommentarPosition = output<{ lon: number; lat: number }>();
+
+  private readonly kommentarStore = inject(KommentarStore);
 
   protected readonly layerDefs = LAYER_DEFS;
   protected readonly panelEingeklappt = signal(false);
   readonly panelOffen = signal(true);
   readonly polygonAktiv = signal(false);
+  /** Kommentar-Werkzeug aktiv: nächster Kartenklick wählt die Position. */
+  readonly kommentarModus = signal(false);
   protected readonly sichtbarkeit = signal<Record<string, boolean>>(
     Object.fromEntries(LAYER_DEFS.map((d) => [d.id, d.sichtbar])),
   );
@@ -137,14 +148,27 @@ export class Karte implements AfterViewInit, OnDestroy {
   private objektLayers: GeoJSONLayer[] = [];
   private skizzenLayer: GraphicsLayer | null = null;
   private markerLayer: GraphicsLayer | null = null;
+  private kommentarLayer: GraphicsLayer | null = null;
   private kegelGraphic: Graphic | null = null;
   private sketch: SketchViewModel | null = null;
   private erstZoomErledigt = false;
 
+  /** Zuletzt angewendete Selektion — verhindert redundante goTo/Query-Läufe,
+   *  wenn sich nur die Objektreferenz, nicht aber die Selektion ändert. */
+  private letzteSelektion: KartenSelektion | null | undefined;
+
   constructor() {
     effect(() => {
       const auswahl = this.selektion();
+      if (
+        this.letzteSelektion !== undefined &&
+        auswahl?.signatur === this.letzteSelektion?.signatur &&
+        auswahl?.ebene === this.letzteSelektion?.ebene
+      ) {
+        return;
+      }
       if (this.view && this.objektLayers.length) {
+        this.letzteSelektion = auswahl;
         void this.wendeSelektionAn(auswahl);
       }
     });
@@ -162,6 +186,33 @@ export class Karte implements AfterViewInit, OnDestroy {
         this.kegelGraphic.symbol = kegelSymbol(azimut);
       }
     });
+    // Kommentar-Pins aus dem Store spiegeln (05.11: räumliche Notizen)
+    effect(() => {
+      this.kommentarStore.alle(); // Tracking
+      this.zeichneKommentarPins();
+    });
+  }
+
+  /** Pins der räumlichen Kommentare auf den Kommentar-Layer zeichnen. */
+  private zeichneKommentarPins(): void {
+    const layer = this.kommentarLayer;
+    if (!layer) return;
+    layer.removeAll();
+    layer.addMany(
+      this.kommentarStore
+        .alle()
+        .filter((k) => k.position)
+        .map(
+          (k) =>
+            new Graphic({
+              geometry: webMercatorUtils.geographicToWebMercator(
+                new Point({ longitude: k.position!.lon, latitude: k.position!.lat }),
+              ),
+              attributes: { kommentarId: k.id },
+              symbol: sprechblasenSymbol(k.erledigt),
+            }),
+        ),
+    );
   }
 
   ngAfterViewInit(): void {
@@ -195,6 +246,10 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.markerLayer = new GraphicsLayer({ listMode: 'hide' });
     map.add(this.markerLayer);
 
+    this.kommentarLayer = new GraphicsLayer({ listMode: 'hide' });
+    map.add(this.kommentarLayer);
+    this.zeichneKommentarPins();
+
     this.view = new MapView({
       container: this.kartenDiv().nativeElement,
       map,
@@ -225,12 +280,30 @@ export class Karte implements AfterViewInit, OnDestroy {
 
     this.view.on('click', (ereignis) => {
       const view = this.view;
-      if (!view || !this.objektLayers.length) return;
-      void view.hitTest(ereignis, { include: this.objektLayers }).then((treffer) => {
-        const erster = treffer.results.find((r) => r.type === 'graphic');
-        if (erster && erster.type === 'graphic') {
-          const signatur = erster.graphic.attributes?.['signatur'] as string | undefined;
-          if (signatur) this.objektKlick.emit(signatur);
+      if (!view) return;
+      // Kommentar-Werkzeug: Klick wählt die Position (05.11)
+      if (this.kommentarModus()) {
+        this.kommentarModus.set(false);
+        view.container?.style.removeProperty('cursor');
+        const geografisch = webMercatorUtils.webMercatorToGeographic(ereignis.mapPoint) as Point;
+        this.kommentarPosition.emit({ lon: geografisch.longitude ?? 0, lat: geografisch.latitude ?? 0 });
+        return;
+      }
+      const ziele = [...(this.kommentarLayer ? [this.kommentarLayer] : []), ...this.objektLayers];
+      if (!ziele.length) return;
+      void view.hitTest(ereignis, { include: ziele }).then((treffer) => {
+        for (const resultat of treffer.results) {
+          if (resultat.type !== 'graphic') continue;
+          const kommentarId = resultat.graphic.attributes?.['kommentarId'] as string | undefined;
+          if (kommentarId) {
+            this.kommentarKlick.emit(kommentarId);
+            return;
+          }
+          const signatur = resultat.graphic.attributes?.['signatur'] as string | undefined;
+          if (signatur) {
+            this.objektKlick.emit(signatur);
+            return;
+          }
         }
       });
     });
@@ -245,7 +318,8 @@ export class Karte implements AfterViewInit, OnDestroy {
           await this.view?.goTo(extent.expand(1.2), { animate: false });
         }
       }
-      await this.wendeSelektionAn(this.selektion());
+      this.letzteSelektion = this.selektion();
+      await this.wendeSelektionAn(this.letzteSelektion);
       this.setzePanoramaMarker(this.panoramaStandort());
     });
 
@@ -262,6 +336,17 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Layer-Panel ein-/ausblenden (Toolbar-Knopf der einbettenden Seite). */
   panelUmschalten(): void {
     this.panelOffen.set(!this.panelOffen());
+  }
+
+  /** Kommentar-Werkzeug starten bzw. abbrechen: nächster Klick = Position. */
+  kommentarWerkzeugUmschalten(): void {
+    const aktiv = !this.kommentarModus();
+    this.kommentarModus.set(aktiv);
+    const container = this.view?.container;
+    if (container) {
+      if (aktiv) container.style.cursor = 'crosshair';
+      else container.style.removeProperty('cursor');
+    }
   }
 
   /** Polygon-Selektion starten bzw. aufheben. */
@@ -364,7 +449,10 @@ export class Karte implements AfterViewInit, OnDestroy {
       new Point({ longitude: standort.lon, latitude: standort.lat }),
     ) as Point;
 
-    this.kegelGraphic = new Graphic({ geometry: punkt, symbol: kegelSymbol(this.panoramaAzimut()) });
+    // untracked: sonst würde der Standort-Effect den Azimut mittracken und
+    // bei jeder Drehbewegung Marker-Neuaufbau samt goTo auslösen
+    const azimut = untracked(() => this.panoramaAzimut());
+    this.kegelGraphic = new Graphic({ geometry: punkt, symbol: kegelSymbol(azimut) });
     const standortGraphic = new Graphic({
       geometry: punkt,
       symbol: new SimpleMarkerSymbol({
@@ -394,10 +482,12 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.erstZoomErledigt = true;
     const extent = await this.objektExtent(where);
     if (!extent) return;
-    // Grad-Schwelle: unter rund 150 m gilt das Objekt als Punkt und bekommt
-    // einen festen Massstab statt eines Extent-Fits.
+    // Grad-Schwelle: unter rund 150 m in BEIDEN Dimensionen gilt das Objekt
+    // als Punkt und bekommt einen festen Massstab statt eines Extent-Fits —
+    // flache, langgestreckte Linien müssen eingepasst werden (ODER würde sie
+    // bei 1:5000 beidseitig abschneiden).
     const PUNKT_SCHWELLE = 0.002;
-    if (extent.width < PUNKT_SCHWELLE || extent.height < PUNKT_SCHWELLE) {
+    if (extent.width < PUNKT_SCHWELLE && extent.height < PUNKT_SCHWELLE) {
       const zentrum = extent.center;
       const ziel = zentrum.spatialReference?.isWGS84
         ? webMercatorUtils.geographicToWebMercator(zentrum)
@@ -423,6 +513,18 @@ function kegelSymbol(azimut: number): SimpleMarkerSymbol {
     color: [34, 197, 94, 0.45],
     angle: azimut,
     outline: { color: [22, 163, 74, 0.9], width: 1 },
+  });
+}
+
+/** Sprechblasen-Pin für räumliche Kommentare; erledigte in Grau. */
+function sprechblasenSymbol(erledigt: boolean): SimpleMarkerSymbol {
+  return new SimpleMarkerSymbol({
+    style: 'path',
+    path: 'M12 2 C6.5 2 2 5.6 2 10 C2 14.4 6.5 18 12 18 L13.5 18 L18 22.5 L18 16.9 C20.5 15.4 22 12.9 22 10 C22 5.6 17.5 2 12 2 Z',
+    size: 22,
+    color: erledigt ? [148, 163, 184] : [245, 158, 11],
+    outline: { color: [255, 255, 255], width: 1.2 },
+    yoffset: 11,
   });
 }
 

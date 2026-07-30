@@ -11,19 +11,25 @@ import {
   lucideLasso,
   lucideLayers,
   lucideListFilter,
+  lucideMessageSquarePlus,
   lucideRotateCw,
   lucideSearch,
 } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
+import { KommentarStore } from '../core/kommentare';
 import {
   IvsObjekt,
   NhgWert,
@@ -35,8 +41,10 @@ import {
   SUBSTANZGRAD_LABEL,
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
+import { NAME_FUER_ROLLE } from '../core/seed-data';
 import { ALLE_GRUPPEN, GRUPPE_LABEL, STATUS_GRUPPE, STATUS_LABEL, uebergaengeFuer } from '../core/status';
 import { Karte } from '../karte/karte';
+import { KommentarPanel } from '../kommentare/kommentar-panel';
 
 interface GruppenBlock {
   gruppe: StatusGruppe;
@@ -63,13 +71,18 @@ interface StatusOption {
     HlmBadgeImports,
     HlmButtonImports,
     HlmCheckboxImports,
+    HlmDialogImports,
+    HlmInputImports,
     HlmInputGroupImports,
+    HlmLabelImports,
     HlmNativeSelectImports,
     HlmPopoverImports,
     HlmTableImports,
     HlmTabsImports,
+    HlmTextareaImports,
     HlmTooltipImports,
     Karte,
+    KommentarPanel,
   ],
   providers: [
     provideIcons({
@@ -81,6 +94,7 @@ interface StatusOption {
       lucideLasso,
       lucideLayers,
       lucideListFilter,
+      lucideMessageSquarePlus,
       lucideRotateCw,
       lucideSearch,
     }),
@@ -90,6 +104,7 @@ interface StatusOption {
 export class Dashboard {
   protected readonly einstellungen = inject(EinstellungenStore);
   private readonly store = inject(ObjektStore);
+  private readonly kommentarStore = inject(KommentarStore);
   private readonly router = inject(Router);
 
   private readonly karte = viewChild(Karte);
@@ -116,6 +131,17 @@ export class Dashboard {
   });
   protected readonly ausgewaehlt = signal<ReadonlySet<string>>(new Set());
   protected readonly karteOffen = signal(true);
+
+  /** Aktiver Tab des Kartenpanels — Pin-Klick wechselt auf «Kommentare». */
+  protected readonly kartenTab = signal('karte');
+  protected readonly kommentarModusAktiv = computed(() => this.karte()?.kommentarModus() ?? false);
+
+  // Dialog «Kommentar auf Karte» (05.11)
+  protected readonly kartenKommentarOffen = signal(false);
+  protected readonly kartenKommentarPosition = signal<{ lon: number; lat: number } | null>(null);
+  protected readonly kartenKommentarTitel = signal('');
+  protected readonly kartenKommentarText = signal('');
+  protected readonly kartenKommentarZuweisung = signal('');
 
   /** Aufgaben der aktiven Rolle nach allen Filtern. */
   private readonly gefiltert = computed(() => {
@@ -164,7 +190,9 @@ export class Dashboard {
   }
 
   protected statusWechseln(objekt: IvsObjekt, status: string): void {
-    if (status !== objekt.status) this.store.setStatus(objekt.id, status as WorkflowStatus);
+    if (status === objekt.status) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.store.statusWechseln(objekt.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
   }
 
   protected gruppeUmschalten(gruppe: StatusGruppe): void {
@@ -214,5 +242,47 @@ export class Dashboard {
 
   protected inNeuemTabOeffnen(): void {
     window.open('/karte', '_blank', 'noopener');
+  }
+
+  // ----------------------------------------------------------- Kommentare
+
+  /** Alle Objekte für die Zuweisungs-Auswahl im Karten-Kommentar-Dialog. */
+  protected readonly alleObjekte = computed(() =>
+    [...this.store.alle()].sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true })),
+  );
+
+  protected kommentarWerkzeug(): void {
+    this.karte()?.kommentarWerkzeugUmschalten();
+  }
+
+  protected kommentarPositionGewaehlt(position: { lon: number; lat: number }): void {
+    this.kartenKommentarPosition.set(position);
+    this.kartenKommentarZuweisung.set('');
+    this.kartenKommentarTitel.set('');
+    this.kartenKommentarText.set('');
+    this.kartenKommentarOffen.set(true);
+  }
+
+  protected kartenKommentarSpeichern(): void {
+    const position = this.kartenKommentarPosition();
+    const text = this.kartenKommentarText().trim();
+    if (!position || !text) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.kommentarStore.hinzufuegen({
+      objektSignatur: this.kartenKommentarZuweisung() || null,
+      position,
+      titel: this.kartenKommentarTitel().trim(),
+      text,
+      autor: NAME_FUER_ROLLE[rolle],
+      rolle,
+      zeit: new Date().toISOString().slice(0, 19),
+      erledigt: false,
+      antworten: [],
+    });
+    this.kartenKommentarOffen.set(false);
+  }
+
+  protected kommentarPinGeklickt(): void {
+    this.kartenTab.set('kommentare');
   }
 }

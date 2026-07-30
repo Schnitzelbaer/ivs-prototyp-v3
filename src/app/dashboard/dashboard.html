@@ -197,7 +197,7 @@
     <!-- Kartenpanel -->
     @if (karteOffen()) {
       <aside class="flex w-[46%] min-w-96 shrink-0 flex-col border-l border-border">
-        <hlm-tabs tab="karte" class="flex min-h-0 flex-1 flex-col">
+        <hlm-tabs [tab]="kartenTab()" (tabActivated)="kartenTab.set($event)" class="flex min-h-0 flex-1 flex-col">
           <div class="flex items-center gap-2 border-b border-border px-2 py-1.5">
             <button
               hlmBtn
@@ -237,6 +237,17 @@
               >
                 <ng-icon name="lucideLayers" />
               </button>
+              <button
+                hlmBtn
+                [variant]="kommentarModusAktiv() ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="kommentarWerkzeug()"
+                hlmTooltip="Kommentar auf der Karte platzieren (Klick wählt die Position)"
+                aria-label="Kommentar auf der Karte platzieren"
+              >
+                <ng-icon name="lucideMessageSquarePlus" />
+              </button>
               <div class="mx-1 h-5 w-px bg-border"></div>
               <button
                 hlmBtn
@@ -253,12 +264,16 @@
           </div>
 
           <div hlmTabsContent="karte" class="min-h-0 flex-1">
-            <ivs-karte class="block h-full" (objektKlick)="oeffneSignatur($event)" (polygonFilter)="setzePolygon($event)" />
+            <ivs-karte
+              class="block h-full"
+              (objektKlick)="oeffneSignatur($event)"
+              (polygonFilter)="setzePolygon($event)"
+              (kommentarKlick)="kommentarPinGeklickt()"
+              (kommentarPosition)="kommentarPositionGewaehlt($event)"
+            />
           </div>
-          <div hlmTabsContent="kommentare" class="min-h-0 flex-1 overflow-y-auto p-4">
-            <p class="text-sm text-muted-foreground">
-              Kommentare zum aktiven Objekt — wird zusammen mit dem Prüfen-und-Kommentieren-Block spezifiziert.
-            </p>
+          <div hlmTabsContent="kommentare" class="min-h-0 flex-1">
+            <ivs-kommentar-panel class="block h-full" [objektSignatur]="null" (objektKlick)="oeffneSignatur($event)" />
           </div>
         </hlm-tabs>
       </aside>
@@ -280,3 +295,53 @@
     }
   </div>
 </div>
+
+<!-- Kommentar auf der Karte (05.11) -->
+<hlm-dialog
+  [state]="kartenKommentarOffen() ? 'open' : 'closed'"
+  (stateChanged)="kartenKommentarOffen.set($event === 'open')"
+>
+  <hlm-dialog-content *hlmDialogPortal>
+    <hlm-dialog-header>
+      <h3 hlmDialogTitle>Kommentar auf der Karte</h3>
+      <p hlmDialogDescription>
+        Räumliche Notiz an der gewählten Position — die Zuweisung zu einem Objekt ist optional.
+      </p>
+    </hlm-dialog-header>
+    <div class="grid gap-3 py-2">
+      <div class="grid gap-1.5">
+        <label hlmLabel for="dk-titel">Titel</label>
+        <input hlmInput id="dk-titel" [ngModel]="kartenKommentarTitel()" (ngModelChange)="kartenKommentarTitel.set($event)" />
+      </div>
+      <div class="grid gap-1.5">
+        <label hlmLabel for="dk-text">Kommentar <span class="text-destructive">*</span></label>
+        <textarea
+          hlmTextarea
+          id="dk-text"
+          class="min-h-20 w-full"
+          [ngModel]="kartenKommentarText()"
+          (ngModelChange)="kartenKommentarText.set($event)"
+        ></textarea>
+      </div>
+      <div class="grid gap-1.5">
+        <label hlmLabel for="dk-objekt">Objekt (optional)</label>
+        <hlm-native-select
+          id="dk-objekt"
+          [ngModel]="kartenKommentarZuweisung()"
+          (ngModelChange)="kartenKommentarZuweisung.set($event)"
+        >
+          <option hlmNativeSelectOption value="">Keine Zuweisung</option>
+          @for (eintrag of alleObjekte(); track eintrag.id) {
+            <option hlmNativeSelectOption [value]="eintrag.signatur">{{ eintrag.signatur }} – {{ eintrag.name }}</option>
+          }
+        </hlm-native-select>
+      </div>
+    </div>
+    <hlm-dialog-footer>
+      <button hlmBtn variant="outline" type="button" (click)="kartenKommentarOffen.set(false)">Abbrechen</button>
+      <button hlmBtn type="button" [disabled]="!kartenKommentarText().trim()" (click)="kartenKommentarSpeichern()">
+        Kommentar speichern
+      </button>
+    </hlm-dialog-footer>
+  </hlm-dialog-content>
+</hlm-dialog>

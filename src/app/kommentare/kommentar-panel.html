@@ -1,0 +1,293 @@
+<div class="flex h-full flex-col">
+  <!-- Kopf: Suche, Sortierung, Filter -->
+  <div class="space-y-2 border-b border-border px-3 py-2.5">
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="text-sm font-semibold">
+        Kommentare
+        <span class="ml-1 font-normal text-muted-foreground">{{ kommentare().length }} von {{ gesamt() }}</span>
+      </h3>
+      <div class="flex items-center gap-1">
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          (click)="neuesteZuerst.set(!neuesteZuerst())"
+          [hlmTooltip]="neuesteZuerst() ? 'Neueste zuerst — umkehren' : 'Älteste zuerst — umkehren'"
+          aria-label="Sortierung umkehren"
+        >
+          <ng-icon name="lucideArrowDownUp" />
+        </button>
+        <button
+          hlmBtn
+          [variant]="filter() === 'alle' ? 'ghost' : 'secondary'"
+          size="icon"
+          type="button"
+          [hlmDropdownMenuTrigger]="filterMenu"
+          align="end"
+          aria-label="Filtern"
+        >
+          <ng-icon name="lucideListFilter" />
+        </button>
+        <ng-template #filterMenu>
+          <hlm-dropdown-menu class="w-48">
+            <hlm-dropdown-menu-label>Filter</hlm-dropdown-menu-label>
+            <hlm-dropdown-menu-separator />
+            @for (
+              eintrag of [
+                { wert: 'alle', label: 'Alle' },
+                { wert: 'offen', label: 'Offene' },
+                { wert: 'erledigt', label: 'Erledigte' },
+                { wert: 'meine', label: 'Eigene' }
+              ];
+              track eintrag.wert
+            ) {
+              <button
+                hlmDropdownMenuRadio
+                [checked]="filter() === eintrag.wert"
+                [keepOpen]="false"
+                (triggered)="filter.set($any(eintrag.wert))"
+              >
+                <hlm-dropdown-menu-radio-indicator />
+                {{ eintrag.label }}
+              </button>
+            }
+          </hlm-dropdown-menu>
+        </ng-template>
+      </div>
+    </div>
+    <div hlmInputGroup>
+      <div hlmInputGroupAddon>
+        <ng-icon name="lucideSearch" />
+      </div>
+      <input
+        hlmInputGroupInput
+        type="search"
+        placeholder="Suchen nach"
+        [ngModel]="suche()"
+        (ngModelChange)="suche.set($event)"
+      />
+    </div>
+  </div>
+
+  <!-- Liste -->
+  <div class="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
+    @for (k of kommentare(); track k.id) {
+      <article class="rounded-md border border-border bg-card p-3">
+        <header class="flex items-start gap-2">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs text-muted-foreground">
+              {{ k.autor }} · {{ k.rolle }}
+              <span class="ml-2">{{ formatZeit(k.zeit) }}</span>
+            </p>
+            @if (k.titel) {
+              <h4 class="mt-0.5 text-sm font-semibold">{{ k.titel }}</h4>
+            }
+          </div>
+          @if (objektSignatur() === null) {
+            @if (k.objektSignatur) {
+              <button type="button" (click)="objektKlick.emit(k.objektSignatur)" hlmTooltip="Objekt öffnen">
+                <span hlmBadge variant="secondary" class="font-mono text-[11px]">{{ k.objektSignatur }}</span>
+              </button>
+            } @else {
+              <span hlmBadge variant="outline" class="text-[11px]">Karte</span>
+            }
+          }
+          <button
+            type="button"
+            class="flex size-6 shrink-0 items-center justify-center rounded-full border transition-colors"
+            [class.border-primary]="k.erledigt"
+            [class.bg-primary]="k.erledigt"
+            [class.text-primary-foreground]="k.erledigt"
+            [class.border-muted-foreground/50]="!k.erledigt"
+            [class.text-muted-foreground]="!k.erledigt"
+            (click)="erledigtUmschalten(k)"
+            [hlmTooltip]="k.erledigt ? 'Als offen markieren' : 'Als erledigt markieren (10.02)'"
+            [attr.aria-label]="k.erledigt ? 'Als offen markieren' : 'Als erledigt markieren'"
+          >
+            <ng-icon name="lucideCheck" class="text-xs" />
+          </button>
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            class="size-6"
+            type="button"
+            [hlmDropdownMenuTrigger]="kommentarMenu"
+            align="end"
+            aria-label="Kommentar-Aktionen"
+          >
+            <ng-icon name="lucideEllipsis" />
+          </button>
+          <ng-template #kommentarMenu>
+            <hlm-dropdown-menu class="w-44">
+              <button hlmDropdownMenuItem [disabled]="!istEigener(k)" (triggered)="loeschen(k)">
+                Löschen
+                @if (!istEigener(k)) {
+                  <span class="ml-auto text-xs text-muted-foreground">nur eigene</span>
+                }
+              </button>
+            </hlm-dropdown-menu>
+          </ng-template>
+        </header>
+
+        <p class="mt-2 text-sm whitespace-pre-line" [class.text-muted-foreground]="k.erledigt">
+          @for (segment of segmente(k.text); track $index) {
+            @switch (segment.typ) {
+              @case ('text') {
+                <span>{{ segment.wert }}</span>
+              }
+              @case ('mention') {
+                <span class="font-medium text-primary">{{ '@' + segment.wert }}</span>
+              }
+              @case ('attribut') {
+                <button
+                  type="button"
+                  class="font-medium text-primary underline-offset-2 hover:underline"
+                  (click)="attributAnker(segment.wert)"
+                  hlmTooltip="Zum Attribut im Formular springen"
+                >
+                  {{ '#' + segment.wert }}
+                </button>
+              }
+            }
+          }
+        </p>
+
+        <!-- Antworten -->
+        @if (k.antworten.length > 0) {
+          <button
+            type="button"
+            class="mt-2 flex items-center gap-1 text-sm text-primary"
+            (click)="antwortenUmschalten(k.id)"
+          >
+            {{ k.antworten.length }}
+            {{ k.antworten.length === 1 ? 'Antwort' : 'Antworten' }}
+            {{ offeneAntworten().has(k.id) ? 'ausblenden' : 'anzeigen' }}
+            <ng-icon name="lucideChevronDown" class="transition-transform" [class.rotate-180]="offeneAntworten().has(k.id)" />
+          </button>
+        }
+        @if (offeneAntworten().has(k.id)) {
+          <div class="mt-2 space-y-2 border-t border-border pt-2">
+            @for (antwort of k.antworten; track $index) {
+              <div class="border-b border-border/60 pb-2 last:border-b-0">
+                <p class="text-xs text-muted-foreground">
+                  {{ antwort.autor }} · {{ antwort.rolle }}
+                  <span class="ml-2">{{ formatZeit(antwort.zeit) }}</span>
+                </p>
+                <p class="mt-1 text-sm whitespace-pre-line">{{ antwort.text }}</p>
+              </div>
+            }
+          </div>
+        }
+        <!-- Antwort-Composer -->
+        <div class="mt-2 flex items-center gap-1.5">
+          <input
+            hlmInput
+            class="h-8 flex-1 text-sm"
+            placeholder="Antworten …"
+            [ngModel]="antwortEntwurf(k.id)"
+            (ngModelChange)="setzeAntwortEntwurf(k.id, $event)"
+            (keydown.enter)="antwortSenden(k)"
+          />
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            class="size-8"
+            type="button"
+            [disabled]="!antwortEntwurf(k.id).trim()"
+            (click)="antwortSenden(k)"
+            aria-label="Antwort senden"
+          >
+            <ng-icon name="lucideSend" />
+          </button>
+        </div>
+      </article>
+    } @empty {
+      <p class="py-6 text-center text-sm text-muted-foreground">Keine Kommentare vorhanden.</p>
+    }
+  </div>
+
+  <!-- Composer -->
+  <div class="space-y-2 border-t border-border px-3 py-2.5">
+    <p class="text-xs text-muted-foreground">{{ persona().name }} · {{ persona().rollenName }}</p>
+    <input
+      hlmInput
+      class="h-8 w-full text-sm"
+      placeholder="Titel hinzufügen"
+      [ngModel]="neuerTitel()"
+      (ngModelChange)="neuerTitel.set($event)"
+    />
+    <textarea
+      #textfeld
+      hlmTextarea
+      class="min-h-16 w-full text-sm"
+      placeholder="Kommentar erfassen"
+      [ngModel]="neuerText()"
+      (ngModelChange)="neuerText.set($event)"
+    ></textarea>
+    <div class="flex items-center gap-1">
+      <button
+        hlmBtn
+        variant="outline"
+        size="icon"
+        class="size-8"
+        type="button"
+        [hlmDropdownMenuTrigger]="mentionMenu"
+        align="start"
+        hlmTooltip="Person erwähnen"
+        aria-label="Person erwähnen"
+      >
+        <ng-icon name="lucideAtSign" />
+      </button>
+      <ng-template #mentionMenu>
+        <hlm-dropdown-menu class="w-64">
+          @for (person of benutzer; track person.rolle) {
+            <button hlmDropdownMenuItem (triggered)="tokenEinfuegen('@[' + person.name + ']')">
+              <span class="flex flex-col items-start">
+                <span>{{ person.name }}</span>
+                <span class="text-xs text-muted-foreground">{{ person.rollenName }}</span>
+              </span>
+            </button>
+          }
+        </hlm-dropdown-menu>
+      </ng-template>
+
+      <button
+        hlmBtn
+        variant="outline"
+        size="icon"
+        class="size-8"
+        type="button"
+        [hlmDropdownMenuTrigger]="attributMenu"
+        align="start"
+        hlmTooltip="Attribut referenzieren"
+        aria-label="Attribut referenzieren"
+      >
+        <ng-icon name="lucideHash" />
+      </button>
+      <ng-template #attributMenu>
+        <hlm-dropdown-menu class="max-h-72 w-64 overflow-y-auto">
+          @for (attribut of attribute; track attribut.key) {
+            <button hlmDropdownMenuItem (triggered)="tokenEinfuegen('#[' + attribut.label + ']')">
+              {{ attribut.label }}
+            </button>
+          }
+        </hlm-dropdown-menu>
+      </ng-template>
+
+      <button
+        hlmBtn
+        size="sm"
+        class="ml-auto"
+        type="button"
+        [disabled]="!neuerText().trim()"
+        (click)="kommentarSenden()"
+      >
+        <ng-icon name="lucideSend" />
+        Senden
+      </button>
+    </div>
+  </div>
+</div>

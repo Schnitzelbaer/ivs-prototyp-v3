@@ -32,8 +32,14 @@
             variant="outline"
             size="icon"
             type="button"
-            [disabled]="o.status === 'publiziert'"
-            [hlmTooltip]="o.status === 'publiziert' ? 'Nach Publikation nicht mehr löschbar' : 'Objekt löschen'"
+            [disabled]="!darfLoeschen()"
+            [hlmTooltip]="
+              o.status === 'publiziert'
+                ? 'Nach Publikation nicht mehr löschbar'
+                : darfLoeschen()
+                  ? 'Objekt löschen'
+                  : 'Löschen ist den Inventarisierenden (R-05) und der Fachlichen Administration (R-03) vorbehalten'
+            "
             aria-label="Objekt löschen"
           >
             <ng-icon name="lucideTrash2" />
@@ -170,7 +176,7 @@
               <div class="p-4">
                 @if (istEdit()) {
                   <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="grid gap-1.5 sm:col-span-2">
+                    <div class="grid gap-1.5 sm:col-span-2" id="attr-status">
                       <label hlmLabel for="f-status">Workflow-Status</label>
                       <hlm-native-select
                         [ngModel]="o.status"
@@ -186,11 +192,11 @@
                       </p>
                     </div>
 
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5" id="attr-name">
                       <label hlmLabel for="f-name">Objektname <span class="text-destructive">*</span></label>
                       <input hlmInput id="f-name" [ngModel]="o.name" (ngModelChange)="patch({ name: $event })" />
                     </div>
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5" id="attr-nhg">
                       <label hlmLabel for="f-nhg">NHG-Wert</label>
                       <hlm-native-select id="f-nhg" [ngModel]="o.nhgWert" (ngModelChange)="patch({ nhgWert: $event })">
                         <option hlmNativeSelectOption value="national">national</option>
@@ -199,7 +205,7 @@
                       </hlm-native-select>
                     </div>
 
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5" id="attr-substanzgrad">
                       <label hlmLabel for="f-substanz">Substanzgrad</label>
                       <hlm-native-select
                         id="f-substanz"
@@ -213,12 +219,12 @@
                         <option hlmNativeSelectOption value="ohne_substanz">Ohne Substanz</option>
                       </hlm-native-select>
                     </div>
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5" id="attr-bauzeit">
                       <label hlmLabel for="f-bauzeit">Bauzeit</label>
                       <input hlmInput id="f-bauzeit" [ngModel]="o.bauzeit" (ngModelChange)="patch({ bauzeit: $event })" />
                     </div>
 
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5" id="attr-bauherrschaft">
                       <label hlmLabel for="f-bauherr">Bauherrschaft</label>
                       <input hlmInput id="f-bauherr" [ngModel]="o.bauherrschaft" (ngModelChange)="patch({ bauherrschaft: $event })" />
                     </div>
@@ -236,11 +242,11 @@
                       <input hlmInput id="f-kanton" [ngModel]="o.kanton" disabled />
                     </div>
 
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5" id="attr-gemeinden">
                       <label hlmLabel for="f-gemeinden">Gemeinden</label>
                       <input hlmInput id="f-gemeinden" [ngModel]="o.gemeinden" (ngModelChange)="patch({ gemeinden: $event })" />
                     </div>
-                    <div class="grid gap-1.5">
+                    <div class="grid gap-1.5" id="attr-aufnahmejahr">
                       <label hlmLabel for="f-jahr">Aufnahmejahr</label>
                       <input
                         hlmInput
@@ -260,7 +266,7 @@
                   </div>
                 } @else {
                   <dl class="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-                    <div>
+                    <div id="attr-status">
                       <dt class="text-xs text-muted-foreground">Workflow-Status</dt>
                       <dd>{{ statusLabel[o.status] }}</dd>
                     </div>
@@ -268,23 +274,23 @@
                       <dt class="text-xs text-muted-foreground">Zuständig</dt>
                       <dd>{{ o.zustaendigName }} ({{ o.zustaendigRolle }})</dd>
                     </div>
-                    <div>
+                    <div id="attr-name">
                       <dt class="text-xs text-muted-foreground">Objektname</dt>
                       <dd>{{ o.name }}</dd>
                     </div>
-                    <div>
+                    <div id="attr-nhg">
                       <dt class="text-xs text-muted-foreground">NHG-Wert</dt>
                       <dd>{{ nhgLabel[o.nhgWert] }}</dd>
                     </div>
-                    <div>
+                    <div id="attr-substanzgrad">
                       <dt class="text-xs text-muted-foreground">Substanzgrad</dt>
                       <dd>{{ o.substanzgrad ? substanzLabel[o.substanzgrad] : '—' }}</dd>
                     </div>
-                    <div>
+                    <div id="attr-bauzeit">
                       <dt class="text-xs text-muted-foreground">Bauzeit</dt>
                       <dd>{{ o.bauzeit || '—' }}</dd>
                     </div>
-                    <div>
+                    <div id="attr-bauherrschaft">
                       <dt class="text-xs text-muted-foreground">Bauherrschaft</dt>
                       <dd>{{ o.bauherrschaft || '—' }}</dd>
                     </div>
@@ -300,11 +306,11 @@
                       <dt class="text-xs text-muted-foreground">Kanton</dt>
                       <dd>{{ o.kanton }}</dd>
                     </div>
-                    <div>
+                    <div id="attr-gemeinden">
                       <dt class="text-xs text-muted-foreground">Gemeinden</dt>
                       <dd>{{ o.gemeinden || '—' }}</dd>
                     </div>
-                    <div>
+                    <div id="attr-aufnahmejahr">
                       <dt class="text-xs text-muted-foreground">Aufnahmejahr</dt>
                       <dd>{{ o.aufnahmejahr ?? '—' }}</dd>
                     </div>
@@ -364,7 +370,7 @@
                 </p>
 
                 @for (teil of bewertungsTeile; track teil.schluessel) {
-                  <div class="rounded-md border border-border p-3">
+                  <div class="rounded-md border border-border p-3" [id]="'attr-bewertung-' + teil.schluessel">
                     <div class="flex items-center justify-between gap-3">
                       <h4 class="text-sm font-semibold">{{ teil.titel }}</h4>
                       <ivs-bewertungs-punkte
@@ -398,7 +404,7 @@
             </button>
             @if (!eingeklappt().has('empfehlungen')) {
               <div class="space-y-4 p-4">
-                <div class="grid gap-1.5">
+                <div class="grid gap-1.5" id="attr-erhaltungsziel">
                   <label hlmLabel for="f-erhaltungsziel">Erhaltungsziel [NHG 5.1.e]</label>
                   <p class="text-xs text-muted-foreground">Standardtext zu den allgemeinen Erhaltungszielen der VIVS.</p>
                   @if (istEdit()) {
@@ -413,7 +419,7 @@
                     <p class="text-sm whitespace-pre-line">{{ o.erhaltungsziel || '—' }}</p>
                   }
                 </div>
-                <div class="grid gap-1.5">
+                <div class="grid gap-1.5" id="attr-gefahren">
                   <label hlmLabel for="f-gefahren">Gefahren, Schutzmassnahmen, Verbesserungen [NHG 5.1.c, d, f]</label>
                   <p class="text-xs text-muted-foreground">Individueller Text, angepasst an das jeweilige IVS-Objekt.</p>
                   @if (istEdit()) {
@@ -440,7 +446,7 @@
             </button>
             @if (!eingeklappt().has('geschichte')) {
               <div class="space-y-4 p-4">
-                <div class="grid gap-1.5">
+                <div class="grid gap-1.5" id="attr-geschichte">
                   <label hlmLabel for="f-geschichte">Geschichte</label>
                   <p class="text-xs text-muted-foreground">
                     I. d. R. aus IVS 1.0 übernommen. Zu Beginn Hinweis, ob Text identisch mit Erstbeschrieb
@@ -490,7 +496,7 @@
                   </div>
                 </div>
 
-                <div class="grid gap-1.5">
+                <div class="grid gap-1.5" id="attr-gelaende">
                   <label hlmLabel for="f-gelaende">Gelände (max. 3000 Zeichen)</label>
                   <p class="text-xs text-muted-foreground">
                     Neuer Text basierend auf der aktuellen Wegsubstanz. Ersetzt den alten Geländebeschrieb.
@@ -539,7 +545,7 @@
             </button>
             @if (!eingeklappt().has('anhang')) {
               <div class="space-y-4 p-4">
-                <div class="grid gap-1.5">
+                <div class="grid gap-1.5" id="attr-bibliografie">
                   <label hlmLabel for="f-biblio">Bibliografie</label>
                   <p class="text-xs text-muted-foreground">
                     Liste mit ausgeschriebenen Titeln der zitierten Quellen/Literatur.
@@ -586,7 +592,7 @@
             </button>
             @if (!eingeklappt().has('pruefen')) {
               <div class="space-y-4 p-4">
-                <div class="grid gap-1.5">
+                <div class="grid gap-1.5" id="attr-pruefkommentar">
                   <label hlmLabel for="f-pruefkommentar">Prüfkommentar</label>
                   @if (istEdit() && einstellungen.aktiveRolleId() === 'R-06') {
                     <textarea
@@ -749,7 +755,7 @@
 
       <!-- Kartenpanel -->
       <aside class="flex w-[42%] min-w-96 shrink-0 flex-col border-l border-border">
-        <hlm-tabs tab="karte" class="flex min-h-0 flex-1 flex-col">
+        <hlm-tabs [tab]="kartenTab()" (tabActivated)="kartenTab.set($event)" class="flex min-h-0 flex-1 flex-col">
           <div class="flex items-center gap-2 border-b border-border px-2 py-1.5">
             <hlm-tabs-list aria-label="Kartenpanel">
               <button hlmTabsTrigger="karte">Karte</button>
@@ -779,6 +785,17 @@
               >
                 <ng-icon name="lucideLayers" />
               </button>
+              <button
+                hlmBtn
+                [variant]="kommentarModusAktiv() ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="kommentarWerkzeug()"
+                hlmTooltip="Kommentar auf der Karte platzieren (Klick wählt die Position)"
+                aria-label="Kommentar auf der Karte platzieren"
+              >
+                <ng-icon name="lucideMessageSquarePlus" />
+              </button>
               <div class="mx-1 h-5 w-px bg-border"></div>
               <button
                 hlmBtn
@@ -795,7 +812,13 @@
           </div>
 
           <div hlmTabsContent="karte" class="min-h-0 flex-1">
-            <ivs-karte class="block h-full" [selektion]="selektion()" (objektKlick)="oeffneSignatur($event)" />
+            <ivs-karte
+              class="block h-full"
+              [selektion]="selektion()"
+              (objektKlick)="oeffneSignatur($event)"
+              (kommentarKlick)="kommentarPinGeklickt()"
+              (kommentarPosition)="kommentarPositionGewaehlt($event)"
+            />
           </div>
           <div hlmTabsContent="bilder360" class="min-h-0 flex-1 overflow-y-auto p-4">
             @if (hat360Aufnahmen()) {
@@ -812,15 +835,67 @@
               </p>
             }
           </div>
-          <div hlmTabsContent="kommentare" class="min-h-0 flex-1 overflow-y-auto p-4">
-            <p class="text-sm text-muted-foreground">
-              Kommentare zum aktiven Objekt — wird zusammen mit dem Prüfen-und-Kommentieren-Block spezifiziert.
-            </p>
+          <div hlmTabsContent="kommentare" class="min-h-0 flex-1">
+            <ivs-kommentar-panel
+              class="block h-full"
+              [objektSignatur]="o.signatur"
+              (attributKlick)="scrolleZuAttribut($event)"
+            />
           </div>
         </hlm-tabs>
       </aside>
     </div>
   </div>
+
+  <!-- Kommentar auf der Karte (05.11) -->
+  <hlm-dialog
+    [state]="kartenKommentarOffen() ? 'open' : 'closed'"
+    (stateChanged)="kartenKommentarOffen.set($event === 'open')"
+  >
+    <hlm-dialog-content *hlmDialogPortal>
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>Kommentar auf der Karte</h3>
+        <p hlmDialogDescription>
+          Räumliche Notiz an der gewählten Position — die Zuweisung zu einem Objekt ist optional.
+        </p>
+      </hlm-dialog-header>
+      <div class="grid gap-3 py-2">
+        <div class="grid gap-1.5">
+          <label hlmLabel for="kk-titel">Titel</label>
+          <input hlmInput id="kk-titel" [ngModel]="kartenKommentarTitel()" (ngModelChange)="kartenKommentarTitel.set($event)" />
+        </div>
+        <div class="grid gap-1.5">
+          <label hlmLabel for="kk-text">Kommentar <span class="text-destructive">*</span></label>
+          <textarea
+            hlmTextarea
+            id="kk-text"
+            class="min-h-20 w-full"
+            [ngModel]="kartenKommentarText()"
+            (ngModelChange)="kartenKommentarText.set($event)"
+          ></textarea>
+        </div>
+        <div class="grid gap-1.5">
+          <label hlmLabel for="kk-objekt">Objekt (optional)</label>
+          <hlm-native-select
+            id="kk-objekt"
+            [ngModel]="kartenKommentarZuweisung()"
+            (ngModelChange)="kartenKommentarZuweisung.set($event)"
+          >
+            <option hlmNativeSelectOption value="">Keine Zuweisung</option>
+            @for (eintrag of alleObjekte(); track eintrag.id) {
+              <option hlmNativeSelectOption [value]="eintrag.signatur">{{ eintrag.signatur }} – {{ eintrag.name }}</option>
+            }
+          </hlm-native-select>
+        </div>
+      </div>
+      <hlm-dialog-footer>
+        <button hlmBtn variant="outline" type="button" (click)="kartenKommentarOffen.set(false)">Abbrechen</button>
+        <button hlmBtn type="button" [disabled]="!kartenKommentarText().trim()" (click)="kartenKommentarSpeichern()">
+          Kommentar speichern
+        </button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
 
   <!-- Bearbeitungslog -->
   <hlm-sheet side="right" [state]="logOffen() ? 'open' : 'closed'" (stateChanged)="logOffen.set($event === 'open')">
