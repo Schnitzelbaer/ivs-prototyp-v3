@@ -228,7 +228,6 @@
                                 size="sm"
                                 [ngModel]="o.status"
                                 (ngModelChange)="statusWechseln(o, $event)"
-                                [disabled]="optionen.length === 1"
                               >
                                 @for (option of optionen; track option.wert) {
                                   <option hlmNativeSelectOption [value]="option.wert">

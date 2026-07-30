@@ -54,11 +54,11 @@ import { ObjektStore } from '../core/objekt-store';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
 import {
   ALLE_GRUPPEN,
+  ALLE_STATI,
   GRUPPE_LABEL,
   STATUS_FARBE,
   STATUS_GRUPPE,
   STATUS_LABEL,
-  uebergaengeFuer,
 } from '../core/status';
 import { Karte } from '../karte/karte';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
@@ -168,7 +168,7 @@ export class Dashboard {
     return this.store
       .alle()
       .filter((o) => {
-        if (!rolle.dashboardStati.includes(o.status)) return false;
+        if (!rolle.relevanteStati.includes(o.status)) return false;
         if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
         if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
           return false;
@@ -197,13 +197,16 @@ export class Dashboard {
 
   protected readonly polygonAktiv = computed(() => this.karte()?.polygonAktiv() ?? false);
 
-  /** Workflow-Status-Optionen der Zeile: aktueller Status + erlaubte Übergänge. */
+  /**
+   * Workflow-Status-Optionen der Zeile: alle rollenrelevanten Stati (plus
+   * der aktuelle), direkt wählbar — in der Reihenfolge des Workflows.
+   */
   protected statusOptionen(objekt: IvsObjekt): StatusOption[] {
-    const uebergaenge = uebergaengeFuer(this.einstellungen.aktiveRolleId(), objekt.status);
-    return [
-      { wert: objekt.status, label: STATUS_LABEL[objekt.status] },
-      ...uebergaenge.map((u) => ({ wert: u.nach, label: STATUS_LABEL[u.nach] })),
-    ];
+    const relevante = this.einstellungen.aktiveRolle().relevanteStati;
+    return ALLE_STATI.filter((s) => s === objekt.status || relevante.includes(s)).map((s) => ({
+      wert: s,
+      label: STATUS_LABEL[s],
+    }));
   }
 
   protected statusWechseln(objekt: IvsObjekt, status: string): void {
