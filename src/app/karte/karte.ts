@@ -61,8 +61,14 @@ interface Treffer {
   tiefe: number;
 }
 
-type HitTestErgebnis = Awaited<ReturnType<MapView['hitTest']>>;
-type BildschirmPunkt = Parameters<MapView['hitTest']>[0];
+/**
+ * Trefferradius für Hover und Klick in Bildschirmpixeln. `hitTest` prüft
+ * nur die gerenderten Symbolpixel (3-px-Linien wären kaum zu treffen) und
+ * liefert bei GeoJSON-Layern zudem nur die Renderer-Attribute — deshalb
+ * suchen wir stattdessen räumlich mit einem Umkreis um den Zeiger.
+ */
+const TREFFER_RADIUS_PX = 8;
+const TREFFER_RADIUS_TOUCH_PX = 14;
 
 /**
  * Wiederverwendbare ArcGIS-Karte: swisstopo-WMTS-Hintergrund und die Layer
@@ -614,22 +620,19 @@ export class Karte implements AfterViewInit, OnDestroy {
       }
       // Ein offenes Kontextmenü wird durch den Klick nur geschlossen
       if (menuWarOffen) return;
-      const ziele = [...(this.kommentarLayer ? [this.kommentarLayer] : []), ...this.objektLayers];
-      if (!ziele.length) return;
-      void view.hitTest(ereignis, { include: ziele }).then((treffer) => {
-        for (const resultat of treffer.results) {
-          if (resultat.type !== 'graphic') continue;
-          const kommentarId = resultat.graphic.attributes?.['kommentarId'] as string | undefined;
-          if (kommentarId) {
-            this.kommentarKlick.emit(kommentarId);
-            return;
-          }
-        }
-        // Klick springt direkt ins getroffene Objekt. Nur wenn mehrere echt
-        // verschiedene Objekte (unterschiedliche Blatt-Signaturen) getroffen
-        // sind, wird das MapTip zum Kontextmenü — die Eltern-Kette allein
-        // zählt nicht als Mehrfachtreffer.
-        const blaetter = this.blattSignaturen(treffer);
+      // Kommentar-Pins haben Vorrang (liegen über den Objekten); die Prüfung
+      // läuft synchron im Bildschirmraum — ohne hitTest.
+      const kommentarId = this.pinAmPunkt(ereignis);
+      if (kommentarId) {
+        this.kommentarKlick.emit(kommentarId);
+        return;
+      }
+      // Klick springt direkt ins getroffene Objekt. Nur wenn mehrere echt
+      // verschiedene Objekte (unterschiedliche Blatt-Signaturen) getroffen
+      // sind, wird das MapTip zum Kontextmenü — die Eltern-Kette allein
+      // zählt nicht als Mehrfachtreffer.
+      void this.objektTrefferAmPunkt(ereignis).then((attribute) => {
+        const blaetter = this.blattSignaturen(attribute);
         if (blaetter.length === 0) return;
         if (blaetter.length === 1) {
           this.objektKlick.emit(blaetter[0]);
@@ -638,7 +641,7 @@ export class Karte implements AfterViewInit, OnDestroy {
         this.mapTip.set(null);
         this.kontextMenu.set({
           ...this.imSichtfeld(ereignis.x, ereignis.y),
-          eintraege: this.trefferAuswerten(treffer),
+          eintraege: this.trefferAuswerten(attribute),
         });
       });
     });
@@ -699,17 +702,72 @@ export class Karte implements AfterViewInit, OnDestroy {
   // ------------------------------------------- Hover-MapTip und Kontextmenü
 
   /**
-   * Getroffene Objekte aus einem hitTest: Für jedes Feature mit
+   * Objekte im Umkreis weniger Bildschirmpixel um den Zeiger: räumliche
+   * Abfrage auf den Objekt-Layern (statt hitTest — siehe TREFFER_RADIUS_PX).
+   * Liefert die Objekt-Attribute der getroffenen Features.
+   */
+  private async objektTrefferAmPunkt(punkt: {
+    x: number;
+    y: number;
+  }): Promise<Record<string, unknown>[]> {
+    const view = this.view;
+    if (!view || !this.objektLayers.length) return [];
+    const zentrum = view.toMap(punkt);
+    if (!zentrum) return [];
+    const radiusPx = matchMedia('(pointer: coarse)').matches
+      ? TREFFER_RADIUS_TOUCH_PX
+      : TREFFER_RADIUS_PX;
+    const umkreis = geometryEngine.buffer(
+      zentrum as never,
+      view.resolution * radiusPx,
+      'meters',
+    ) as Polygon | null;
+    if (!umkreis) return [];
+    const antworten = await Promise.all(
+      this.objektLayers.map((layer) =>
+        layer
+          .queryFeatures({
+            geometry: umkreis,
+            spatialRelationship: 'intersects',
+            where: "signatur <> ''",
+            outFields: ['signatur', 'lf', 'strecke'],
+            returnGeometry: false,
+          })
+          .catch(() => null),
+      ),
+    );
+    return antworten.flatMap((antwort) => antwort?.features.map((f) => f.attributes) ?? []);
+  }
+
+  /**
+   * Kommentar-Pin am Klickpunkt, geprüft im Bildschirmraum (die Sprechblase
+   * ist 22 px gross und um 11 px nach oben versetzt).
+   */
+  private pinAmPunkt(punkt: { x: number; y: number }): string | null {
+    const view = this.view;
+    if (!view || !this.kommentarLayer) return null;
+    for (const graphic of this.kommentarLayer.graphics) {
+      const bildschirm = graphic.geometry ? view.toScreen(graphic.geometry as Point) : null;
+      if (!bildschirm) continue;
+      const dx = bildschirm.x - punkt.x;
+      const dy = bildschirm.y - 11 - punkt.y;
+      if (dx * dx + dy * dy <= 14 * 14) {
+        return (graphic.attributes?.['kommentarId'] as string | undefined) ?? null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Getroffene Objekte aus den Feature-Attributen: Für jedes Feature mit
    * Objekt-Zuordnung zählt die ganze Kette (Strecke → Linienführung →
    * Abschnitt/Wegbegleiter), denn die Parent-Objekte teilen sich die
    * Geometrie. Nicht enthalten ist die Gesamt-Hierarchie der Objekte —
    * nur, was am Cursor tatsächlich getroffen wurde.
    */
-  private trefferAuswerten(treffer: HitTestErgebnis): Treffer[] {
+  private trefferAuswerten(attributListe: Record<string, unknown>[]): Treffer[] {
     const tiefen = new Map<string, number>();
-    for (const resultat of treffer.results) {
-      if (resultat.type !== 'graphic') continue;
-      const attribute = resultat.graphic.attributes ?? {};
+    for (const attribute of attributListe) {
       const signatur = attribute['signatur'] as string | undefined;
       if (!signatur) continue;
       const strecke = attribute['strecke'] as string;
@@ -729,11 +787,10 @@ export class Karte implements AfterViewInit, OnDestroy {
   }
 
   /** Blatt-Signaturen der getroffenen Features (ohne Eltern-Kette), dedupliziert. */
-  private blattSignaturen(treffer: HitTestErgebnis): string[] {
+  private blattSignaturen(attributListe: Record<string, unknown>[]): string[] {
     const signaturen = new Set<string>();
-    for (const resultat of treffer.results) {
-      if (resultat.type !== 'graphic') continue;
-      const signatur = resultat.graphic.attributes?.['signatur'] as string | undefined;
+    for (const attribute of attributListe) {
+      const signatur = attribute['signatur'] as string | undefined;
       if (signatur) signaturen.add(signatur);
     }
     return [...signaturen];
@@ -744,10 +801,8 @@ export class Karte implements AfterViewInit, OnDestroy {
     if (this.hoverLaeuftSeit !== 0 && Date.now() - this.hoverLaeuftSeit < 500) return;
     this.hoverLaeuftSeit = Date.now();
     try {
-      const treffer = await this.view.hitTest(ereignis as BildschirmPunkt, {
-        include: this.objektLayers,
-      });
-      const eintraege = this.trefferAuswerten(treffer);
+      const attribute = await this.objektTrefferAmPunkt(ereignis);
+      const eintraege = this.trefferAuswerten(attribute);
       const container = this.view.container;
       if (container) {
         if (eintraege.length) container.style.cursor = 'pointer';
