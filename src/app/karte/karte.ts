@@ -30,6 +30,7 @@ import SketchViewModel from '@arcgis/core/widgets/Sketch/SketchViewModel.js';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown } from '@ng-icons/lucide';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
+import { ObjektStore } from '../core/objekt-store';
 import Graphic from '@arcgis/core/Graphic.js';
 import Extent from '@arcgis/core/geometry/Extent.js';
 import Point from '@arcgis/core/geometry/Point.js';
@@ -43,6 +44,7 @@ import {
   OBJEKT_LAYER_IDS,
   OVERLAY_DEFS,
   erzeugeLayer,
+  erzeugeObjektLayer,
   erzeugeWebTileLayer,
 } from './karten-layer';
 
@@ -50,6 +52,17 @@ export interface KartenSelektion {
   ebene: Ebene;
   signatur: string;
 }
+
+/** Eintrag im Hover-MapTip bzw. Klick-Kontextmenü: ein getroffenes Objekt. */
+interface Treffer {
+  signatur: string;
+  name: string;
+  /** Einrücktiefe in der Hierarchie (0 = Strecke). */
+  tiefe: number;
+}
+
+type HitTestErgebnis = Awaited<ReturnType<MapView['hitTest']>>;
+type BildschirmPunkt = Parameters<MapView['hitTest']>[0];
 
 /**
  * Wiederverwendbare ArcGIS-Karte: swisstopo-WMTS-Hintergrund, die Layer aus
@@ -65,6 +78,51 @@ export interface KartenSelektion {
   template: `
     <div class="relative h-full w-full overflow-hidden">
       <div #kartenDiv class="h-full w-full"></div>
+
+      <!-- Hover-MapTip: Hierarchie der getroffenen Objekte am Cursor -->
+      @if (mapTip(); as tip) {
+        <div
+          class="pointer-events-none absolute z-10 max-w-72 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md"
+          [style.left.px]="tip.x"
+          [style.top.px]="tip.y"
+        >
+          @for (eintrag of tip.eintraege; track eintrag.signatur) {
+            <div
+              class="flex items-baseline gap-1.5 truncate leading-5"
+              [style.padding-left.rem]="eintrag.tiefe * 0.75"
+            >
+              <span class="shrink-0 font-mono text-[10px] text-muted-foreground">{{
+                eintrag.signatur
+              }}</span>
+              <span class="truncate">{{ eintrag.name }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Kontextmenü bei Mehrfachtreffern: Objekt zum Öffnen wählen -->
+      @if (kontextMenu(); as menu) {
+        <div
+          class="absolute z-10 min-w-64 max-w-80 rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+          [style.left.px]="menu.x"
+          [style.top.px]="menu.y"
+        >
+          <p class="px-2 pt-1 pb-0.5 text-xs text-muted-foreground">Getroffene Objekte</p>
+          @for (eintrag of menu.eintraege; track eintrag.signatur) {
+            <button
+              type="button"
+              class="flex w-full items-baseline gap-1.5 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+              [style.padding-left.rem]="0.5 + eintrag.tiefe * 0.75"
+              (click)="kontextEintragWaehlen(eintrag.signatur)"
+            >
+              <span class="shrink-0 font-mono text-[11px] text-muted-foreground">{{
+                eintrag.signatur
+              }}</span>
+              <span class="min-w-0 truncate">{{ eintrag.name }}</span>
+            </button>
+          }
+        </div>
+      }
 
       <!-- Layer-Panel («Objekte») -->
       <div
@@ -244,6 +302,7 @@ export class Karte implements AfterViewInit, OnDestroy {
 
   private readonly kommentarStore = inject(KommentarStore);
   private readonly geometrieStore = inject(GeometrieStore);
+  private readonly objektStore = inject(ObjektStore);
 
   protected readonly layerDefs = LAYER_DEFS;
   protected readonly basemaps = BASEMAP_DEFS;
@@ -258,6 +317,13 @@ export class Karte implements AfterViewInit, OnDestroy {
   readonly editAuswahlAnzahl = signal(0);
   /** Aktives Zeichenwerkzeug des Geometrie-Editings. */
   readonly editWerkzeug = signal<'polyline' | 'point' | 'verschneiden' | null>(null);
+
+  /** Hover-MapTip: Hierarchie der unter dem Cursor getroffenen Objekte. */
+  protected readonly mapTip = signal<{ x: number; y: number; eintraege: Treffer[] } | null>(null);
+  /** Klick-Kontextmenü bei Mehrfachtreffern. */
+  protected readonly kontextMenu = signal<{ x: number; y: number; eintraege: Treffer[] } | null>(
+    null,
+  );
 
   protected readonly basemapId = signal('pk-grau');
   protected readonly overlaySichtbar = signal<Record<string, boolean>>(
@@ -288,6 +354,7 @@ export class Karte implements AfterViewInit, OnDestroy {
   private editLayer: GraphicsLayer | null = null;
   private editSketch: SketchViewModel | null = null;
   private verschneideModus = false;
+  private zerstoert = false;
   /**
    * Während des Objektwechsels im Geometrie-Modus feuert das cancel()
    * synchron ein update-complete-Event — ohne diesen Guard würde
@@ -299,6 +366,14 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Zuletzt angewendete Selektion — verhindert redundante goTo/Query-Läufe,
    *  wenn sich nur die Objektreferenz, nicht aber die Selektion ändert. */
   private letzteSelektion: KartenSelektion | null | undefined;
+  /** SDK-Highlights der aktuellen Selektion (pro Layer-View ein Handle). */
+  private highlightHandles: { remove(): void }[] = [];
+  /**
+   * Startzeit des laufenden Hover-hitTests (0 = keiner). Zeitbasiert statt
+   * boolesch: Ein hitTest, dessen Promise nie auflöst (z. B. gedrosseltes
+   * WebGL in verstecktem Fenster), darf den Hover nicht dauerhaft sperren.
+   */
+  private hoverLaeuftSeit = 0;
 
   constructor() {
     effect(() => {
@@ -369,6 +444,10 @@ export class Karte implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    void this.initialisiere();
+  }
+
+  private async initialisiere(): Promise<void> {
     const basemap = new Basemap({
       baseLayers: [
         new WebTileLayer({
@@ -386,9 +465,22 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.map = map;
     this.basemapCache.set('pk-grau', basemap);
 
-    for (const def of this.layerDefs) {
-      const layer = erzeugeLayer(def);
-      this.layers.set(def.id, layer);
+    // Die Objekt-Layer werden beim Laden mit den Objekt-Attributen
+    // angereichert (asynchron); die Reihenfolge von LAYER_DEFS bleibt die
+    // Zeichenreihenfolge.
+    const objektIds = new Set<string>(OBJEKT_LAYER_IDS);
+    const layerListe = await Promise.all(
+      this.layerDefs.map(
+        async (def) =>
+          [
+            def.id,
+            objektIds.has(def.id) ? await erzeugeObjektLayer(def) : erzeugeLayer(def),
+          ] as const,
+      ),
+    );
+    if (this.zerstoert) return;
+    for (const [id, layer] of layerListe) {
+      this.layers.set(id, layer);
       map.add(layer);
     }
     this.objektLayers = OBJEKT_LAYER_IDS.map((id) => this.layers.get(id)).filter(
@@ -452,8 +544,8 @@ export class Karte implements AfterViewInit, OnDestroy {
         enabled: this.snappingAn(),
         featureSources: [
           { layer: this.editLayer!, enabled: true },
-          { layer: this.layers.get('objekte')!, enabled: true },
           { layer: this.layers.get('routen')!, enabled: true },
+          { layer: this.layers.get('teilsegmente')!, enabled: true },
         ],
       } as never,
     });
@@ -492,8 +584,10 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.view.on('click', (ereignis) => {
       const view = this.view;
       if (!view) return;
+      const menuWarOffen = this.kontextMenu() !== null;
+      this.kontextMenu.set(null);
       // Während des Geometrie-Editings gehören die Klicks dem Sketch
-      if (this.geometrieEditObjekt()) return;
+      if (this.geometrieEditObjekt() || this.polygonAktiv()) return;
       // Kommentar-Werkzeug: Klick wählt die Position (05.11)
       if (this.kommentarModus()) {
         this.kommentarModus.set(false);
@@ -505,6 +599,8 @@ export class Karte implements AfterViewInit, OnDestroy {
         });
         return;
       }
+      // Ein offenes Kontextmenü wird durch den Klick nur geschlossen
+      if (menuWarOffen) return;
       const ziele = [...(this.kommentarLayer ? [this.kommentarLayer] : []), ...this.objektLayers];
       if (!ziele.length) return;
       void view.hitTest(ereignis, { include: ziele }).then((treffer) => {
@@ -515,14 +611,38 @@ export class Karte implements AfterViewInit, OnDestroy {
             this.kommentarKlick.emit(kommentarId);
             return;
           }
-          const signatur = resultat.graphic.attributes?.['signatur'] as string | undefined;
-          if (signatur) {
-            this.objektKlick.emit(signatur);
-            return;
-          }
         }
+        const eintraege = this.trefferAuswerten(treffer);
+        if (eintraege.length === 0) return;
+        if (eintraege.length === 1) {
+          this.objektKlick.emit(eintraege[0].signatur);
+          return;
+        }
+        // Mehrere Objekte getroffen: MapTip wird zum Kontextmenü — dort
+        // wählt man in der Hierarchie, welches Objekt geöffnet werden soll.
+        this.mapTip.set(null);
+        this.kontextMenu.set({ ...this.imSichtfeld(ereignis.x, ereignis.y), eintraege });
       });
     });
+
+    // Hover: MapTip mit der Hierarchie der getroffenen Objekte am Cursor
+    this.view.on('pointer-move', (ereignis) => {
+      if (
+        this.geometrieEditObjekt() ||
+        this.kommentarModus() ||
+        this.polygonAktiv() ||
+        this.kontextMenu()
+      ) {
+        this.mapTip.set(null);
+        return;
+      }
+      void this.hoverPruefen(ereignis);
+    });
+    this.view.on('drag', () => {
+      this.mapTip.set(null);
+      this.kontextMenu.set(null);
+    });
+    this.view.on('pointer-leave', () => this.mapTip.set(null));
 
     // Beim ersten Laden auf die Objekte zoomen, sofern keine Selektion
     // ansteht — erst wenn View UND Layer bereit sind, sonst verwirft die
@@ -542,10 +662,11 @@ export class Karte implements AfterViewInit, OnDestroy {
     );
 
     // Debug-Handle für Verifikation im Browser (wie in ivs-map)
-    Object.assign(window, { ivsKarte: { view: this.view, layers: this.layers } });
+    Object.assign(window, { ivsKarte: { view: this.view, layers: this.layers, komponente: this } });
   }
 
   ngOnDestroy(): void {
+    this.zerstoert = true;
     this.sketch?.destroy();
     this.editSketch?.destroy();
     this.view?.destroy();
@@ -555,6 +676,74 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Layer-Panel ein-/ausblenden (Toolbar-Knopf der einbettenden Seite). */
   panelUmschalten(): void {
     this.panelOffen.set(!this.panelOffen());
+  }
+
+  // ------------------------------------------- Hover-MapTip und Kontextmenü
+
+  /**
+   * Getroffene Objekte aus einem hitTest: Für jedes Feature mit
+   * Objekt-Zuordnung zählt die ganze Kette (Strecke → Linienführung →
+   * Abschnitt/Wegbegleiter), denn die Parent-Objekte teilen sich die
+   * Geometrie. Nicht enthalten ist die Gesamt-Hierarchie der Objekte —
+   * nur, was am Cursor tatsächlich getroffen wurde.
+   */
+  private trefferAuswerten(treffer: HitTestErgebnis): Treffer[] {
+    const tiefen = new Map<string, number>();
+    for (const resultat of treffer.results) {
+      if (resultat.type !== 'graphic') continue;
+      const attribute = resultat.graphic.attributes ?? {};
+      const signatur = attribute['signatur'] as string | undefined;
+      if (!signatur) continue;
+      const strecke = attribute['strecke'] as string;
+      const lf = attribute['lf'] as string;
+      if (strecke) tiefen.set(strecke, 0);
+      if (lf) tiefen.set(lf, 1);
+      tiefen.set(signatur, lf ? 2 : 1);
+    }
+    return [...tiefen]
+      .sort((a, b) => a[0].localeCompare(b[0], 'de-CH', { numeric: true }))
+      .map(([signatur, tiefe]) => ({
+        signatur,
+        tiefe,
+        name: this.objektStore.bySignatur(signatur)?.name ?? '',
+      }));
+  }
+
+  private async hoverPruefen(ereignis: { x: number; y: number }): Promise<void> {
+    if (!this.view || !this.objektLayers.length) return;
+    if (this.hoverLaeuftSeit !== 0 && Date.now() - this.hoverLaeuftSeit < 500) return;
+    this.hoverLaeuftSeit = Date.now();
+    try {
+      const treffer = await this.view.hitTest(ereignis as BildschirmPunkt, {
+        include: this.objektLayers,
+      });
+      const eintraege = this.trefferAuswerten(treffer);
+      const container = this.view.container;
+      if (container) {
+        if (eintraege.length) container.style.cursor = 'pointer';
+        else container.style.removeProperty('cursor');
+      }
+      this.mapTip.set(
+        eintraege.length
+          ? { ...this.imSichtfeld(ereignis.x + 14, ereignis.y + 14), eintraege }
+          : null,
+      );
+    } finally {
+      this.hoverLaeuftSeit = 0;
+    }
+  }
+
+  /** Position so beschneiden, dass Tip/Menü nicht aus der Karte laufen. */
+  private imSichtfeld(x: number, y: number): { x: number; y: number } {
+    const breite = this.view?.width ?? Number.MAX_SAFE_INTEGER;
+    const hoehe = this.view?.height ?? Number.MAX_SAFE_INTEGER;
+    return { x: Math.max(0, Math.min(x, breite - 300)), y: Math.max(0, Math.min(y, hoehe - 170)) };
+  }
+
+  /** Auswahl aus dem Kontextmenü: Objekt melden und Menü schliessen. */
+  protected kontextEintragWaehlen(signatur: string): void {
+    this.kontextMenu.set(null);
+    this.objektKlick.emit(signatur);
   }
 
   /** Kommentar-Werkzeug starten bzw. abbrechen: nächster Klick = Position. */
@@ -778,12 +967,15 @@ export class Karte implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Vereinigter Extent beider Objekt-Layer (WGS 84), optional mit
-   * where-Klausel. Für den Punkte-Layer werden die Geometrien selbst
-   * aggregiert — queryExtent liefert bei Einzelpunkten einen Meter-Puffer
-   * in einem Grad-Extent und ist damit unbrauchbar.
+   * Vereinigter Extent der Objekt-Layer (WGS 84), optional mit
+   * where-Klausel; ohne Klausel zählen nur Features mit Objekt-Zuordnung
+   * (`signatur <> ''`), nicht der ganze Testdatenbestand. Für Punkte-Layer
+   * werden die Geometrien selbst aggregiert — queryExtent liefert bei
+   * Einzelpunkten einen Meter-Puffer in einem Grad-Extent und ist damit
+   * unbrauchbar.
    */
   private async objektExtent(where?: string): Promise<Extent | null> {
+    const klausel = where ?? "signatur <> ''";
     let gesamt: Extent | null = null;
     const vereinige = (extent: Extent) => {
       gesamt = gesamt ? gesamt.union(extent) : extent;
@@ -792,7 +984,7 @@ export class Karte implements AfterViewInit, OnDestroy {
     for (const layer of this.objektLayers) {
       if (layer.geometryType === 'point') {
         const antwort = await layer.queryFeatures({
-          where: where ?? '1=1',
+          where: klausel,
           returnGeometry: true,
           outFields: ['signatur'],
         });
@@ -810,7 +1002,7 @@ export class Karte implements AfterViewInit, OnDestroy {
           );
         }
       } else {
-        const { count, extent } = await layer.queryExtent(where ? { where } : undefined);
+        const { count, extent } = await layer.queryExtent({ where: klausel });
         if (count > 0 && extent) vereinige(extent);
       }
     }
@@ -847,6 +1039,8 @@ export class Karte implements AfterViewInit, OnDestroy {
 
   private async wendeSelektionAn(auswahl: KartenSelektion | null): Promise<void> {
     if (!this.objektLayers.length || !this.view) return;
+    for (const handle of this.highlightHandles) handle.remove();
+    this.highlightHandles = [];
     if (!auswahl) {
       for (const layer of this.objektLayers) layer.featureEffect = null as never;
       return;
@@ -857,6 +1051,22 @@ export class Karte implements AfterViewInit, OnDestroy {
         filter: { where },
         excludedEffect: 'opacity(25%) grayscale(60%)',
       } as never;
+      // Zusätzlich zur Abblendung: SDK-Highlight auf den selektierten Features
+      void this.view.whenLayerView(layer).then(async (layerView) => {
+        const antwort = await layer.queryFeatures({
+          where,
+          returnGeometry: false,
+          outFields: [layer.objectIdField],
+        });
+        // Selektion könnte inzwischen gewechselt haben
+        if (antwort.features.length && this.letzteSelektion === auswahl) {
+          this.highlightHandles.push(
+            (layerView as unknown as { highlight(f: unknown): { remove(): void } }).highlight(
+              antwort.features,
+            ),
+          );
+        }
+      });
     }
     this.erstZoomErledigt = true;
     const extent = await this.objektExtent(where);

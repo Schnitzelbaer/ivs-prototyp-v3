@@ -1,17 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Ebene } from '../core/model';
-
-interface ObjektFeature {
-  properties: { signatur: string; lf: string | null; strecke: string };
-  geometry: { type: string; coordinates: unknown };
-}
+import { ObjektFeature, ladeObjektFeatures } from './karten-layer';
 
 type Bbox = [number, number, number, number]; // xmin, ymin, xmax, ymax (WGS 84)
 
 /**
- * Liefert Begrenzungsrahmen der Objektgeometrien (aus ivs-objekte.geojson
- * und ivs-wegbegleiter.geojson) für den «Kartenausschnitt zur Situierung» —
- * ein statisches WMS-Bild der historischen Dufourkarte von swisstopo.
+ * Liefert Begrenzungsrahmen der Objektgeometrien (aus den angereicherten
+ * Objekt-Layer-Quellen, siehe karten-layer.ts) für den «Kartenausschnitt zur
+ * Situierung» — ein statisches WMS-Bild der historischen Dufourkarte.
  */
 @Injectable({ providedIn: 'root' })
 export class ObjektGeo {
@@ -19,12 +15,8 @@ export class ObjektGeo {
   private ladePromise: Promise<void> | null = null;
 
   private async lade(): Promise<void> {
-    this.ladePromise ??= Promise.all(
-      ['/data/ivs-objekte.geojson', '/data/ivs-wegbegleiter.geojson'].map((url) =>
-        fetch(url).then((r) => r.json() as Promise<{ features: ObjektFeature[] }>),
-      ),
-    ).then((geojsons) => {
-      this.features = geojsons.flatMap((g) => g.features);
+    this.ladePromise ??= ladeObjektFeatures().then((features) => {
+      this.features = features;
     });
     return this.ladePromise;
   }
@@ -56,7 +48,12 @@ export class ObjektGeo {
    * URL eines WMS-Bilds (Dufourkarte) um die Objekt-Bbox, mit Rand.
    * Für Punkte wird ein fester Ausschnitt von rund einem Kilometer gewählt.
    */
-  async situierungsBild(ebene: Ebene, signatur: string, breite = 640, hoehe = 480): Promise<string | null> {
+  async situierungsBild(
+    ebene: Ebene,
+    signatur: string,
+    breite = 640,
+    hoehe = 480,
+  ): Promise<string | null> {
     const bbox = await this.bbox(ebene, signatur);
     if (!bbox) return null;
 

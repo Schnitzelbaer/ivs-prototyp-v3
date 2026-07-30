@@ -106,10 +106,14 @@ neuen Session weiterzuarbeiten.
   & Gelände, Anhang, Prüfen/Freigabe, Inexistent mit Pflichtbegründung,
   Lognotizen), Hierarchie-Dropdown zum Wechsel zwischen Parent-/Child-Objekten,
   Statusübergänge je Rolle mit automatischem Logeintrag, Bearbeitungslog-Sheet.
-- **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS, allen
-  `ivs-map`-Layern und den Objekt-Layern; Selektion mit Hervorhebung/Zoom.
-  `/karte` öffnet ein eigenständiges Kartenfenster, das per BroadcastChannel
-  bidirektional mit dem Hauptfenster synchronisiert (Selektion, Objekt-Klick).
+- **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS und den
+  `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Layer — die
+  bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden mit
+  den Objekt-Attributen angereichert (`karten-layer.ts`). Selektion mit
+  SDK-Highlight, Abblendung und Zoom; Hover zeigt einen MapTip mit der
+  Hierarchie der getroffenen Objekte, Klick selektiert (bei Mehrfachtreffern
+  über ein Kontextmenü). `/karte` öffnet ein eigenständiges Kartenfenster, das
+  per BroadcastChannel bidirektional mit dem Hauptfenster synchronisiert.
 - **Objekte** (`/objekte`): Kartenansicht mit dezenter Objektliste, Suche,
   Filtern und Side-Panel mit dem Objektinhalt (04.01–04.03), Export-Attrappe.
 - **360°-Aufnahmen** (`/panorama`): Galerie der Befahrung mit echt drehbarem
@@ -137,10 +141,11 @@ neuen Session weiterzuarbeiten.
 Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Versionsvergleich,
 Nebenblöcke (Accounts, Arbeitspakete, Reports).
 
-Die Objekt-Geometrien erzeugt `tools/build-objekte.mjs` aus den Testdaten
-(`node tools/build-objekte.mjs` → `public/data/ivs-objekte.geojson` und
-`ivs-wegbegleiter.geojson` — getrennt, weil ein GeoJSONLayer nur einen
-Geometrietyp trägt).
+Die Zuordnung Signatur → Testdaten-Feature liegt in
+`src/app/karte/karten-layer.ts` und wird zur Laufzeit auf die geladenen
+GeoJSON-Layer gestempelt. `tools/build-objekte.mjs` und die von ihm erzeugten
+Dateien `public/data/ivs-objekte.geojson` / `ivs-wegbegleiter.geojson` werden
+nicht mehr verwendet (Entfernung noch offen).
 
 ## Verwandte Projekte
 
