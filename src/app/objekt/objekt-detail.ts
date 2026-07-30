@@ -11,10 +11,11 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideAlignJustify,
+  lucideCamera,
   lucideCheck,
   lucideChevronDown,
   lucideCircleSmall,
@@ -75,6 +76,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
+    RouterLink,
     NgIcon,
     HlmAlertDialogImports,
     HlmBadgeImports,
@@ -93,6 +95,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
   providers: [
     provideIcons({
       lucideAlignJustify,
+      lucideCamera,
       lucideCheck,
       lucideChevronDown,
       lucideCircleSmall,
@@ -144,6 +147,12 @@ export class ObjektDetail implements OnDestroy {
   protected readonly selektion = computed<KartenSelektion | null>(() => {
     const o = this.objekt();
     return o ? { ebene: o.ebene, signatur: o.signatur } : null;
+  });
+
+  /** 360°-Aufnahmen liegen im Prototyp entlang von BE 7.2 (07.08). */
+  protected readonly hat360Aufnahmen = computed(() => {
+    const o = this.objekt();
+    return !!o && (o.signatur === 'BE 7' || o.signatur.startsWith('BE 7.2'));
   });
 
   /** Flache Hierarchie der ganzen Strecke für das Dropdown. */

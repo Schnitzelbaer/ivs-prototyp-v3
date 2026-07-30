@@ -916,14 +916,20 @@ Gebaut ist die **erste Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
   BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft). Hierarchie
   aus den echten Gruppierungen `ivs_ivsfk`/`ivs_signatur` abgeleitet;
   Persistenz im localStorage, `SEED_VERSION` erhöhen verwirft Stände.
+- **Objekte-Übersicht (04.01)** unter `/objekte`: alle Objekte mit Suche,
+  Attributfiltern, Sortierung über alle Spalten und Export-Attrappe.
+- **360°-Aufnahmen (06, Vorgabe 9)** unter `/panorama`: drehbares
+  Platzhalter-Panorama (generierte, nahtlose SVGs mit Gradskala und
+  Weg-Perspektive), Vor-/Zurück-Navigation entlang der Route 916, Karte mit
+  Standortpunkt und live mitdrehendem Blickrichtungskegel; die
+  Objektbearbeitung verlinkt im Tab «360° Bilder» darauf (07.08).
 - **Kitchen Sink** unter `/kitchen-sink` als Nachschlagewerk;
   **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
   vorgesehen (`pnpm test` meldet «No tests found»).
 
 Noch nicht gebaut: Prüfprotokoll/Checkliste 1 (Etappe folgt), Kommentare
-(Spezifikation folgt), 360°-Panorama, Versionsvergleich, Geometrie-Editing,
-vollständige Objekte-Übersicht, Nebenblöcke (Accounts, Stammdaten,
-Arbeitspakete, Reports).
+(Spezifikation folgt), Versionsvergleich, Geometrie-Editing, Nebenblöcke
+(Accounts, Stammdaten, Arbeitspakete, Reports).
 
 ### 12.6 Fallstricke aus der bisherigen Arbeit
 

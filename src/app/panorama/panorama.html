@@ -1,0 +1,72 @@
+<div class="flex h-full flex-col">
+  <!-- Kopfzeile -->
+  <header class="flex items-center justify-between gap-4 border-b border-border px-4 py-2.5">
+    <h1 class="text-base font-semibold">
+      360°-Aufnahmen
+      <span class="ml-1 text-sm font-normal text-muted-foreground">
+        Alte Murtenstrasse, Riedbach – Bümpliz (Platzhalter-Bilder)
+      </span>
+    </h1>
+  </header>
+
+  <div class="flex min-h-0 flex-1">
+    <!-- Panorama -->
+    <section class="flex min-w-0 flex-1 flex-col">
+      <div class="min-h-0 flex-1">
+        <ivs-panorama-viewer class="block h-full" [bild]="aufnahme().bild" [(azimut)]="azimut" />
+      </div>
+
+      <!-- Navigation und Metadaten (06.03: Vor- und Rückwärtsnavigation) -->
+      <div class="flex flex-wrap items-center gap-3 border-t border-border px-4 py-2.5">
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          type="button"
+          [disabled]="index() === 0"
+          (click)="wechsle(-1)"
+          hlmTooltip="Vorherige Aufnahme (Richtung Riedbach)"
+          aria-label="Vorherige Aufnahme"
+        >
+          <ng-icon name="lucideChevronLeft" />
+        </button>
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          type="button"
+          [disabled]="index() === aufnahmen.length - 1"
+          (click)="wechsle(1)"
+          hlmTooltip="Nächste Aufnahme (Richtung Bümpliz)"
+          aria-label="Nächste Aufnahme"
+        >
+          <ng-icon name="lucideChevronRight" />
+        </button>
+
+        <div class="min-w-0">
+          <p class="text-sm font-semibold">{{ aufnahme().titel }}</p>
+          <p class="text-xs text-muted-foreground">
+            Aufnahme {{ index() + 1 }} von {{ aufnahmen.length }} · {{ formatDatum(aufnahme().datum) }} · © ASTRA
+          </p>
+        </div>
+
+        @if (objekt(); as o) {
+          <button hlmBtn variant="outline" size="sm" class="ml-auto" type="button" (click)="oeffneObjekt(o.signatur)">
+            <ng-icon name="lucideRoute" />
+            Zum Objekt {{ o.signatur }} – {{ o.name }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- Karte mit Standort und Blickrichtung (06.02) -->
+    <aside class="w-[40%] min-w-96 shrink-0 border-l border-border">
+      <ivs-karte
+        class="block h-full"
+        [panoramaStandort]="standort()"
+        [panoramaAzimut]="azimut()"
+        (objektKlick)="oeffneObjekt($event)"
+      />
+    </aside>
+  </div>
+</div>

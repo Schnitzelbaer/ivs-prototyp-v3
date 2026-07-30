@@ -21,9 +21,11 @@ import MapView from '@arcgis/core/views/MapView.js';
 import SketchViewModel from '@arcgis/core/widgets/Sketch/SketchViewModel.js';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown } from '@ng-icons/lucide';
+import Graphic from '@arcgis/core/Graphic.js';
 import Extent from '@arcgis/core/geometry/Extent.js';
-import type Point from '@arcgis/core/geometry/Point.js';
+import Point from '@arcgis/core/geometry/Point.js';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils.js';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol.js';
 import { Ebene } from '../core/model';
 import { LAYER_DEFS, LayerDef, OBJEKT_LAYER_IDS, erzeugeLayer } from './karten-layer';
 
@@ -112,6 +114,10 @@ export class Karte implements AfterViewInit, OnDestroy {
 
   /** Hervorzuhebendes Objekt; alles andere wird abgeblendet. */
   readonly selektion = input<KartenSelektion | null>(null);
+  /** Standort einer 360°-Aufnahme (Marker mit Blickrichtungskegel). */
+  readonly panoramaStandort = input<{ lon: number; lat: number } | null>(null);
+  /** Blickrichtung der 360°-Aufnahme in Grad (0 = Nord, im Uhrzeigersinn). */
+  readonly panoramaAzimut = input(0);
   /** Beim Klick auf ein Objekt der Objekt-Layer: Signatur. */
   readonly objektKlick = output<string>();
   /** Signaturen innerhalb des gezeichneten Polygons, null = Filter aufgehoben. */
@@ -130,6 +136,8 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Die beiden Objekt-Layer (Linien + Wegbegleiter-Punkte). */
   private objektLayers: GeoJSONLayer[] = [];
   private skizzenLayer: GraphicsLayer | null = null;
+  private markerLayer: GraphicsLayer | null = null;
+  private kegelGraphic: Graphic | null = null;
   private sketch: SketchViewModel | null = null;
   private erstZoomErledigt = false;
 
@@ -138,6 +146,20 @@ export class Karte implements AfterViewInit, OnDestroy {
       const auswahl = this.selektion();
       if (this.view && this.objektLayers.length) {
         void this.wendeSelektionAn(auswahl);
+      }
+    });
+    // Standortwechsel: Marker neu setzen und hinfahren
+    effect(() => {
+      const standort = this.panoramaStandort();
+      if (this.view && this.markerLayer) {
+        this.setzePanoramaMarker(standort);
+      }
+    });
+    // Reine Drehung: nur das Kegel-Symbol rotieren
+    effect(() => {
+      const azimut = this.panoramaAzimut();
+      if (this.kegelGraphic) {
+        this.kegelGraphic.symbol = kegelSymbol(azimut);
       }
     });
   }
@@ -169,6 +191,9 @@ export class Karte implements AfterViewInit, OnDestroy {
 
     this.skizzenLayer = new GraphicsLayer({ listMode: 'hide' });
     map.add(this.skizzenLayer);
+
+    this.markerLayer = new GraphicsLayer({ listMode: 'hide' });
+    map.add(this.markerLayer);
 
     this.view = new MapView({
       container: this.kartenDiv().nativeElement,
@@ -214,13 +239,14 @@ export class Karte implements AfterViewInit, OnDestroy {
     // ansteht — erst wenn View UND Layer bereit sind, sonst verwirft die
     // View das goTo kommentarlos.
     void Promise.all([this.view.when(), ...this.objektLayers.map((l) => l.when())]).then(async () => {
-      if (!this.erstZoomErledigt && !this.selektion()) {
+      if (!this.erstZoomErledigt && !this.selektion() && !this.panoramaStandort()) {
         const extent = await this.objektExtent();
         if (extent && !this.erstZoomErledigt) {
           await this.view?.goTo(extent.expand(1.2), { animate: false });
         }
       }
       await this.wendeSelektionAn(this.selektion());
+      this.setzePanoramaMarker(this.panoramaStandort());
     });
 
     // Debug-Handle für Verifikation im Browser (wie in ivs-map)
@@ -327,6 +353,31 @@ export class Karte implements AfterViewInit, OnDestroy {
     return gesamt;
   }
 
+  /** Marker (Standortpunkt + Blickkegel) setzen und die Karte hinfahren. */
+  private setzePanoramaMarker(standort: { lon: number; lat: number } | null): void {
+    if (!this.markerLayer || !this.view) return;
+    this.markerLayer.removeAll();
+    this.kegelGraphic = null;
+    if (!standort) return;
+
+    const punkt = webMercatorUtils.geographicToWebMercator(
+      new Point({ longitude: standort.lon, latitude: standort.lat }),
+    ) as Point;
+
+    this.kegelGraphic = new Graphic({ geometry: punkt, symbol: kegelSymbol(this.panoramaAzimut()) });
+    const standortGraphic = new Graphic({
+      geometry: punkt,
+      symbol: new SimpleMarkerSymbol({
+        style: 'circle',
+        color: [37, 99, 235],
+        size: 12,
+        outline: { color: [255, 255, 255], width: 1.5 },
+      }),
+    });
+    this.markerLayer.addMany([this.kegelGraphic, standortGraphic]);
+    void this.view.goTo({ target: punkt, scale: 5000 });
+  }
+
   private async wendeSelektionAn(auswahl: KartenSelektion | null): Promise<void> {
     if (!this.objektLayers.length || !this.view) return;
     if (!auswahl) {
@@ -356,6 +407,23 @@ export class Karte implements AfterViewInit, OnDestroy {
       await this.view?.goTo(extent.expand(1.4));
     }
   }
+}
+
+/**
+ * Blickrichtungskegel: Keil, der vom Standort nach oben (Norden) öffnet und
+ * über `angle` mitdreht. Der winzige Gegenpfad unten hält die Bounding-Box
+ * symmetrisch, damit die Kegelspitze exakt am Standort liegt — der Pfad wird
+ * von SimpleMarkerSymbol sonst um seine Box-Mitte zentriert.
+ */
+function kegelSymbol(azimut: number): SimpleMarkerSymbol {
+  return new SimpleMarkerSymbol({
+    style: 'path',
+    path: 'M 0 0 L -13 -30 A 34 34 0 0 1 13 -30 Z M -0.2 30 L 0.2 30 L 0 29.7 Z',
+    size: 56,
+    color: [34, 197, 94, 0.45],
+    angle: azimut,
+    outline: { color: [22, 163, 74, 0.9], width: 1 },
+  });
 }
 
 function whereFuerSelektion(auswahl: KartenSelektion): string {

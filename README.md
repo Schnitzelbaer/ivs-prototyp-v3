@@ -106,13 +106,20 @@ Der Kern-Workflow des Prototyps steht in erster Ausbaustufe:
   `ivs-map`-Layern und den Objekt-Layern; Selektion mit Hervorhebung/Zoom.
   `/karte` öffnet ein eigenständiges Kartenfenster, das per BroadcastChannel
   bidirektional mit dem Hauptfenster synchronisiert (Selektion, Objekt-Klick).
+- **Objekte** (`/objekte`): vollständige Übersicht aller Objekte mit
+  Volltextsuche, Attributfiltern und Sortierung über alle Spalten (04.01–04.03),
+  Export als Attrappe.
+- **360°-Aufnahmen** (`/panorama`): echt drehbares Platzhalter-Panorama
+  (generierte, nahtlose SVGs), Vor-/Zurück-Navigation entlang der alten
+  Murtenstrasse, Karte mit Standort und live mitdrehendem Blickrichtungskegel;
+  verlinkt mit den Objekten (Tab «360° Bilder» in der Objektbearbeitung).
 - **Mock-Daten** (`src/app/core/seed-data.ts`): 46 Objekte im Testgebiet Bern
   (5 Strecken, 9 Linienführungen, 22 Abschnitte, 10 Wegbegleiter), abgeleitet
   aus den echten Gruppierungen der Testdaten (`ivs_ivsfk`, `ivs_signatur`);
   Änderungen überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
 
-Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Kommentare, 360°,
-Versionsvergleich, Geometrie-Editing, Objekte-Übersicht, Nebenblöcke.
+Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Kommentare,
+Versionsvergleich, Geometrie-Editing, Nebenblöcke.
 
 Die Objekt-Geometrien erzeugt `tools/build-objekte.mjs` aus den Testdaten
 (`node tools/build-objekte.mjs` → `public/data/ivs-objekte.geojson` und
