@@ -29,6 +29,7 @@ import MapView from '@arcgis/core/views/MapView.js';
 import SketchViewModel from '@arcgis/core/widgets/Sketch/SketchViewModel.js';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown } from '@ng-icons/lucide';
+import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import Graphic from '@arcgis/core/Graphic.js';
 import Extent from '@arcgis/core/geometry/Extent.js';
 import Point from '@arcgis/core/geometry/Point.js';
@@ -59,7 +60,7 @@ export interface KartenSelektion {
 @Component({
   selector: 'ivs-karte',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon],
+  imports: [NgIcon, HlmCollapsibleImports],
   providers: [provideIcons({ lucideChevronDown })],
   template: `
     <div class="relative h-full w-full overflow-hidden">
@@ -67,116 +68,154 @@ export interface KartenSelektion {
 
       <!-- Layer-Panel («Objekte») -->
       <div
+        hlmCollapsible
+        [expanded]="true"
+        #panelAuf="brnCollapsible"
         class="absolute right-3 bottom-6 w-56 rounded-md border border-border bg-background/95 shadow-md backdrop-blur"
         [class.hidden]="!panelOffen()"
       >
         <button
-          type="button"
+          hlmCollapsibleTrigger
           class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold"
-          (click)="panelEingeklappt.set(!panelEingeklappt())"
         >
           Objekte
-          <ng-icon name="lucideChevronDown" class="transition-transform" [class.rotate-180]="panelEingeklappt()" />
+          <ng-icon
+            name="lucideChevronDown"
+            class="transition-transform"
+            [class.rotate-180]="!panelAuf.expanded()"
+          />
         </button>
-        @if (!panelEingeklappt()) {
-          <div class="max-h-96 overflow-y-auto px-1 pb-2">
-            <!-- Hintergrund (05.04) -->
-            <p class="px-2 pt-1 pb-0.5 text-xs font-medium text-muted-foreground">Hintergrund</p>
-            @for (basemap of basemaps; track basemap.id) {
-              <label class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-0.5 text-sm hover:bg-accent">
-                <input
-                  type="radio"
-                  name="ivs-basemap"
-                  class="accent-primary"
-                  [checked]="basemapId() === basemap.id"
-                  (change)="basemapWechseln(basemap.id)"
-                />
-                {{ basemap.titel }}
-              </label>
-            }
-            @for (overlay of overlays; track overlay.id) {
-              <div class="rounded-sm px-2 py-0.5 text-sm hover:bg-accent">
-                <label class="flex cursor-pointer items-center gap-2">
-                  <input
-                    type="checkbox"
-                    class="accent-primary"
-                    [checked]="overlaySichtbar()[overlay.id]"
-                    (change)="overlayUmschalten(overlay.id)"
-                  />
-                  <span class="min-w-0 flex-1 truncate">{{ overlay.titel }}</span>
-                </label>
-                @if (overlaySichtbar()[overlay.id]) {
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    class="mt-0.5 h-1.5 w-full accent-primary"
-                    [value]="overlayDeckkraft()[overlay.id]"
-                    (input)="overlayDeckkraftSetzen(overlay.id, $event)"
-                    [attr.aria-label]="'Deckkraft ' + overlay.titel"
-                  />
-                }
-              </div>
-            }
-
-            <!-- Objekt-Deckkraft -->
-            <p class="px-2 pt-2 pb-0.5 text-xs font-medium text-muted-foreground">Objekt-Deckkraft</p>
-            <div class="px-2">
+        <div hlmCollapsibleContent class="max-h-96 overflow-y-auto px-1 pb-2">
+          <!-- Hintergrund (05.04) -->
+          <p class="px-2 pt-1 pb-0.5 text-xs font-medium text-muted-foreground">Hintergrund</p>
+          @for (basemap of basemaps; track basemap.id) {
+            <label
+              class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-0.5 text-sm hover:bg-accent"
+            >
               <input
-                type="range"
-                min="10"
-                max="100"
-                class="h-1.5 w-full accent-primary"
-                [value]="objektDeckkraft()"
-                (input)="objektDeckkraftSetzen($event)"
-                aria-label="Deckkraft der IVS-Objekte"
+                type="radio"
+                name="ivs-basemap"
+                class="accent-primary"
+                [checked]="basemapId() === basemap.id"
+                (change)="basemapWechseln(basemap.id)"
               />
+              {{ basemap.titel }}
+            </label>
+          }
+          @for (overlay of overlays; track overlay.id) {
+            <div class="rounded-sm px-2 py-0.5 text-sm hover:bg-accent">
+              <label class="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  class="accent-primary"
+                  [checked]="overlaySichtbar()[overlay.id]"
+                  (change)="overlayUmschalten(overlay.id)"
+                />
+                <span class="min-w-0 flex-1 truncate">{{ overlay.titel }}</span>
+              </label>
+              @if (overlaySichtbar()[overlay.id]) {
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  class="mt-0.5 h-1.5 w-full accent-primary"
+                  [value]="overlayDeckkraft()[overlay.id]"
+                  (input)="overlayDeckkraftSetzen(overlay.id, $event)"
+                  [attr.aria-label]="'Deckkraft ' + overlay.titel"
+                />
+              }
             </div>
+          }
 
-            <p class="px-2 pt-2 pb-0.5 text-xs font-medium text-muted-foreground">Layer</p>
-            <ul>
+          <!-- Objekt-Deckkraft -->
+          <p class="px-2 pt-2 pb-0.5 text-xs font-medium text-muted-foreground">Objekt-Deckkraft</p>
+          <div class="px-2">
+            <input
+              type="range"
+              min="10"
+              max="100"
+              class="h-1.5 w-full accent-primary"
+              [value]="objektDeckkraft()"
+              (input)="objektDeckkraftSetzen($event)"
+              aria-label="Deckkraft der IVS-Objekte"
+            />
+          </div>
+
+          <p class="px-2 pt-2 pb-0.5 text-xs font-medium text-muted-foreground">Layer</p>
+          <ul>
             @for (def of layerDefs; track def.id) {
               <li>
                 <div class="flex items-center gap-2 rounded-sm px-2 py-1 text-sm hover:bg-accent">
                   @switch (def.legende.form) {
                     @case ('linie') {
-                      <span class="h-0.75 w-4 shrink-0 rounded-full" [style.background]="rgb(def.legende.farbe)"></span>
+                      <span
+                        class="h-0.75 w-4 shrink-0 rounded-full"
+                        [style.background]="rgb(def.legende.farbe)"
+                      ></span>
                     }
                     @case ('punkt') {
-                      <span class="size-2.5 shrink-0 rounded-full" [style.background]="rgb(def.legende.farbe)"></span>
+                      <span
+                        class="size-2.5 shrink-0 rounded-full"
+                        [style.background]="rgb(def.legende.farbe)"
+                      ></span>
                     }
                     @case ('flaeche') {
-                      <span class="size-3 shrink-0 rounded-xs opacity-70" [style.background]="rgb(def.legende.farbe)"></span>
+                      <span
+                        class="size-3 shrink-0 rounded-xs opacity-70"
+                        [style.background]="rgb(def.legende.farbe)"
+                      ></span>
                     }
                   }
-                  <span class="min-w-0 flex-1 truncate" [class.text-muted-foreground]="!sichtbarkeit()[def.id]">
+                  <span
+                    class="min-w-0 flex-1 truncate"
+                    [class.text-muted-foreground]="!sichtbarkeit()[def.id]"
+                  >
                     {{ def.titel }}
                   </span>
                   <button
                     type="button"
                     class="text-muted-foreground hover:text-foreground"
                     (click)="layerUmschalten(def.id)"
-                    [attr.aria-label]="'Layer ' + def.titel + (sichtbarkeit()[def.id] ? ' ausblenden' : ' einblenden')"
+                    [attr.aria-label]="
+                      'Layer ' +
+                      def.titel +
+                      (sichtbarkeit()[def.id] ? ' ausblenden' : ' einblenden')
+                    "
                   >
                     <!-- Auge offen/geschlossen -->
                     @if (sichtbarkeit()[def.id]) {
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
                         <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
                         <circle cx="12" cy="12" r="3" />
                       </svg>
                     } @else {
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
                         <path d="m3 3 18 18" />
-                        <path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 5.4-1.4" />
+                        <path
+                          d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 5.4-1.4"
+                        />
                       </svg>
                     }
                   </button>
                 </div>
               </li>
             }
-            </ul>
-          </div>
-        }
+          </ul>
+        </div>
       </div>
     </div>
   `,
@@ -209,7 +248,6 @@ export class Karte implements AfterViewInit, OnDestroy {
   protected readonly layerDefs = LAYER_DEFS;
   protected readonly basemaps = BASEMAP_DEFS;
   protected readonly overlays = OVERLAY_DEFS;
-  protected readonly panelEingeklappt = signal(false);
   readonly panelOffen = signal(true);
   readonly polygonAktiv = signal(false);
   /** Kommentar-Werkzeug aktiv: nächster Kartenklick wählt die Position. */
@@ -461,7 +499,10 @@ export class Karte implements AfterViewInit, OnDestroy {
         this.kommentarModus.set(false);
         view.container?.style.removeProperty('cursor');
         const geografisch = webMercatorUtils.webMercatorToGeographic(ereignis.mapPoint) as Point;
-        this.kommentarPosition.emit({ lon: geografisch.longitude ?? 0, lat: geografisch.latitude ?? 0 });
+        this.kommentarPosition.emit({
+          lon: geografisch.longitude ?? 0,
+          lat: geografisch.latitude ?? 0,
+        });
         return;
       }
       const ziele = [...(this.kommentarLayer ? [this.kommentarLayer] : []), ...this.objektLayers];
@@ -486,17 +527,19 @@ export class Karte implements AfterViewInit, OnDestroy {
     // Beim ersten Laden auf die Objekte zoomen, sofern keine Selektion
     // ansteht — erst wenn View UND Layer bereit sind, sonst verwirft die
     // View das goTo kommentarlos.
-    void Promise.all([this.view.when(), ...this.objektLayers.map((l) => l.when())]).then(async () => {
-      if (!this.erstZoomErledigt && !this.selektion() && !this.panoramaStandort()) {
-        const extent = await this.objektExtent();
-        if (extent && !this.erstZoomErledigt) {
-          await this.view?.goTo(extent.expand(1.2), { animate: false });
+    void Promise.all([this.view.when(), ...this.objektLayers.map((l) => l.when())]).then(
+      async () => {
+        if (!this.erstZoomErledigt && !this.selektion() && !this.panoramaStandort()) {
+          const extent = await this.objektExtent();
+          if (extent && !this.erstZoomErledigt) {
+            await this.view?.goTo(extent.expand(1.2), { animate: false });
+          }
         }
-      }
-      this.letzteSelektion = this.selektion();
-      await this.wendeSelektionAn(this.letzteSelektion);
-      this.setzePanoramaMarker(this.panoramaStandort());
-    });
+        this.letzteSelektion = this.selektion();
+        await this.wendeSelektionAn(this.letzteSelektion);
+        this.setzePanoramaMarker(this.panoramaStandort());
+      },
+    );
 
     // Debug-Handle für Verifikation im Browser (wie in ivs-map)
     Object.assign(window, { ivsKarte: { view: this.view, layers: this.layers } });
@@ -618,9 +661,10 @@ export class Karte implements AfterViewInit, OnDestroy {
       (json) =>
         new Graphic({
           geometry: geometryJsonUtils.fromJSON(json as never) ?? undefined,
-          symbol: (json as { spatialReference?: unknown; x?: unknown })['x'] !== undefined
-            ? editPunktSymbol()
-            : editLinienSymbol(),
+          symbol:
+            (json as { spatialReference?: unknown; x?: unknown })['x'] !== undefined
+              ? editPunktSymbol()
+              : editLinienSymbol(),
         }),
     );
     this.editLayer.addMany(graphics);
@@ -662,7 +706,9 @@ export class Karte implements AfterViewInit, OnDestroy {
     if (!this.editLayer) return;
     const linien = this.editLayer.graphics.filter((g) => g.geometry?.type === 'polyline');
     if (linien.length < 2) return;
-    const vereint = geometryEngine.union(linien.map((g) => g.geometry!).toArray()) as Polyline | null;
+    const vereint = geometryEngine.union(
+      linien.map((g) => g.geometry!).toArray(),
+    ) as Polyline | null;
     if (!vereint) return;
     this.editLayer.removeMany(linien.toArray());
     this.editLayer.add(new Graphic({ geometry: vereint, symbol: editLinienSymbol() }));

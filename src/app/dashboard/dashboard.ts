@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -18,6 +25,7 @@ import {
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
+import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
@@ -42,7 +50,13 @@ import {
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
-import { ALLE_GRUPPEN, GRUPPE_LABEL, STATUS_GRUPPE, STATUS_LABEL, uebergaengeFuer } from '../core/status';
+import {
+  ALLE_GRUPPEN,
+  GRUPPE_LABEL,
+  STATUS_GRUPPE,
+  STATUS_LABEL,
+  uebergaengeFuer,
+} from '../core/status';
 import { Karte } from '../karte/karte';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
 
@@ -71,6 +85,7 @@ interface StatusOption {
     HlmBadgeImports,
     HlmButtonImports,
     HlmCheckboxImports,
+    HlmCollapsibleImports,
     HlmDialogImports,
     HlmInputImports,
     HlmInputGroupImports,
@@ -124,11 +139,6 @@ export class Dashboard {
   protected readonly polygonSignaturen = signal<ReadonlySet<string> | null>(null);
 
   protected readonly sortAufsteigend = signal(true);
-  protected readonly eingeklappt = signal<Record<StatusGruppe, boolean>>({
-    backlog: false,
-    in_arbeit: false,
-    done: false,
-  });
   protected readonly ausgewaehlt = signal<ReadonlySet<string>>(new Set());
   protected readonly karteOffen = signal(true);
 
@@ -155,8 +165,10 @@ export class Dashboard {
       .filter((o) => {
         if (!rolle.dashboardStati.includes(o.status)) return false;
         if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
-        if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter()) return false;
-        if (this.alterFilter() !== 'alle' && String(o.aufnahmejahr) !== this.alterFilter()) return false;
+        if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
+          return false;
+        if (this.alterFilter() !== 'alle' && String(o.aufnahmejahr) !== this.alterFilter())
+          return false;
         if (polygon && !polygon.has(o.signatur)) return false;
         if (begriff) {
           const text = `${o.signatur} ${o.name} ${o.gemeinden}`.toLowerCase();
@@ -169,13 +181,13 @@ export class Dashboard {
 
   protected readonly bloecke = computed<GruppenBlock[]>(() => {
     const objekte = this.gefiltert();
-    return ALLE_GRUPPEN.filter((g) => this.gruppenFilter() === 'alle' || this.gruppenFilter() === g).map(
-      (gruppe) => ({
-        gruppe,
-        label: GRUPPE_LABEL[gruppe],
-        objekte: objekte.filter((o) => STATUS_GRUPPE[o.status] === gruppe),
-      }),
-    );
+    return ALLE_GRUPPEN.filter(
+      (g) => this.gruppenFilter() === 'alle' || this.gruppenFilter() === g,
+    ).map((gruppe) => ({
+      gruppe,
+      label: GRUPPE_LABEL[gruppe],
+      objekte: objekte.filter((o) => STATUS_GRUPPE[o.status] === gruppe),
+    }));
   });
 
   protected readonly polygonAktiv = computed(() => this.karte()?.polygonAktiv() ?? false);
@@ -193,10 +205,6 @@ export class Dashboard {
     if (status === objekt.status) return;
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(objekt.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
-  }
-
-  protected gruppeUmschalten(gruppe: StatusGruppe): void {
-    this.eingeklappt.update((z) => ({ ...z, [gruppe]: !z[gruppe] }));
   }
 
   protected auswahlUmschalten(id: string, ausgewaehlt: boolean): void {
@@ -248,7 +256,9 @@ export class Dashboard {
 
   /** Alle Objekte für die Zuweisungs-Auswahl im Karten-Kommentar-Dialog. */
   protected readonly alleObjekte = computed(() =>
-    [...this.store.alle()].sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true })),
+    [...this.store.alle()].sort((a, b) =>
+      a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }),
+    ),
   );
 
   protected kommentarWerkzeug(): void {

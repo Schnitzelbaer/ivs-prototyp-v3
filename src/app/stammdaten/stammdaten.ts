@@ -4,6 +4,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown, lucidePlus } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
@@ -18,24 +19,23 @@ import { StammdatenStore } from '../core/stammdaten';
 @Component({
   selector: 'ivs-stammdaten',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, NgIcon, HlmBadgeImports, HlmButtonImports, HlmInputImports, HlmSwitchImports, HlmTooltipImports],
+  imports: [
+    FormsModule,
+    NgIcon,
+    HlmBadgeImports,
+    HlmButtonImports,
+    HlmCollapsibleImports,
+    HlmInputImports,
+    HlmSwitchImports,
+    HlmTooltipImports,
+  ],
   providers: [provideIcons({ lucideChevronDown, lucidePlus })],
   templateUrl: './stammdaten.html',
 })
 export class Stammdaten {
   protected readonly store = inject(StammdatenStore);
 
-  protected readonly eingeklappt = signal<ReadonlySet<string>>(new Set());
   protected readonly neueWerte = signal<Readonly<Record<string, string>>>({});
-
-  protected listeUmschalten(id: string): void {
-    this.eingeklappt.update((menge) => {
-      const neu = new Set(menge);
-      if (neu.has(id)) neu.delete(id);
-      else neu.add(id);
-      return neu;
-    });
-  }
 
   protected neuerWert(listeId: string): string {
     return this.neueWerte()[listeId] ?? '';

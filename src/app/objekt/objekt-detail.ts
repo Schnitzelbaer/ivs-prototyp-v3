@@ -45,6 +45,7 @@ import {
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -97,6 +98,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     HlmAlertDialogImports,
     HlmBadgeImports,
     HlmButtonImports,
+    HlmCollapsibleImports,
     HlmDialogImports,
     HlmDropdownMenuImports,
     HlmInputImports,
@@ -187,7 +189,9 @@ export class ObjektDetail implements OnDestroy {
     return rolle === 'R-05' && darfEditieren(rolle, o.status);
   });
 
-  protected readonly istEdit = computed(() => this.gewuenschterModus() === 'edit' && this.darfBearbeiten());
+  protected readonly istEdit = computed(
+    () => this.gewuenschterModus() === 'edit' && this.darfBearbeiten(),
+  );
 
   protected readonly selektion = computed<KartenSelektion | null>(
     () => {
@@ -223,10 +227,14 @@ export class ObjektDetail implements OnDestroy {
     const sortiert = (liste: IvsObjekt[]) =>
       [...liste].sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
     const eintraege: IvsObjekt[] = [strecke];
-    for (const lf of sortiert(this.store.kinder(strecke.signatur).filter((k) => k.ebene === 'linienfuehrung'))) {
+    for (const lf of sortiert(
+      this.store.kinder(strecke.signatur).filter((k) => k.ebene === 'linienfuehrung'),
+    )) {
       eintraege.push(lf, ...sortiert(this.store.kinder(lf.signatur)));
     }
-    eintraege.push(...sortiert(this.store.kinder(strecke.signatur).filter((k) => k.ebene === 'wegbegleiter')));
+    eintraege.push(
+      ...sortiert(this.store.kinder(strecke.signatur).filter((k) => k.ebene === 'wegbegleiter')),
+    );
     return eintraege;
   });
 
@@ -245,7 +253,6 @@ export class ObjektDetail implements OnDestroy {
     ];
   });
 
-  protected readonly eingeklappt = signal<ReadonlySet<string>>(new Set());
   protected readonly situierungsUrl = signal<string | null>(null);
   protected readonly inexistentBegruendung = signal('');
   protected readonly neueLognotiz = signal('');
@@ -282,7 +289,11 @@ export class ObjektDetail implements OnDestroy {
   protected readonly kartenKommentarZuweisung = signal('');
 
   /** Die drei Teile der NHG-Bewertung mit ihren Hinweistexten. */
-  protected readonly bewertungsTeile: readonly { schluessel: BewertungsSchluessel; titel: string; hinweis: string }[] = [
+  protected readonly bewertungsTeile: readonly {
+    schluessel: BewertungsSchluessel;
+    titel: string;
+    hinweis: string;
+  }[] = [
     {
       schluessel: 'geschichte',
       titel: 'Geschichte',
@@ -291,7 +302,8 @@ export class ObjektDetail implements OnDestroy {
     {
       schluessel: 'morphologie',
       titel: 'Morphologie',
-      hinweis: 'Landschaftsqualität, Anzahl Kunstbauten und Wegbegleiter, Seltenheit, Erhaltungszustand.',
+      hinweis:
+        'Landschaftsqualität, Anzahl Kunstbauten und Wegbegleiter, Seltenheit, Erhaltungszustand.',
     },
     {
       schluessel: 'substanzwert',
@@ -315,7 +327,8 @@ export class ObjektDetail implements OnDestroy {
       if (!auswahl) return;
       void this.geo.situierungsBild(auswahl.ebene, auswahl.signatur).then((url) => {
         // nur setzen, wenn das Objekt inzwischen nicht gewechselt hat
-        if (untracked(() => this.objekt())?.signatur === auswahl.signatur) this.situierungsUrl.set(url);
+        if (untracked(() => this.objekt())?.signatur === auswahl.signatur)
+          this.situierungsUrl.set(url);
       });
     });
   }
@@ -337,7 +350,10 @@ export class ObjektDetail implements OnDestroy {
     if (o) this.store.update(o.id, patch);
   }
 
-  protected patchBewertung(schluessel: BewertungsSchluessel, aenderung: Partial<BewertungsTeil>): void {
+  protected patchBewertung(
+    schluessel: BewertungsSchluessel,
+    aenderung: Partial<BewertungsTeil>,
+  ): void {
     const o = this.objekt();
     if (!o) return;
     this.store.update(o.id, {
@@ -393,7 +409,12 @@ export class ObjektDetail implements OnDestroy {
 
   private protokolliere(id: string, text: string): void {
     const rolle = this.einstellungen.aktiveRolleId();
-    this.store.lognotizHinzufuegen(id, { datum: heute(), autor: NAME_FUER_ROLLE[rolle], rolle, text });
+    this.store.lognotizHinzufuegen(id, {
+      datum: heute(),
+      autor: NAME_FUER_ROLLE[rolle],
+      rolle,
+      text,
+    });
   }
 
   // ------------------------------------------------------------ Navigation
@@ -410,15 +431,6 @@ export class ObjektDetail implements OnDestroy {
   protected inNeuemTabOeffnen(): void {
     const o = this.objekt();
     window.open(o ? `/karte?sig=${encodeURIComponent(o.id)}` : '/karte', '_blank', 'noopener');
-  }
-
-  protected abschnittUmschalten(schluessel: string): void {
-    this.eingeklappt.update((menge) => {
-      const neu = new Set(menge);
-      if (neu.has(schluessel)) neu.delete(schluessel);
-      else neu.add(schluessel);
-      return neu;
-    });
   }
 
   protected layerPanel(): void {
@@ -443,7 +455,10 @@ export class ObjektDetail implements OnDestroy {
     if (!neu && this.geometrieGeaendertFlag) {
       const o = this.objekt();
       if (o) {
-        this.protokolliere(o.id, `Kartengeometrie bearbeitet — ${this.geometrieAnzahl()} Arbeitsgeometrie(n) (05.07).`);
+        this.protokolliere(
+          o.id,
+          `Kartengeometrie bearbeitet — ${this.geometrieAnzahl()} Arbeitsgeometrie(n) (05.07).`,
+        );
       }
       this.geometrieGeaendertFlag = false;
     }
@@ -480,7 +495,10 @@ export class ObjektDetail implements OnDestroy {
     if (!o || !ziel) return;
     const vorher = o.parent;
     this.store.update(o.id, { parent: ziel });
-    this.protokolliere(o.id, `Umgeteilt: von ${vorher ?? '—'} zu ${ziel} (07.09). Die Signatur wird bei der Umsetzung neu vergeben.`);
+    this.protokolliere(
+      o.id,
+      `Umgeteilt: von ${vorher ?? '—'} zu ${ziel} (07.09). Die Signatur wird bei der Umsetzung neu vergeben.`,
+    );
     this.umteilenOffen.set(false);
   }
 
@@ -545,7 +563,9 @@ export class ObjektDetail implements OnDestroy {
 
   /** Alle Objekte für die Zuweisungs-Auswahl im Karten-Kommentar-Dialog. */
   protected readonly alleObjekte = computed(() =>
-    [...this.store.alle()].sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true })),
+    [...this.store.alle()].sort((a, b) =>
+      a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }),
+    ),
   );
 
   protected kommentarWerkzeug(): void {
