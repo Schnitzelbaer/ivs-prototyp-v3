@@ -1,4 +1,4 @@
-import { IvsObjekt } from './model';
+import { IvsObjekt, ObjektTyp, objektTyp } from './model';
 import { SEED_OBJEKTE, Vorlage, objektAusVorlage } from './seed-data';
 
 /** Felder generierter Objekte — der Status ist immer gesetzt. */
@@ -152,6 +152,12 @@ export interface ObjektModell {
    * Karten-Layer aus einer Blob-URL (karten-layer.ts).
    */
   kunstbautenFeatures: GeoJsonFeature[];
+  /**
+   * Objekttyp je Signatur (kuratierte und generierte Objekte) — Grundlage
+   * für den `typ`-Stempel auf den Karten-Features und damit für die nach
+   * Substanz differenzierte Abschnitts-Symbolik.
+   */
+  typProSignatur: ReadonlyMap<string, ObjektTyp>;
 }
 
 interface GeoJsonFeature {
@@ -344,6 +350,10 @@ async function erzeugeModell(): Promise<ObjektModell> {
     );
   });
 
+  const typProSignatur = new Map<string, ObjektTyp>();
+  for (const objekt of SEED_OBJEKTE) typProSignatur.set(objekt.signatur, objektTyp(objekt));
+  for (const objekt of generierte) typProSignatur.set(objekt.signatur, objektTyp(objekt));
+
   return {
     generierte,
     zuordnung: {
@@ -352,6 +362,7 @@ async function erzeugeModell(): Promise<ObjektModell> {
       punkt: punktZuSignatur,
     },
     kunstbautenFeatures: kontext.kunstbautenFeatures,
+    typProSignatur,
   };
 }
 

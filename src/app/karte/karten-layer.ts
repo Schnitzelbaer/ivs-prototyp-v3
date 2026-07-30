@@ -1,5 +1,6 @@
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer.js';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer.js';
+import { ObjektTyp } from '../core/model';
 import { ObjektZuordnung, ladeObjektModell, signaturKette } from '../core/objekt-generierung';
 
 /**
@@ -116,6 +117,33 @@ const WEGFORM_FARBE = [0, 145, 255];
 /** Einheitliche Farbe der Punktobjekte (rot, wie in der Legende). */
 const PUNKTOBJEKT_FARBE = [220, 38, 38];
 
+/** Farbe der Abschnitts-Typen (blau, durch die Liniendicke unterschieden). */
+const ABSCHNITT_FARBE = [21, 101, 192];
+
+/**
+ * Einheitliche Legende je Objekttyp — dieselben Formen und Farben überall:
+ * Karten-Renderer, Kartenbild-Panel, Hierarchie-Dropdown, MapTip und
+ * Objektlisten. `dicke` ist zugleich Linienbreite auf der Karte (pt) und
+ * Symbolhöhe im UI (px); Strecke und Linienführung sind bewusst identisch
+ * (orange, gleich dick — auf der Karte unterscheiden sie die Grenzmarken).
+ */
+export const OBJEKT_TYP_SYMBOL: Record<
+  ObjektTyp,
+  { form: 'linie' | 'punkt'; dicke: number; farbe: number[] }
+> = {
+  strecke: { form: 'linie', dicke: 3, farbe: ROUTENFARBE },
+  linienfuehrung: { form: 'linie', dicke: 3, farbe: ROUTENFARBE },
+  abschnitt_substanz: { form: 'linie', dicke: 2, farbe: ABSCHNITT_FARBE },
+  abschnitt_viel_substanz: { form: 'linie', dicke: 3.5, farbe: ABSCHNITT_FARBE },
+  kunstbaute: { form: 'linie', dicke: 5, farbe: ABSCHNITT_FARBE },
+  wegbegleiter: { form: 'punkt', dicke: 8, farbe: PUNKTOBJEKT_FARBE },
+};
+
+/** CSS-Farbwert eines Legenden-Symbols. */
+export function symbolFarbe(farbe: number[]): string {
+  return `rgb(${farbe.join(',')})`;
+}
+
 export type WegoberflaechenArt =
   'Hartbelag' | 'Schotterung' | 'Lockermaterial' | 'Lockermaterial + Schotterung';
 
@@ -129,12 +157,13 @@ export const WEGOBERFLAECHEN: { art: WegoberflaechenArt; farbe: number[] }[] = [
 export interface LayerDef {
   id: string;
   titel: string;
+  /** Quelldatei in public/data/ — leer beim generierten Kunstbauten-Layer. */
   datei: string;
   sichtbar: boolean;
   renderer: Symbolik;
   /** Farbe für das Legenden-Symbol im Layer-Panel. */
   legende: {
-    form: 'linie' | 'linie-dick' | 'linie-gestrichelt' | 'punkt' | 'flaeche';
+    form: 'linie' | 'linie-duenn' | 'linie-dick' | 'linie-gestrichelt' | 'punkt' | 'flaeche';
     farbe: number[];
   };
   /** Optionaler Attributfilter (definitionExpression). */
@@ -184,21 +213,51 @@ export const LAYER_DEFS: LayerDef[] = [
     },
     legende: { form: 'linie', farbe: WEGFORM_FARBE },
   },
+  // Objekttypen gemäss einheitlicher Legende: Strecken/Linienführungen orange
+  // zuunterst, darüber die blauen Abschnitts-Typen (nach Substanz), zuoberst
+  // die Kunstbauten mit eigener, generierter Teilstück-Geometrie.
   {
-    id: 'teilsegmente',
-    titel: 'Teilsegment',
-    datei: 'routen_bern_teilsegmente',
+    id: 'routen',
+    titel: 'Strecke / Linienführung',
+    datei: 'routen_bern_korrigiert',
     sichtbar: true,
-    renderer: einfach(linie(ROUTENFARBE, LINIENBREITE.route), 'Teilsegment'),
+    renderer: einfach(
+      linie(ROUTENFARBE, OBJEKT_TYP_SYMBOL.strecke.dicke),
+      'Strecke / Linienführung',
+    ),
     legende: { form: 'linie', farbe: ROUTENFARBE },
   },
   {
-    id: 'routen',
-    titel: 'Route',
-    datei: 'routen_bern_korrigiert',
+    id: 'abschnitte-substanz',
+    titel: 'Abschnitt mit Substanz',
+    datei: 'routen_bern_teilsegmente',
     sichtbar: true,
-    renderer: einfach(linie(ROUTENFARBE, LINIENBREITE.route), 'Route'),
-    legende: { form: 'linie', farbe: ROUTENFARBE },
+    renderer: einfach(
+      linie(ABSCHNITT_FARBE, OBJEKT_TYP_SYMBOL.abschnitt_substanz.dicke),
+      'Abschnitt mit Substanz',
+    ),
+    legende: { form: 'linie-duenn', farbe: ABSCHNITT_FARBE },
+    filter: "typ = 'abschnitt_substanz'",
+  },
+  {
+    id: 'abschnitte-viel-substanz',
+    titel: 'Abschnitt mit viel Substanz',
+    datei: 'routen_bern_teilsegmente',
+    sichtbar: true,
+    renderer: einfach(
+      linie(ABSCHNITT_FARBE, OBJEKT_TYP_SYMBOL.abschnitt_viel_substanz.dicke),
+      'Abschnitt mit viel Substanz',
+    ),
+    legende: { form: 'linie', farbe: ABSCHNITT_FARBE },
+    filter: "typ = 'abschnitt_viel_substanz'",
+  },
+  {
+    id: 'kunstbauten',
+    titel: 'Kunstbaute',
+    datei: '',
+    sichtbar: true,
+    renderer: einfach(linie(ABSCHNITT_FARBE, OBJEKT_TYP_SYMBOL.kunstbaute.dicke), 'Kunstbaute'),
+    legende: { form: 'linie-dick', farbe: ABSCHNITT_FARBE },
   },
   {
     id: 'segmentgrenzen',
@@ -222,10 +281,13 @@ export const LAYER_DEFS: LayerDef[] = [
   },
   {
     id: 'punktobjekte',
-    titel: 'Punktobjekt',
+    titel: 'Wegbegleiter',
     datei: 'prototyp2_ivs_punktobjekte_bern_with_text_new',
     sichtbar: true,
-    renderer: einfach(punkt(PUNKTOBJEKT_FARBE, 8), 'Punktobjekt'),
+    renderer: einfach(
+      punkt(PUNKTOBJEKT_FARBE, OBJEKT_TYP_SYMBOL.wegbegleiter.dicke),
+      'Wegbegleiter',
+    ),
     legende: { form: 'punkt', farbe: PUNKTOBJEKT_FARBE },
   },
 ];
@@ -233,9 +295,22 @@ export const LAYER_DEFS: LayerDef[] = [
 /**
  * Ids der Layer, die die IVS-Objekte tragen (Selektion, Klick, Hover,
  * Polygon-Abfragen). Es sind die bestehenden Fach-Layer — angereichert über
- * `erzeugeObjektLayer`.
+ * `erzeugeObjektLayer` — plus der generierte Kunstbauten-Layer.
  */
-export const OBJEKT_LAYER_IDS = ['routen', 'teilsegmente', 'punktobjekte'] as const;
+export const OBJEKT_LAYER_IDS = [
+  'routen',
+  'abschnitte-substanz',
+  'abschnitte-viel-substanz',
+  'kunstbauten',
+  'punktobjekte',
+] as const;
+
+/** Quelldateien der Objekt-Features (die Kunstbauten kommen aus der Generierung). */
+const OBJEKT_QUELLDATEIEN = [
+  'routen_bern_korrigiert',
+  'routen_bern_teilsegmente',
+  'prototyp2_ivs_punktobjekte_bern_with_text_new',
+] as const;
 
 // ---------------------------------------------------------------------------
 // Objekt-Anreicherung: die Zuordnung liefert core/objekt-generierung.ts
@@ -249,9 +324,20 @@ interface GeoJsonFeature {
 }
 
 /** Objekt-Attribute auf ein Feature stempeln. */
-function stemple(feature: GeoJsonFeature, signatur: string, ebene: string): void {
+function stemple(
+  feature: GeoJsonFeature,
+  signatur: string,
+  ebene: string,
+  typProSignatur: ReadonlyMap<string, ObjektTyp>,
+): void {
   const { lf, strecke } = signaturKette(signatur);
-  Object.assign(feature.properties, { signatur, ebene, lf, strecke });
+  Object.assign(feature.properties, {
+    signatur,
+    ebene,
+    lf,
+    strecke,
+    typ: typProSignatur.get(signatur) ?? '',
+  });
 }
 
 function ebeneAusSignatur(signatur: string): string {
@@ -261,33 +347,38 @@ function ebeneAusSignatur(signatur: string): string {
 }
 
 /**
- * Objekt-Attribute in die Features des geladenen GeoJSON eintragen.
- * Nicht zugeordnete Features bekommen leere Strings (ein durchgehend
- * null-wertiges Feld würde der GeoJSONLayer verwerfen).
+ * Objekt-Attribute in die Features des geladenen GeoJSON eintragen (je
+ * Quelldatei). Nicht zugeordnete Features bekommen leere Strings (ein
+ * durchgehend null-wertiges Feld würde der GeoJSONLayer verwerfen).
  */
-function reichereAn(layerId: string, features: GeoJsonFeature[], zuordnung: ObjektZuordnung): void {
+function reichereAn(
+  datei: string,
+  features: GeoJsonFeature[],
+  zuordnung: ObjektZuordnung,
+  typProSignatur: ReadonlyMap<string, ObjektTyp>,
+): void {
   for (const f of features) {
-    Object.assign(f.properties, { signatur: '', ebene: '', lf: '', strecke: '' });
+    Object.assign(f.properties, { signatur: '', ebene: '', lf: '', strecke: '', typ: '' });
   }
-  switch (layerId) {
-    case 'routen':
+  switch (datei) {
+    case 'routen_bern_korrigiert':
       for (const f of features) {
         const signatur = zuordnung.route.get(f.properties['NR'] as number);
-        if (signatur) stemple(f, signatur, ebeneAusSignatur(signatur));
+        if (signatur) stemple(f, signatur, ebeneAusSignatur(signatur), typProSignatur);
       }
       break;
-    case 'teilsegmente':
+    case 'routen_bern_teilsegmente':
       for (const f of features) {
         const signatur = zuordnung.teilsegment.get(
           `${f.properties['route_nr']}/${f.properties['seg_nr']}`,
         );
-        if (signatur) stemple(f, signatur, ebeneAusSignatur(signatur));
+        if (signatur) stemple(f, signatur, ebeneAusSignatur(signatur), typProSignatur);
       }
       break;
-    case 'punktobjekte':
+    default:
       features.forEach((f, index) => {
         const signatur = zuordnung.punkt.get(index);
-        if (signatur) stemple(f, signatur, 'wegbegleiter');
+        if (signatur) stemple(f, signatur, 'wegbegleiter', typProSignatur);
       });
       break;
   }
@@ -309,14 +400,13 @@ export interface ObjektFeature {
  * für Abnehmer ausserhalb der Karte (z. B. das Dufour-Situierungsbild).
  */
 export async function ladeObjektFeatures(): Promise<ObjektFeature[]> {
-  const defs = LAYER_DEFS.filter((d) => (OBJEKT_LAYER_IDS as readonly string[]).includes(d.id));
-  const [{ zuordnung, kunstbautenFeatures }, ...geojsons] = await Promise.all([
+  const [modell, ...geojsons] = await Promise.all([
     ladeObjektModell(),
-    ...defs.map((d) => ladeGeoJson(d.datei)),
+    ...OBJEKT_QUELLDATEIEN.map((d) => ladeGeoJson(d)),
   ]);
   const features: ObjektFeature[] = [];
   for (const [i, geojson] of geojsons.entries()) {
-    reichereAn(defs[i].id, geojson.features, zuordnung);
+    reichereAn(OBJEKT_QUELLDATEIEN[i], geojson.features, modell.zuordnung, modell.typProSignatur);
     features.push(
       ...(geojson.features as unknown as ObjektFeature[]).filter(
         (f) => f.properties.signatur !== '',
@@ -324,20 +414,55 @@ export async function ladeObjektFeatures(): Promise<ObjektFeature[]> {
     );
   }
   // Kunstbauten kommen bereits gestempelt aus der Generierung
-  features.push(...(kunstbautenFeatures as unknown as ObjektFeature[]));
+  features.push(...(modell.kunstbautenFeatures as unknown as ObjektFeature[]));
   return features;
 }
 
 /**
+ * Gestempelte GeoJSON-Quelle als Blob — je Quelldatei einmal erzeugt, auch
+ * wenn mehrere Layer sie verwenden (die beiden Abschnitts-Layer teilen sich
+ * die Teilsegmente und filtern per definitionExpression). Die Blob-URL wird
+ * dagegen je Layer vergeben — zwei GeoJSONLayer auf derselben URL kommen
+ * sich beim parallelen Erstaufbau in die Quere.
+ */
+const quellBlobCache = new Map<string, Promise<Blob>>();
+const quellUrlCache = new Map<string, Promise<string>>();
+
+function objektQuellBlob(datei: string): Promise<Blob> {
+  const schluessel = datei || 'kunstbauten';
+  let blob = quellBlobCache.get(schluessel);
+  if (!blob) {
+    blob = (async () => {
+      const modell = await ladeObjektModell();
+      const geojson = datei
+        ? await ladeGeoJson(datei)
+        : { type: 'FeatureCollection', features: modell.kunstbautenFeatures };
+      if (datei) {
+        reichereAn(datei, geojson.features, modell.zuordnung, modell.typProSignatur);
+      }
+      return new Blob([JSON.stringify(geojson)], { type: 'application/json' });
+    })();
+    quellBlobCache.set(schluessel, blob);
+  }
+  return blob;
+}
+
+function objektQuellUrl(def: LayerDef): Promise<string> {
+  let url = quellUrlCache.get(def.id);
+  if (!url) {
+    url = objektQuellBlob(def.datei).then((blob) => URL.createObjectURL(blob));
+    quellUrlCache.set(def.id, url);
+  }
+  return url;
+}
+
+/**
  * Layer mit Objekt-Anreicherung erzeugen: GeoJSON laden, Attribute stempeln
- * und den Layer aus einer Blob-URL speisen.
+ * und den Layer aus einer Blob-URL speisen. Der Kunstbauten-Layer (ohne
+ * Quelldatei) wird aus den generierten Teilstück-Geometrien gespeist.
  */
 export async function erzeugeObjektLayer(def: LayerDef): Promise<GeoJSONLayer> {
-  const [{ zuordnung }, geojson] = await Promise.all([ladeObjektModell(), ladeGeoJson(def.datei)]);
-  reichereAn(def.id, geojson.features, zuordnung);
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(geojson)], { type: 'application/json' }),
-  );
+  const url = await objektQuellUrl(def);
   return new GeoJSONLayer({
     url,
     title: def.titel,

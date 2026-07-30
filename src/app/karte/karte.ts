@@ -36,7 +36,7 @@ import Extent from '@arcgis/core/geometry/Extent.js';
 import Point from '@arcgis/core/geometry/Point.js';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils.js';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol.js';
-import { Ebene } from '../core/model';
+import { Ebene, ObjektTyp, objektTyp } from '../core/model';
 import {
   BASEMAP_DEFS,
   LAYER_DEFS,
@@ -47,6 +47,7 @@ import {
   erzeugeObjektLayer,
   erzeugeWebTileLayer,
 } from './karten-layer';
+import { TypSymbol } from './typ-symbol';
 
 export interface KartenSelektion {
   ebene: Ebene;
@@ -59,6 +60,8 @@ interface Treffer {
   name: string;
   /** Einrücktiefe in der Hierarchie (0 = Strecke). */
   tiefe: number;
+  /** Objekttyp fürs Legenden-Symbol (null, wenn das Objekt unbekannt ist). */
+  typ: ObjektTyp | null;
 }
 
 /**
@@ -80,7 +83,7 @@ const TREFFER_RADIUS_TOUCH_PX = 14;
 @Component({
   selector: 'ivs-karte',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIcon, HlmCollapsibleImports],
+  imports: [NgIcon, HlmCollapsibleImports, TypSymbol],
   providers: [provideIcons({ lucideChevronDown })],
   template: `
     <div class="relative h-full w-full overflow-hidden">
@@ -95,9 +98,12 @@ const TREFFER_RADIUS_TOUCH_PX = 14;
         >
           @for (eintrag of tip.eintraege; track eintrag.signatur) {
             <div
-              class="flex items-baseline gap-1.5 truncate leading-5"
+              class="flex items-center gap-1.5 truncate leading-5"
               [style.padding-left.rem]="eintrag.tiefe * 0.75"
             >
+              @if (eintrag.typ) {
+                <ivs-typ-symbol [typ]="eintrag.typ" />
+              }
               <span class="shrink-0 font-mono text-[10px] text-muted-foreground">{{
                 eintrag.signatur
               }}</span>
@@ -118,10 +124,13 @@ const TREFFER_RADIUS_TOUCH_PX = 14;
           @for (eintrag of menu.eintraege; track eintrag.signatur) {
             <button
               type="button"
-              class="flex w-full items-baseline gap-1.5 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+              class="flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
               [style.padding-left.rem]="0.5 + eintrag.tiefe * 0.75"
               (click)="kontextEintragWaehlen(eintrag.signatur)"
             >
+              @if (eintrag.typ) {
+                <ivs-typ-symbol [typ]="eintrag.typ" />
+              }
               <span class="shrink-0 font-mono text-[11px] text-muted-foreground">{{
                 eintrag.signatur
               }}</span>
@@ -215,6 +224,12 @@ const TREFFER_RADIUS_TOUCH_PX = 14;
                     @case ('linie') {
                       <span
                         class="h-0.75 w-4 shrink-0 rounded-full"
+                        [style.background]="rgb(def.legende.farbe)"
+                      ></span>
+                    }
+                    @case ('linie-duenn') {
+                      <span
+                        class="h-0.5 w-4 shrink-0 rounded-full"
                         [style.background]="rgb(def.legende.farbe)"
                       ></span>
                     }
@@ -564,7 +579,8 @@ export class Karte implements AfterViewInit, OnDestroy {
         featureSources: [
           { layer: this.editLayer!, enabled: true },
           { layer: this.layers.get('routen')!, enabled: true },
-          { layer: this.layers.get('teilsegmente')!, enabled: true },
+          { layer: this.layers.get('abschnitte-substanz')!, enabled: true },
+          { layer: this.layers.get('abschnitte-viel-substanz')!, enabled: true },
         ],
       } as never,
     });
@@ -779,11 +795,15 @@ export class Karte implements AfterViewInit, OnDestroy {
     }
     return [...tiefen]
       .sort((a, b) => a[0].localeCompare(b[0], 'de-CH', { numeric: true }))
-      .map(([signatur, tiefe]) => ({
-        signatur,
-        tiefe,
-        name: this.objektStore.bySignatur(signatur)?.name ?? '',
-      }));
+      .map(([signatur, tiefe]) => {
+        const objekt = this.objektStore.bySignatur(signatur);
+        return {
+          signatur,
+          tiefe,
+          name: objekt?.name ?? '',
+          typ: objekt ? objektTyp(objekt) : null,
+        };
+      });
   }
 
   /** Blatt-Signaturen der getroffenen Features (ohne Eltern-Kette), dedupliziert. */
