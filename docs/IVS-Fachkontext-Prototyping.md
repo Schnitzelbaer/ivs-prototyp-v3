@@ -3,16 +3,24 @@
 > **Zweck dieses Dokuments.** Es bündelt den gesamten Kontext für das Prototyping
 > des IVS-Nachführungstools: den fachlichen Teil (Abschnitte 1–11) aus
 > Detailspezifikation, User Story Map, dem Aufbau der echten IVS-Objektbeschriebe
-> und den verfügbaren Testdaten — sowie den technischen Teil (Abschnitte 12–13)
-> mit dem festgelegten Stack, dem Stand der Arbeit und den Leitplanken für die
-> Zusammenarbeit.
+> und den verfügbaren Testdaten — sowie den technischen Teil (Abschnitte 12–14)
+> mit dem festgelegten Stack, dem Stand der Arbeit, den Leitplanken für die
+> Zusammenarbeit und den nächsten Schritten.
 >
 > **Verwendung.** In eine neue Session einfügen oder als Datei referenzieren.
-> Was hier steht, ist geklärt und muss nicht erneut erfragt werden.
+> Was hier steht, ist geklärt und muss nicht erneut erfragt werden. Das
+> Dokument ist so gehalten, dass eine neue Session ohne den bisherigen
+> Chatverlauf weiterarbeiten kann.
 >
 > **Vor dem Loslegen bitte Abschnitt 13 lesen.** Dort stehen die verbindlichen
 > Leitplanken — insbesondere: **nicht vom Stack abweichen** und **keine neuen
 > Komponenten bauen**, ohne vorher zu fragen.
+>
+> **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
+> (abgestimmte Detailentscheide), 12.4 (Projektstruktur und Persistenz),
+> 12.5 (was gebaut ist), 12.6 (Fallstricke) und 14 (nächste Schritte).
+>
+> **Stand:** 30.07.2026, zweite Ausbaustufe. Repository auf `main`, gepusht.
 
 ---
 
@@ -743,6 +751,84 @@ neuen Detailspezifikation zu überarbeiten — er kennt nur drei Rollen
 des heutigen Workflows; Arbeitspakete, Prüfregister und der Freigabeprozess
 fehlen.
 
+### 9.8 Abgestimmte Detailentscheide (30.07.2026)
+
+Beim Bau des Prototyps geklärt. Sie präzisieren die Vorgaben aus 9.1–9.5 und
+gelten ebenfalls, bis sie ausdrücklich geändert werden.
+
+**Daten und Modell**
+
+18. **Stati:** Die acht Stati aus Abschnitt 7 werden geführt; fürs Dashboard
+    werden sie auf drei Gruppen gemappt — `zugewiesen` → Backlog ·
+    `in_bearbeitung`, `bereit_zur_pruefung`, `in_pruefung`, `korrektur` →
+    In Arbeit · `geprueft`, `freigegeben`, `publiziert` → Done. Ein Objekt gilt
+    als «in Arbeit», solange es im Prozess unterwegs ist, unabhängig davon,
+    welche Rolle gerade am Zug ist.
+19. **Kennung:** Führend ist allein die **IVS-Signatur** (`BE 21.1.2`,
+    Wegbegleiter `BE 21 W1`). Keine zweite technische Objekt-ID in der
+    Oberfläche; für URLs wird aus der Signatur eine Id abgeleitet
+    (`be-21-1-2`).
+20. **Spalte «Bewertung»:** Substanz-Bewertung — der Durchschnitt der drei
+    NHG-Punktwerte (Geschichte, Morphologie, Substanzwert, je 0–4), angezeigt
+    als `Ø 3.3/4`.
+21. **Testdaten:** Alle Mock-Objekte liegen im **Testgebiet Bern** mit echter
+    Geometrie aus `ivs-map`; Namen und Beschriebe sind fiktiv, aber
+    geografisch stimmig. Die Strecken mit **Wegoberflächen-Daten** sind
+    bewusst enthalten (Routen 37, 38, 43, 265, 267, 312, 470, 471, 477, 537,
+    538 → BE 21/22/23).
+22. **Persistenz:** Änderungen überleben im **localStorage**; die Stores
+    tragen eine Seed-Version, deren Erhöhung gespeicherte Stände verwirft.
+
+**Aufbau und Rollen**
+
+23. **Dashboard vs. Objekte:** Das Dashboard zeigt je Rolle vorgefilterte
+    Aufgaben (Anforderung «Dashboard», Prio S), «Objekte» die vollständige
+    Übersicht (04.01, Prio M).
+24. **Rollenabhängigkeit ist echt:** Jede Rolle hat eigene Dashboard-Stati und
+    eigene Edit-Rechte; die Statusübergänge sind je Rolle definiert. Löschen
+    ist R-05 (in ihren Bearbeitungsstati) und R-03 vorbehalten.
+25. **Hierarchie-Dropdown:** Klick auf ein Objekt wechselt die Detailansicht,
+    behält den Modus (View/Edit) bei und **wechselt die Kartenselektion mit**.
+    Alle Ebenen inklusive Wegbegleiter sind voll bearbeitbar.
+26. **Karte in neuem Tab:** mit **bidirektionaler Zustands-Synchronisation**
+    (BroadcastChannel) — Objektwechsel im Hauptfenster selektiert dort,
+    Objekt-Klick dort navigiert das Hauptfenster.
+27. **View/Edit:** Objekte öffnen im View-Modus, der Stift wechselt in den
+    Edit-Modus (nur wenn Rolle × Status es erlauben).
+28. **Statuswechsel-Button** in der Kopfzeile ist generisch: Beschriftung und
+    Verfügbarkeit ergeben sich aus Rolle und aktuellem Status. Löschen und
+    Download bleiben funktionslose Attrappen.
+29. **Kein Zahnrad** neben dem Rollen-Umschalter.
+30. **Kartenlayer** samt Symbolisierung werden aus `ivs-map` übernommen.
+
+**Zweite Ausbaustufe (Vorgaben aus derselben Session)**
+
+31. **Objekte-Tab neu gedacht:** Die **Karte steht im Vordergrund**, die
+    Objektliste ist dezent und schmal; ein Klick öffnet rechts ein
+    **Side-Panel** mit dem Objektinhalt.
+32. **Textbearbeitung:** ausgefeilte Editor-Techniken im Objektbeschrieb —
+    markieren, einfärben, durchstreichen, fett, kursiv (07.17).
+33. **Geometrie-Editing** auf der Karte: Linien- und Punktgeometrien
+    zeichnen, verschieben, löschen, verlängern/verkürzen, verschneiden,
+    zusammenfügen — inklusive Snapping und Tracing (05.05/05.09).
+34. **Hintergrundkarte wechselbar**, mehrere Layer gleichzeitig aktivierbar
+    (IVS-Geländekarte, Dufourkarte …) mit **Transparenzregler**; auch die
+    Objekte selbst sind in der Deckkraft regelbar (05.04).
+35. **Child-Objekte umteilen:** einem anderen Parent-Objekt zuweisen (07.09).
+36. **Quellen:** Zusammenstellung aller Quellen aus dem Objektbeschrieb mit
+    Abfrage über eine oder mehrere Literaturdatenbanken (07.18).
+37. **360°-Tab:** Ablage aller Bilder der Begehung **plus Begehungsplanung** —
+    Reihenfolge der Objekte, Logistik (Verkehrsmittel, Unterkunft,
+    Zeitbedarf). Eine Begehung ist auch aus der Objektdetailansicht planbar.
+38. **Kommentieren** auf jedem Parent- oder Child-Objekt sowie **frei auf der
+    Karte** an beliebigem Ort; die Zuweisung zu einem Objekt ist dort
+    optional. Gestaltung gemäss Screenshot: Suche, Sortierung, Filter
+    (offen/geschlossen, Datum, eigene, Attribut), Threads mit Antworten,
+    Erledigt-Schalter, Titel, `@`-Erwähnungen aller Benutzer mit Rolle und
+    `#`-Attribut-Referenzen, die im Formular zum Attribut scrollen.
+39. **Stammdatenverwaltung** als eigener Tab, **nur für die Fachliche
+    Administration (R-03)** sichtbar.
+
 ---
 
 ## 10. Offene Punkte und Ungereimtheiten der Spezifikation
@@ -874,14 +960,60 @@ public/data/     Geodaten (Kopien aus ivs-map) + generierte Objekt-Geometrien
 tools/           build-objekte.mjs (Signatur → Geometrie, erzeugt public/data)
 src/styles.css   Theme-Tokens, Touch-Regeln
 src/app/
-  app.routes.ts
-  core/          Modell, Stati, Rollen, Seed-Daten, Stores (localStorage)
-  shell/         Icon-Leiste mit Rollenmenü (hinter dem IVS-Logo)
-  dashboard/     Aufgabenliste + Karte
-  objekt/        Objektbearbeitung (View/Edit, Hierarchie, Formular)
-  karte/         ArcGIS-Komponente, Layer, Fenster-Sync, Geo-Hilfen
-  kitchen-sink/  Referenzseite, ein Abschnitt je Themengruppe
+  app.routes.ts        Routen inkl. Guard für /stammdaten (nur R-03)
+  core/                Modell, Stati, Rollen, Seed-Daten, Stores
+    model.ts           IvsObjekt, Ebene, WorkflowStatus, Bewertung, idAusSignatur
+    status.ts          Status-Labels, Gruppen-Mapping, Übergänge je Rolle
+    rollen.ts          Rollen mit dashboardStati und editStati, darfEditieren
+    seed-data.ts       46 Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
+    objekt-store.ts    Objekte, statusWechseln (Zuständigkeit + Lognotiz)
+    einstellungen-store.ts  aktive Rolle, Dark-Mode
+    kommentare.ts      Kommentar-Modell, parseKommentarText, jetztLokal, Store
+    attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
+    geometrie-store.ts Arbeitsgeometrien je Signatur
+    begehungen.ts      Begehungsplanung
+    stammdaten.ts      Auswahllisten DE/FR/IT
+  shell/               Icon-Leiste, Rollenmenü hinter dem IVS-Logo
+  dashboard/           Aufgabenliste + Kartenpanel + Kommentare
+  objekte/             Kartenansicht mit dezenter Liste und Side-Panel
+  objekt/              Objektbearbeitung
+    objekt-detail.*    Formular, Hierarchie, Statusfluss, Dialoge
+    text-editor.ts     Rich-Text-Editor (contenteditable, 07.17)
+    bewertungs-punkte.ts  Punkteskala 0–4
+  karte/               ArcGIS-Komponente und Umfeld
+    karte.ts           View, Layer, Selektion, Geometrie-Editing, Pins
+    karten-layer.ts    Layer-, Basemap- und Overlay-Definitionen
+    karte-fenster.ts   eigenständiges Kartenfenster /karte
+    karte-sync.ts      BroadcastChannel-Synchronisation
+    objekt-geo.ts      Bbox und Dufour-Situierungsbild (WMS)
+  kommentare/          Kommentar-Panel (Threads, @/#, Filter)
+  panorama/            360°-Galerie, Viewer, Begehungsplanung
+  stammdaten/          Auswahllisten-Verwaltung (R-03)
+  kitchen-sink/        Referenzseite, ein Abschnitt je Themengruppe
 ```
+
+**Zustand und Persistenz.** Alle Stores sind `providedIn: 'root'`, halten ihren
+Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
+
+| Schlüssel | Inhalt | Version |
+|---|---|---|
+| `ivs-prototyp-v3.objekte` | Objekte samt Lognotizen | `SEED_VERSION` in `seed-data.ts` |
+| `ivs-prototyp-v3.kommentare` | Kommentare und Antworten | Konstante in `kommentare.ts` |
+| `ivs-prototyp-v3.geometrien` | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
+| `ivs-prototyp-v3.begehungen` | geplante Begehungen | Konstante in `begehungen.ts` |
+| `ivs-prototyp-v3.stammdaten` | Auswahllisten | Konstante in `stammdaten.ts` |
+| `ivs-prototyp-v3.einstellungen` | aktive Rolle, Dark-Mode | — |
+
+Passt die gespeicherte Version nicht zur Konstante, wird der Stand verworfen
+und neu geseedet. **Nach jeder Seed-Änderung die Version erhöhen**, sonst
+sehen bestehende Browser die Änderung nie. «Demodaten zurücksetzen» im
+Profil-Popover leert alle Stores auf einmal.
+
+**Geometrie-Zuordnung.** `tools/build-objekte.mjs` bildet Signaturen auf die
+Testdaten ab und schreibt `public/data/ivs-objekte.geojson` (Linien) und
+`ivs-wegbegleiter.geojson` (Punkte) — getrennt, weil ein GeoJSONLayer nur
+einen Geometrietyp trägt. Nach Änderungen an der Zuordnung:
+`node tools/build-objekte.mjs`.
 
 ### 12.5 Stand der Arbeit
 
@@ -972,6 +1104,50 @@ Fehler, die schon einmal Zeit gekostet haben:
 - **Touch-Regeln dürfen nur additiv sein.** Sobald sie `position`, `display`
   oder `height` eines Primitives überschreiben, bricht dessen internes Layout —
   so geschehen beim Slider-Griff, bei der Tabs-Leiste und bei der Menubar.
+- **Erfundene Inputs sind stumm.** `side="right"` auf `hlm-popover-content`
+  existiert nicht — das Popover öffnete am falschen Ort und wurde
+  abgeschnitten. Ausrichtung steuert `align` auf `hlm-popover`.
+- **Ein durchgehend `null`-wertiges Feld verwirft der GeoJSONLayer.** Der
+  Typ ist nicht inferierbar, das Feld fehlt danach in `layer.fields`, und
+  jede Query mit ihm in `outFields`/`where` schlägt fehl. Im Prototyp fiel
+  dadurch der ganze Polygon-Filter samt Linienführungs-Zoom aus. Fix: leerer
+  String statt `null` (siehe `kette()` in `tools/build-objekte.mjs`).
+- **`queryExtent` taugt für Einzelpunkte nicht.** Das Ergebnis ist ein
+  degenerierter Extent (Meter-Puffer in einem Grad-Extent). Punkte-Extents
+  aus den Geometrien selbst bilden.
+- **Punkt-Schwelle mit UND, nicht ODER.** Eine flache Ost-West-Linie
+  unterschreitet die Höhen-Schwelle und würde sonst als Punkt behandelt und
+  bei fester Skala beidseitig abgeschnitten.
+- **`SketchViewModel.cancel()` feuert synchron.** Der Abbruch löst sofort
+  `update`/`create` mit `state: 'complete'` bzw. `'cancel'` aus — noch im
+  selben Aufruf. Zwei Folgen im Prototyp: Beim Objektwechsel im
+  Geometrie-Modus wären die Arbeitsgeometrien unter der bereits gewechselten
+  Signatur gespeichert worden (Guard-Flag nötig), und `create()` cancelt
+  intern, wodurch das eben gesetzte Werkzeug sofort wieder genullt wurde
+  (erst cancel, dann Werkzeug setzen).
+- **Signals: Referenzwechsel ≠ Wertwechsel.** `store.update` erzeugt pro
+  Tastendruck eine neue Objektreferenz; ohne `equal` auf dem `computed`
+  feuerten Karten-`goTo`, BroadcastChannel und Bild-Reload bei jedem Zeichen.
+- **`untracked` für Fremd-Signals in Effects.** Ein Azimut-Read innerhalb der
+  Marker-Funktion machte den Standort-Effect vom Azimut abhängig — die Karte
+  sprang bei jeder Drehbewegung zurück.
+- **Modul-Zähler taugen nicht als IDs bei localStorage-Persistenz.** Nach dem
+  Reload beginnt der Zähler von vorn und vergibt bereits gespeicherte IDs
+  erneut; Bearbeiten trifft dann zwei Zeilen und `@for … track` bricht.
+  Zufalls-IDs für neu erzeugte Einträge verwenden.
+- **Zeitstempel konsistent lokal.** `toISOString()` liefert UTC ohne
+  Zonenkennung; gemischt mit lokal erzeugten Stempeln stimmen Anzeige und
+  Sortierung nicht mehr. Im Prototyp gilt `jetztLokal()` aus
+  `core/kommentare.ts`.
+- **Rich-Text ist HTML.** Wo ein mit dem Editor gepflegtes Feld angezeigt
+  wird, muss es per `[innerHTML]` gerendert werden — sonst erscheinen die
+  Tags als Klartext (passiert im Side-Panel der Objekte-Ansicht).
+- **Der Watcher übersieht neu angelegte Templates.** Wird eine `.html` neu
+  erstellt, meldet der Dev-Server «Could not find template file», bis die
+  zugehörige `.ts` einmal berührt wird (`touch`).
+- **Verstecktes Browser-Pane drosselt WebGL.** Screenshots der Karte werden
+  weiss und `hitTest`-Promises hängen, sobald das Pane nicht im Vordergrund
+  ist — kein Anwendungsfehler, aber irreführend beim Verifizieren.
 
 ---
 
@@ -1022,3 +1198,48 @@ Sichtbare Änderungen gehören im Browser geprüft, Messwerte statt Schätzungen
 Alle Inhalte auf Deutsch in **Schweizer Rechtschreibung** — niemals «ß», immer
 «ss». Das gilt für Oberflächentexte, Kommentare, Commit-Nachrichten und
 Dokumentation.
+
+### 13.6 Etappen und Verifikation
+
+Bewährt hat sich: in Etappen bauen, jede Etappe **im Browser verifizieren**
+und **einzeln committen**, mit deutscher Commit-Nachricht, die den fachlichen
+Zweck nennt (nicht die Dateiliste). Zwischen den Etappen wird nicht auf
+Freigabe gewartet, ausser eine Entscheidung ist wirklich offen.
+
+Für grössere Blöcke wurde ein **adversarialer Code-Review** eingesetzt:
+mehrere Reviewer prüfen parallel je eine Dimension (Fachlogik,
+Angular/spartan-Fallen, ArcGIS/Karte, Sprache und Fachkonsistenz), jeder
+Befund wird anschliessend von einem Skeptiker zu widerlegen versucht und nur
+bei belegtem, beobachtbarem Fehlverhalten übernommen. Beide Durchgänge
+zusammen fanden 20 bestätigte Fehler — die wichtigsten stehen als Lehre in
+Abschnitt 12.6.
+
+---
+
+## 14. Nächste Schritte
+
+Stand nach der zweiten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
+
+1. **Prüfprotokoll / Checkliste 1 (Abschnitt 4.6/4.7).** Der grösste noch
+   offene Fachblock: neun binäre Prüffragen mit Kommentarfeld bei «nicht
+   erfüllt», freie Befunde für Kartenkorrekturen, Umsetzungsvermerk der
+   Inventarisierenden und begründete Abweichungen — integriert im
+   Objektbeschrieb, nicht als separates Dokument. Abschnitt «Prüfen /
+   Freigabe» im Formular ist der vorgesehene Ort; das Verhältnis zum
+   «Prüfregister QS» (Abschnitt 10) bleibt zu klären.
+2. **Versionsvergleich (08.05, Vorgabe 10).** Text-Diff mit
+   Änderungsmarkierungen plus Geometrie-Overlay alt/neu; der Einstieg
+   existiert bereits als deaktivierter Eintrag im Historie-Menü.
+3. **Manuelle Prüfung der Karten-Interaktionen.** Geometrie-Zeichnen und
+   Kommentar-Pins wurden wegen des gedrosselten Browser-Panes nur
+   skriptbasiert und per Review verifiziert.
+4. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
+   Arbeitspakete (03.01–03.04), Reports (12.01–12.04).
+5. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
+   Geometrie-Werkzeuge, Stammdaten-Tabelle) — die Touch-Vergrösserung aus
+   Abschnitt 9.6 greift automatisch, das Layout ist aber ungeprüft.
+
+**Wo es weitergeht.** `pnpm start`, dann `/dashboard`. Die Rolle wechselt man
+über einen Klick auf das **IVS-Logo** oben links; als R-03 erscheint zusätzlich
+die Stammdatenverwaltung. «Demodaten zurücksetzen» liegt im Profil-Popover
+unten links.

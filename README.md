@@ -87,7 +87,11 @@ Themengruppe.
 
 ## Stand
 
-Der Kern-Workflow des Prototyps steht in erster Ausbaustufe:
+Der Kern-Workflow steht in zweiter Ausbaustufe (30.07.2026). Der vollständige
+Projektstand — abgestimmte Entscheide, Architektur, Fallstricke und nächste
+Schritte — liegt in [docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md),
+Abschnitte 9.8, 12.4–12.6 und 14. Dieses Dokument allein genügt, um in einer
+neuen Session weiterzuarbeiten.
 
 - **Shell** (`src/app/shell/`): Icon-Leiste mit verstecktem **Rollenmenü**
   hinter dem IVS-Logo (R-03…R-07 wählbar, übrige aufgeführt aber gesperrt),
