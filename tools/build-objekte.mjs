@@ -79,14 +79,19 @@ const WEGBEGLEITER = {
 
 const idAusSignatur = (signatur) => signatur.toLowerCase().replace(/[\s.]+/g, '-');
 
-/** «BE 21.1.1» → Linienführung «BE 21.1» und Strecke «BE 21». */
+/**
+ * «BE 21.1.1» → Linienführung «BE 21.1» und Strecke «BE 21».
+ * Ohne Linienführung steht ein leerer String, NICHT null: Ein durchgehend
+ * null-wertiges Feld kann der ArcGIS-GeoJSONLayer nicht typisieren und
+ * verwirft es — Queries mit `lf` in outFields/where schlagen dann fehl.
+ */
 function kette(signatur) {
   if (/ W\d+$/.test(signatur)) {
-    return { lf: null, strecke: signatur.replace(/ W\d+$/, '') };
+    return { lf: '', strecke: signatur.replace(/ W\d+$/, '') };
   }
   const teile = signatur.split('.');
   return {
-    lf: teile.length === 3 ? teile.slice(0, 2).join('.') : null,
+    lf: teile.length === 3 ? teile.slice(0, 2).join('.') : '',
     strecke: teile[0],
   };
 }

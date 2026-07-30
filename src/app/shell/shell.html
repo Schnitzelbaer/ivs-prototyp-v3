@@ -91,7 +91,7 @@
         <ng-icon [name]="einstellungen.dunkel() ? 'lucideSun' : 'lucideMoon'" />
       </button>
 
-      <hlm-popover sideOffset="8">
+      <hlm-popover sideOffset="8" align="start">
         <button
           hlmPopoverTrigger
           hlmBtn
@@ -102,7 +102,7 @@
         >
           <ng-icon name="lucideBell" />
         </button>
-        <hlm-popover-content *hlmPopoverPortal side="right" class="w-64">
+        <hlm-popover-content *hlmPopoverPortal class="w-64">
           <hlm-popover-header>
             <div hlmPopoverTitle>Benachrichtigungen</div>
             <p hlmPopoverDescription>Keine neuen Benachrichtigungen.</p>
@@ -110,11 +110,11 @@
         </hlm-popover-content>
       </hlm-popover>
 
-      <hlm-popover sideOffset="8">
+      <hlm-popover sideOffset="8" align="start">
         <button hlmPopoverTrigger hlmBtn variant="ghost" size="icon" type="button" aria-label="Profil">
           <ng-icon name="lucideUser" />
         </button>
-        <hlm-popover-content *hlmPopoverPortal side="right" class="w-72">
+        <hlm-popover-content *hlmPopoverPortal class="w-72">
           <hlm-popover-header>
             <div hlmPopoverTitle>{{ personaName[einstellungen.aktiveRolleId()] }}</div>
             <p hlmPopoverDescription>

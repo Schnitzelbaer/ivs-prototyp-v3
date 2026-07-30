@@ -1,6 +1,7 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
-import { IvsObjekt, Lognotiz, WorkflowStatus } from './model';
-import { SEED_OBJEKTE, SEED_VERSION } from './seed-data';
+import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus } from './model';
+import { NAME_FUER_ROLLE, SEED_OBJEKTE, SEED_VERSION, rolleFuerStatus } from './seed-data';
+import { STATUS_LABEL } from './status';
 
 interface Ablage {
   version: number;
@@ -60,8 +61,31 @@ export class ObjektStore {
     this.objekte.update((liste) => liste.map((o) => (o.id === id ? { ...o, ...patch } : o)));
   }
 
-  setStatus(id: string, status: WorkflowStatus): void {
-    this.update(id, { status });
+  /**
+   * Statuswechsel als fachliche Operation: setzt den Status, führt die
+   * Zuständigkeit nach (wer ist am Zug — gleiche Ableitung wie im Seed)
+   * und protokolliert den Übergang als Lognotiz. So bleibt die
+   * Historisierung unabhängig vom Einstiegspunkt (Dashboard, Detail)
+   * vollständig.
+   */
+  statusWechseln(id: string, status: WorkflowStatus, autor: string, autorRolle: RolleId): void {
+    const objekt = this.byId(id);
+    if (!objekt || objekt.status === status) return;
+    const zustaendigRolle = rolleFuerStatus(status);
+    this.update(id, {
+      status,
+      zustaendigRolle,
+      zustaendigName: NAME_FUER_ROLLE[zustaendigRolle],
+      lognotizen: [
+        ...objekt.lognotizen,
+        {
+          datum: new Date().toISOString().slice(0, 10),
+          autor,
+          rolle: autorRolle,
+          text: `Status: ${STATUS_LABEL[objekt.status]} → ${STATUS_LABEL[status]}`,
+        },
+      ],
+    });
   }
 
   lognotizHinzufuegen(id: string, notiz: Lognotiz): void {

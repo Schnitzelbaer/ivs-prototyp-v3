@@ -26,7 +26,7 @@ interface Aufnahme {
  * 360°-Aufnahmen (06, Vorgabe 9): drehbares Panorama mit Vor-/Zurück-
  * Navigation entlang der Aufnahmefahrt und Karte mit Standort und live
  * mitdrehender Blickrichtung. Die Aufnahmen sind Platzhalter; die Standorte
- * liegen real auf der alten Murtenstrasse zwischen Riedbach und Bümpliz
+ * liegen real auf der Murtenstrasse (BE 7.2) zwischen Riedbach und Bümpliz
  * (Route 916 der Testdaten).
  */
 @Component({

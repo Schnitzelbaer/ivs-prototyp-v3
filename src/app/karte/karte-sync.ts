@@ -54,6 +54,15 @@ export class KarteSync implements OnDestroy {
   }
 
   setzeSelektion(selektion: KartenSelektion | null): void {
+    // identische Selektion nicht erneut senden — schützt das Kartenfenster
+    // vor redundanten goTo-Läufen
+    if (
+      this.hatEigeneSelektion &&
+      selektion?.signatur === this.eigeneSelektion?.signatur &&
+      selektion?.ebene === this.eigeneSelektion?.ebene
+    ) {
+      return;
+    }
     this.eigeneSelektion = selektion;
     this.hatEigeneSelektion = true;
     this.kanal.postMessage({ typ: 'selektion', selektion } satisfies Nachricht);

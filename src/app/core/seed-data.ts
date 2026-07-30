@@ -14,7 +14,7 @@ import { Bewertung, Ebene, IvsObjekt, Lognotiz, NhgWert, RolleId, Substanzgrad, 
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -52,7 +52,7 @@ interface Vorlage {
 }
 
 /** Zuständige Rolle aus dem Status ableiten (wer ist am Zug). */
-function rolleFuerStatus(status: WorkflowStatus): RolleId {
+export function rolleFuerStatus(status: WorkflowStatus): RolleId {
   switch (status) {
     case 'zugewiesen':
     case 'in_bearbeitung':
@@ -337,8 +337,8 @@ const BE_21: Vorlage[] = [
       substanzwert: { punkte: 3, text: 'Über weite Strecken originale Wegbreite und Pflästerung erhalten.' },
     },
     geschichteText:
-      'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Der Abschnitt verliess das Dorf beim ' +
-      'Gasthaus Traube und stieg über die Stockere zur Geländekante an. Zehntpläne von 1712 zeigen den Weg ' +
+      'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Der Abschnitt verliess das Dorf westwärts ' +
+      'bei der Kirche und stieg über die Stockere zur Geländekante an. Zehntpläne von 1712 zeigen den Weg ' +
       'mit beidseitigen Hägen; die Kofferung dürfte mit dem Ausbau von 1748 zusammenhängen (ANDEREGG 1998: 41).',
     datierungGeschichte10: '1993-09-14',
     gelaendeText:
@@ -416,7 +416,7 @@ const BE_21: Vorlage[] = [
   {
     signatur: 'BE 21 W2',
     ebene: 'wegbegleiter',
-    name: 'Stuldenstein',
+    name: 'Stundenstein bei Frauenkappelen',
     parent: 'BE 21',
     status: 'zugewiesen',
     wegbegleiterTyp: 'Distanzstein',
