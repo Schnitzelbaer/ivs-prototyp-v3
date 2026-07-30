@@ -872,6 +872,23 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
 47. **Deployment:** Der Prototyp läuft öffentlich auf Vercel
     (<https://ivs-prototyp-v3.vercel.app>), Details in 12.7.
 
+**Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
+vorschlagen, ohne den Entscheid anzusprechen):
+
+- **Die NHG-Punkteskala bleibt eine eigene Komponente.** `hlm-toggle-group`
+  wäre für fünf Optionen (0–4) das Lehrbuch-Primitive, wurde aber
+  ausdrücklich abgelehnt: Die Darstellung folgt der Content-Skizze (●●●○ ×)
+  und das Verhalten «nochmaliger Klick setzt eine Stufe zurück» passt nicht
+  ins Toggle-Group-Modell. Die Touch-Trefferflächen sind stattdessen per
+  `pointer-coarse:` nachgerüstet.
+- **`hlmCard` und `hlm-separator` bleiben ungenutzt** — die
+  `rounded-md border`-Sections und `border-b`-Trenner sind bewusst gesetzt
+  und funktionieren; es gibt keinen `<hr>`-Missbrauch.
+- **Die 40 `hlm-native-select` bleiben**, wie sie sind: laut Forms-Regel
+  legitim und von der Touch-Vergrösserung abgedeckt. Ein Wechsel auf
+  `hlm-select` oder `combobox` lohnt nur dort, wo Listen wirklich lang
+  werden (Objektart aus den Stammdaten, Zuweisung).
+
 ---
 
 ## 10. Offene Punkte und Ungereimtheiten der Spezifikation
