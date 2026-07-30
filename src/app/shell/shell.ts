@@ -4,6 +4,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBell,
   lucideCamera,
+  lucideDatabase,
   lucideChevronDown,
   lucideCircleCheck,
   lucideMoon,
@@ -20,6 +21,7 @@ import { BegehungsStore } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
 import { GeometrieStore } from '../core/geometrie-store';
 import { KommentarStore } from '../core/kommentare';
+import { StammdatenStore } from '../core/stammdaten';
 import { RolleId } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN } from '../core/rollen';
@@ -50,6 +52,7 @@ import { KarteSync } from '../karte/karte-sync';
     provideIcons({
       lucideBell,
       lucideCamera,
+      lucideDatabase,
       lucideChevronDown,
       lucideCircleCheck,
       lucideMoon,
@@ -67,6 +70,7 @@ export class Shell {
   private readonly kommentarStore = inject(KommentarStore);
   private readonly geometrieStore = inject(GeometrieStore);
   private readonly begehungsStore = inject(BegehungsStore);
+  private readonly stammdatenStore = inject(StammdatenStore);
   private readonly sync = inject(KarteSync);
   private readonly router = inject(Router);
 
@@ -92,5 +96,6 @@ export class Shell {
     this.kommentarStore.zuruecksetzen();
     this.geometrieStore.zuruecksetzen();
     this.begehungsStore.zuruecksetzen();
+    this.stammdatenStore.zuruecksetzen();
   }
 }

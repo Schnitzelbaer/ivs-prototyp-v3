@@ -68,6 +68,7 @@ import {
 import { ObjektStore } from '../core/objekt-store';
 import { darfEditieren } from '../core/rollen';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
+import { StammdatenStore } from '../core/stammdaten';
 import { STATUS_LABEL, StatusUebergang, uebergaengeFuer } from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
@@ -150,6 +151,7 @@ export class ObjektDetail implements OnDestroy {
   private readonly geo = inject(ObjektGeo);
   private readonly kommentarStore = inject(KommentarStore);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly stammdaten = inject(StammdatenStore);
   protected readonly einstellungen = inject(EinstellungenStore);
 
   protected readonly karte = viewChild(Karte);
@@ -201,6 +203,16 @@ export class ObjektDetail implements OnDestroy {
   protected readonly hat360Aufnahmen = computed(() => {
     const o = this.objekt();
     return !!o && (o.signatur === 'BE 7' || o.signatur.startsWith('BE 7.2'));
+  });
+
+  /**
+   * Objektarten der Wegbegleiter aus den Stammdaten (02.01); ein auf dem
+   * Objekt gespeicherter, inzwischen deaktivierter Wert bleibt wählbar.
+   */
+  protected readonly wegbegleiterTypen = computed(() => {
+    const werte = this.stammdaten.aktiveWerte('wegbegleiter-typen');
+    const aktuell = this.objekt()?.wegbegleiterTyp;
+    return aktuell && !werte.includes(aktuell) ? [aktuell, ...werte] : werte;
   });
 
   /** Flache Hierarchie der ganzen Strecke für das Dropdown. */

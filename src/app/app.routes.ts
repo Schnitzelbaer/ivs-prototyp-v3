@@ -1,4 +1,10 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router, Routes } from '@angular/router';
+import { EinstellungenStore } from './core/einstellungen-store';
+
+/** Stammdatenverwaltung ist der Fachlichen Administration vorbehalten. */
+const nurFachlicheAdministration: CanActivateFn = () =>
+  inject(EinstellungenStore).aktiveRolleId() === 'R-03' ? true : inject(Router).parseUrl('/dashboard');
 
 export const routes: Routes = [
   {
@@ -34,6 +40,12 @@ export const routes: Routes = [
         path: 'panorama',
         loadComponent: () => import('./panorama/panorama').then((m) => m.Panorama),
         title: '360°-Aufnahmen — IVS-Nachführungstool',
+      },
+      {
+        path: 'stammdaten',
+        loadComponent: () => import('./stammdaten/stammdaten').then((m) => m.Stammdaten),
+        canActivate: [nurFachlicheAdministration],
+        title: 'Stammdaten — IVS-Nachführungstool',
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],

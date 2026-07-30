@@ -270,7 +270,12 @@
                     @if (o.ebene === 'wegbegleiter') {
                       <div class="grid gap-1.5 sm:col-span-2">
                         <label hlmLabel for="f-typ">Objektart</label>
-                        <input hlmInput id="f-typ" [ngModel]="o.wegbegleiterTyp" (ngModelChange)="patch({ wegbegleiterTyp: $event })" />
+                        <hlm-native-select id="f-typ" [ngModel]="o.wegbegleiterTyp" (ngModelChange)="patch({ wegbegleiterTyp: $event })">
+                          @for (typ of wegbegleiterTypen(); track typ) {
+                            <option hlmNativeSelectOption [value]="typ">{{ typ }}</option>
+                          }
+                        </hlm-native-select>
+                        <p class="text-xs text-muted-foreground">Auswahlliste aus der Stammdatenverwaltung (02.01).</p>
                       </div>
                     }
                   </div>

@@ -74,6 +74,21 @@
       >
         <ng-icon name="lucideCamera" />
       </a>
+      <!-- Stammdatenverwaltung: nur Fachliche Administration (R-03) -->
+      @if (einstellungen.aktiveRolleId() === 'R-03') {
+        <a
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          routerLink="/stammdaten"
+          routerLinkActive="bg-accent text-accent-foreground"
+          hlmTooltip="Stammdatenverwaltung"
+          position="right"
+          aria-label="Stammdatenverwaltung"
+        >
+          <ng-icon name="lucideDatabase" />
+        </a>
+      }
     </nav>
 
     <!-- Fussbereich: Erscheinungsbild, Benachrichtigungen, Profil, Sprache -->

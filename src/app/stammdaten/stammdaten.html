@@ -1,0 +1,120 @@
+<div class="flex h-full flex-col">
+  <header class="border-b border-border px-4 py-2.5">
+    <h1 class="text-base font-semibold">
+      Stammdatenverwaltung
+      <span class="ml-1 text-sm font-normal text-muted-foreground">
+        Auswahllisten der Objekte — nur Fachliche Administration (R-03)
+      </span>
+    </h1>
+  </header>
+
+  <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+    <div class="mx-auto flex max-w-4xl flex-col gap-4">
+      <p class="text-sm text-muted-foreground">
+        Einträge werden inline bearbeitet und automatisch gespeichert. Deaktivierte Werte verschwinden
+        aus den Auswahlfeldern, bleiben aber auf bestehenden Objekten gültig (02.01). Übersetzungen in
+        Französisch und Italienisch gemäss 02.02.
+      </p>
+
+      @for (liste of store.alle(); track liste.id) {
+        <section class="rounded-md border border-border">
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold"
+            (click)="listeUmschalten(liste.id)"
+          >
+            <ng-icon
+              name="lucideChevronDown"
+              class="text-muted-foreground transition-transform"
+              [class.-rotate-90]="eingeklappt().has(liste.id)"
+            />
+            {{ liste.titel }}
+            <span hlmBadge variant="secondary" class="ml-auto">{{ liste.eintraege.length }}</span>
+          </button>
+
+          @if (!eingeklappt().has(liste.id)) {
+            <div class="p-3">
+              @if (liste.hinweis) {
+                <p class="mb-2 text-xs text-muted-foreground">{{ liste.hinweis }}</p>
+              }
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs text-muted-foreground">
+                    <th class="pb-1 font-medium">Deutsch</th>
+                    <th class="pb-1 font-medium">Französisch</th>
+                    <th class="pb-1 font-medium">Italienisch</th>
+                    <th class="pb-1 text-center font-medium">Aktiv</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (eintrag of liste.eintraege; track eintrag.id) {
+                    <tr [class.opacity-50]="!eintrag.aktiv">
+                      <td class="py-0.5 pr-2">
+                        <input
+                          hlmInput
+                          class="h-8 w-full"
+                          [ngModel]="eintrag.de"
+                          (ngModelChange)="store.eintragAktualisieren(liste.id, eintrag.id, { de: $event })"
+                          [attr.aria-label]="'Deutsch: ' + eintrag.de"
+                        />
+                      </td>
+                      <td class="py-0.5 pr-2">
+                        <input
+                          hlmInput
+                          class="h-8 w-full"
+                          placeholder="—"
+                          [ngModel]="eintrag.fr"
+                          (ngModelChange)="store.eintragAktualisieren(liste.id, eintrag.id, { fr: $event })"
+                          [attr.aria-label]="'Französisch: ' + eintrag.de"
+                        />
+                      </td>
+                      <td class="py-0.5 pr-2">
+                        <input
+                          hlmInput
+                          class="h-8 w-full"
+                          placeholder="—"
+                          [ngModel]="eintrag.it"
+                          (ngModelChange)="store.eintragAktualisieren(liste.id, eintrag.id, { it: $event })"
+                          [attr.aria-label]="'Italienisch: ' + eintrag.de"
+                        />
+                      </td>
+                      <td class="py-0.5 text-center">
+                        <hlm-switch
+                          [ngModel]="eintrag.aktiv"
+                          (ngModelChange)="store.eintragAktualisieren(liste.id, eintrag.id, { aktiv: $event })"
+                          [attr.aria-label]="eintrag.de + (eintrag.aktiv ? ' deaktivieren' : ' aktivieren')"
+                        />
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+
+              <div class="mt-2 flex items-center gap-1.5">
+                <input
+                  hlmInput
+                  class="h-8 flex-1"
+                  placeholder="Neuer Eintrag (Deutsch)"
+                  [ngModel]="neuerWert(liste.id)"
+                  (ngModelChange)="setzeNeuerWert(liste.id, $event)"
+                  (keydown.enter)="hinzufuegen(liste.id)"
+                />
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  [disabled]="!neuerWert(liste.id).trim()"
+                  (click)="hinzufuegen(liste.id)"
+                >
+                  <ng-icon name="lucidePlus" />
+                  Hinzufügen
+                </button>
+              </div>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  </div>
+</div>

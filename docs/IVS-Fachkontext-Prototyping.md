@@ -916,20 +916,38 @@ Gebaut ist die **erste Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
   BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft). Hierarchie
   aus den echten Gruppierungen `ivs_ivsfk`/`ivs_signatur` abgeleitet;
   Persistenz im localStorage, `SEED_VERSION` erhöhen verwirft Stände.
-- **Objekte-Übersicht (04.01)** unter `/objekte`: alle Objekte mit Suche,
-  Attributfiltern, Sortierung über alle Spalten und Export-Attrappe.
-- **360°-Aufnahmen (06, Vorgabe 9)** unter `/panorama`: drehbares
-  Platzhalter-Panorama (generierte, nahtlose SVGs mit Gradskala und
-  Weg-Perspektive), Vor-/Zurück-Navigation entlang der Route 916, Karte mit
-  Standortpunkt und live mitdrehendem Blickrichtungskegel; die
-  Objektbearbeitung verlinkt im Tab «360° Bilder» darauf (07.08).
+- **Objekte-Übersicht (04.01)** unter `/objekte`: Kartenansicht — Karte im
+  Vordergrund, links eine dezente Objektliste mit Suche und Filtern, ein
+  Klick öffnet rechts das Side-Panel mit dem Objektinhalt.
+- **360°-Aufnahmen (06, Vorgabe 9)** unter `/panorama`: Galerie der
+  Befahrung mit drehbarem Platzhalter-Panorama (generierte, nahtlose SVGs),
+  Vor-/Zurück-Navigation, Karte mit Standortpunkt und live mitdrehendem
+  Blickrichtungskegel (07.08); dazu die **Begehungsplanung** — Reihenfolge
+  der Objekte, Verkehrsmittel, Unterkunft, Zeitbedarf — auch direkt aus der
+  Objektbearbeitung.
+- **Kommentare (09/10)**: Panel mit Threads, Antworten, Erledigt-
+  Kennzeichnung (10.02), Suche, Sortierung, Filtern; `@`-Erwähnungen
+  (Benutzer mit Rolle) und `#`-Attribut-Referenzen, die im Objektformular
+  zum Feld springen (09.03); Kommentare an Objekten jeder Ebene oder frei
+  auf der Karte platzierbar (05.11), Objektzuweisung optional.
+- **Detail-Werkzeuge**: Rich-Text-Editor für die Beschriebe (07.17: fett,
+  kursiv, durchstreichen, Markerfarben), Geometrie-Editing auf der Karte
+  (05.05: zeichnen, verschieben, Stützpunkte, verschneiden, zusammenfügen;
+  Snapping 05.09 an bestehender Geometrie — TLM liegt nur als Raster vor),
+  Hintergrundwechsel und Raster-Overlays mit Transparenz (05.04: IVS-
+  Geländekarte, Dufourkarte, Luftbild) samt Objekt-Deckkraft, Umteilen an
+  ein anderes Parent-Objekt (07.09), Quellen-Zusammenstellung mit
+  simulierter Literaturdatenbank-Abfrage (07.18).
+- **Stammdatenverwaltung (02.01/02.02)** unter `/stammdaten`, per Guard nur
+  für R-03 (eigener Navigationspunkt): Auswahllisten DE/FR/IT inline
+  pflegen, deaktivieren statt löschen; die Wegbegleiter-Typen speisen das
+  Feld «Objektart» im Objektformular.
 - **Kitchen Sink** unter `/kitchen-sink` als Nachschlagewerk;
   **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
   vorgesehen (`pnpm test` meldet «No tests found»).
 
-Noch nicht gebaut: Prüfprotokoll/Checkliste 1 (Etappe folgt), Kommentare
-(Spezifikation folgt), Versionsvergleich, Geometrie-Editing, Nebenblöcke
-(Accounts, Stammdaten, Arbeitspakete, Reports).
+Noch nicht gebaut: Prüfprotokoll/Checkliste 1 (Etappe folgt),
+Versionsvergleich, Nebenblöcke (Accounts, Arbeitspakete, Reports).
 
 ### 12.6 Fallstricke aus der bisherigen Arbeit
 
