@@ -31,7 +31,7 @@ import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { OBJEKT_ATTRIBUTE, attributVonLabel } from '../core/attribute';
 import { EinstellungenStore } from '../core/einstellungen-store';
-import { Kommentar, KommentarSegment, KommentarStore, parseKommentarText } from '../core/kommentare';
+import { Kommentar, KommentarSegment, KommentarStore, jetztLokal, parseKommentarText } from '../core/kommentare';
 import { ROLLEN } from '../core/rollen';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
 
@@ -82,6 +82,12 @@ export class KommentarPanel {
 
   /** Signatur des Objekts; null = übergreifende Ansicht (alle Kommentare). */
   readonly objektSignatur = input<string | null>(null);
+  /**
+   * Id eines zusätzlich anzuzeigenden Kommentars — beim Klick auf einen
+   * Karten-Pin eines anderen (oder keines) Objekts wäre die objektgebundene
+   * Liste sonst leer und der Klick wirkte kaputt.
+   */
+  readonly zusatzKommentarId = input<string | null>(null);
 
   readonly attributKlick = output<string>();
   readonly objektKlick = output<string>();
@@ -114,10 +120,11 @@ export class KommentarPanel {
     const ich = this.persona().name;
     const richtung = this.neuesteZuerst() ? -1 : 1;
 
+    const zusatz = this.zusatzKommentarId();
     return this.store
       .alle()
       .filter((k) => {
-        if (signatur !== null && k.objektSignatur !== signatur) return false;
+        if (signatur !== null && k.objektSignatur !== signatur && k.id !== zusatz) return false;
         if (filter === 'offen' && k.erledigt) return false;
         if (filter === 'erledigt' && !k.erledigt) return false;
         if (filter === 'meine' && k.autor !== ich) return false;
@@ -177,7 +184,7 @@ export class KommentarPanel {
     const text = this.antwortEntwurf(kommentar.id).trim();
     if (!text) return;
     const { name, rolle } = this.persona();
-    this.store.antworten(kommentar.id, { autor: name, rolle, zeit: jetzt(), text });
+    this.store.antworten(kommentar.id, { autor: name, rolle, zeit: jetztLokal(), text });
     this.setzeAntwortEntwurf(kommentar.id, '');
     this.offeneAntworten.update((menge) => new Set(menge).add(kommentar.id));
   }
@@ -193,7 +200,7 @@ export class KommentarPanel {
       text,
       autor: name,
       rolle,
-      zeit: jetzt(),
+      zeit: jetztLokal(),
       erledigt: false,
       antworten: [],
     });
@@ -228,10 +235,4 @@ export class KommentarPanel {
     const minuten = String(datum.getMinutes()).padStart(2, '0');
     return `${WOCHENTAGE[datum.getDay()]} ${tag}.${monat}.${datum.getFullYear()} ${stunden}:${minuten}`;
   }
-}
-
-function jetzt(): string {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
 }

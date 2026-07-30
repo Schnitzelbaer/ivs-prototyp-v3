@@ -926,7 +926,7 @@
               [geometrieEditObjekt]="geometrieModus() ? o.signatur : null"
               (geometrieGeaendert)="geometrieGeaendert($event)"
               (objektKlick)="oeffneSignatur($event)"
-              (kommentarKlick)="kommentarPinGeklickt()"
+              (kommentarKlick)="kommentarPinGeklickt($event)"
               (kommentarPosition)="kommentarPositionGewaehlt($event)"
             />
           </div>
@@ -958,6 +958,7 @@
             <ivs-kommentar-panel
               class="block h-full"
               [objektSignatur]="o.signatur"
+              [zusatzKommentarId]="pinKommentarId()"
               (attributKlick)="scrolleZuAttribut($event)"
             />
           </div>

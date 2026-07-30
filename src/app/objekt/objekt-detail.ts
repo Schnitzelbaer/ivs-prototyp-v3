@@ -55,7 +55,7 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
-import { KommentarStore } from '../core/kommentare';
+import { KommentarStore, jetztLokal } from '../core/kommentare';
 import {
   BewertungsTeil,
   EBENE_LABEL,
@@ -572,14 +572,18 @@ export class ObjektDetail implements OnDestroy {
       text,
       autor: NAME_FUER_ROLLE[rolle],
       rolle,
-      zeit: new Date().toISOString().slice(0, 19),
+      zeit: jetztLokal(),
       erledigt: false,
       antworten: [],
     });
     this.kartenKommentarOffen.set(false);
   }
 
-  protected kommentarPinGeklickt(): void {
+  /** Beim Pin-Klick angeforderter Kommentar — auch fremder oder freier. */
+  protected readonly pinKommentarId = signal<string | null>(null);
+
+  protected kommentarPinGeklickt(id: string): void {
+    this.pinKommentarId.set(id);
     this.kartenTab.set('kommentare');
   }
 

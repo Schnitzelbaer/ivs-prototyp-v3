@@ -29,6 +29,16 @@ function eintrag(de: string, fr = '', it = '', aktiv = true): StammdatenEintrag 
   return { id: `s${++laufnummer}`, de, fr, it, aktiv };
 }
 
+/**
+ * Neue Einträge erhalten Zufalls-Ids: Der Seed-Zähler beginnt bei jedem
+ * App-Start wieder bei null und würde nach einem Reload bereits
+ * persistierte Ids erneut vergeben (Doppel-Ids: Bearbeiten würde fremde
+ * Zeilen mitändern, @for-track bräche).
+ */
+function neueId(): string {
+  return `e${Math.random().toString(36).slice(2, 10)}`;
+}
+
 const SEED_LISTEN: StammdatenListe[] = [
   {
     id: 'wegbegleiter-typen',
@@ -146,7 +156,7 @@ export class StammdatenStore {
     this.listen.update((listen) =>
       listen.map((liste) =>
         liste.id === listeId
-          ? { ...liste, eintraege: [...liste.eintraege, eintrag(de.trim())] }
+          ? { ...liste, eintraege: [...liste.eintraege, { id: neueId(), de: de.trim(), fr: '', it: '', aktiv: true }] }
           : liste,
       ),
     );

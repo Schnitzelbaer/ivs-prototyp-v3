@@ -191,13 +191,13 @@
           @if (o.geschichteText) {
             <div>
               <h3 class="text-xs font-medium text-muted-foreground">Geschichte</h3>
-              <p class="mt-1 line-clamp-6 text-sm whitespace-pre-line">{{ o.geschichteText }}</p>
+              <div class="mt-1 line-clamp-6 text-sm whitespace-pre-line" [innerHTML]="alsHtml(o.geschichteText)"></div>
             </div>
           }
           @if (o.gelaendeText) {
             <div>
               <h3 class="text-xs font-medium text-muted-foreground">Gelände</h3>
-              <p class="mt-1 line-clamp-4 text-sm whitespace-pre-line">{{ o.gelaendeText }}</p>
+              <div class="mt-1 line-clamp-4 text-sm whitespace-pre-line" [innerHTML]="alsHtml(o.gelaendeText)"></div>
             </div>
           }
         </div>

@@ -84,7 +84,7 @@
               <h4 class="mt-0.5 text-sm font-semibold">{{ k.titel }}</h4>
             }
           </div>
-          @if (objektSignatur() === null) {
+          @if (objektSignatur() === null || k.objektSignatur !== objektSignatur()) {
             @if (k.objektSignatur) {
               <button type="button" (click)="objektKlick.emit(k.objektSignatur)" hlmTooltip="Objekt öffnen">
                 <span hlmBadge variant="secondary" class="font-mono text-[11px]">{{ k.objektSignatur }}</span>

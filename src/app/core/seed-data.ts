@@ -14,7 +14,7 @@ import { Bewertung, Ebene, IvsObjekt, Lognotiz, NhgWert, RolleId, Substanzgrad, 
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -497,7 +497,18 @@ const BE_22: Vorlage[] = [
     datierungGelaende20: '2025-03-19',
     pruefkommentar: '',
   },
-  { signatur: 'BE 22.2.1', ebene: 'abschnitt', name: 'Salzmatt – Hostatt', parent: 'BE 22.2', status: 'in_pruefung', nhgWert: 'regional' },
+  {
+    signatur: 'BE 22.2.1',
+    ebene: 'abschnitt',
+    name: 'Salzmatt – Hostatt',
+    parent: 'BE 22.2',
+    status: 'in_pruefung',
+    nhgWert: 'regional',
+    gelaendeText:
+      'Geländebeschrieb 2025: Feldweg in Kantenlage mit gut erhaltenem Wegrand; ' +
+      'der Wegrand ist im mittleren Teil durch Viehtritt stellenweise erodiert.',
+    datierungGelaende20: '2025-03-19',
+  },
   { signatur: 'BE 22.2.2', ebene: 'abschnitt', name: 'Hostatt – Wohleiwald', parent: 'BE 22.2', status: 'in_pruefung', nhgWert: 'regional' },
   {
     signatur: 'BE 22 W1',

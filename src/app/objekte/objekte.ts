@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -70,6 +71,7 @@ export class Objekte {
   private readonly store = inject(ObjektStore);
   private readonly kommentarStore = inject(KommentarStore);
   private readonly router = inject(Router);
+  private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly statusFarbe = STATUS_FARBE;
@@ -152,6 +154,11 @@ export class Objekte {
     this.ebeneFilter.set('alle');
     this.bedeutungFilter.set('alle');
     this.substanzFilter.set('alle');
+  }
+
+  /** Beschriebe sind seit dem Rich-Text-Editor HTML — wie im Detail rendern. */
+  protected alsHtml(text: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(text);
   }
 }
 

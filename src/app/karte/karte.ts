@@ -250,6 +250,13 @@ export class Karte implements AfterViewInit, OnDestroy {
   private editLayer: GraphicsLayer | null = null;
   private editSketch: SketchViewModel | null = null;
   private verschneideModus = false;
+  /**
+   * Während des Objektwechsels im Geometrie-Modus feuert das cancel()
+   * synchron ein update-complete-Event — ohne diesen Guard würde
+   * geometrienSpeichern die Arbeitsgeometrien des ALTEN Objekts unter der
+   * bereits gewechselten NEUEN Signatur ablegen und deren Stand zerstören.
+   */
+  private editWechselLaeuft = false;
 
   /** Zuletzt angewendete Selektion — verhindert redundante goTo/Query-Läufe,
    *  wenn sich nur die Objektreferenz, nicht aber die Selektion ändert. */
@@ -413,6 +420,7 @@ export class Karte implements AfterViewInit, OnDestroy {
       } as never,
     });
     this.editSketch.on('create', (ereignis) => {
+      if (this.editWechselLaeuft) return;
       if (ereignis.state === 'cancel') {
         this.editWerkzeug.set(null);
         return;
@@ -429,10 +437,16 @@ export class Karte implements AfterViewInit, OnDestroy {
       if (werkzeug || ereignis.graphic) this.geometrienSpeichern();
     });
     this.editSketch.on('update', (ereignis) => {
+      if (this.editWechselLaeuft) return;
       this.editAuswahlAnzahl.set(ereignis.state === 'complete' ? 0 : ereignis.graphics.length);
-      if (ereignis.state === 'complete') this.geometrienSpeichern();
+      // abgebrochene Updates (aborted) nicht speichern — sie stammen aus
+      // cancel()-Aufrufen, nicht aus einer Nutzeraktion
+      if (ereignis.state === 'complete' && !(ereignis as { aborted?: boolean }).aborted) {
+        this.geometrienSpeichern();
+      }
     });
     this.editSketch.on('delete', () => {
+      if (this.editWechselLaeuft) return;
       this.editAuswahlAnzahl.set(0);
       this.geometrienSpeichern();
     });
@@ -589,7 +603,12 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Arbeitsgeometrien laden und den Edit-Sketch scharfstellen. */
   private geometrieEditStarten(signatur: string | null): void {
     if (!this.editLayer || !this.editSketch) return;
-    this.editSketch.cancel();
+    this.editWechselLaeuft = true;
+    try {
+      this.editSketch.cancel();
+    } finally {
+      this.editWechselLaeuft = false;
+    }
     this.verschneideModus = false;
     this.editWerkzeug.set(null);
     this.editAuswahlAnzahl.set(0);
@@ -615,6 +634,10 @@ export class Karte implements AfterViewInit, OnDestroy {
       this.editWerkzeug.set(null);
       return;
     }
+    // Laufenden Vorgang ZUERST abbrechen: create() cancelt sonst intern und
+    // das synchron gefeuerte cancel-Event würde das eben gesetzte Werkzeug
+    // gleich wieder nullen (Toolbar verlöre die Hervorhebung).
+    this.editSketch.cancel();
     this.verschneideModus = false;
     this.editWerkzeug.set(typ);
     this.editSketch.create(typ);
@@ -623,6 +646,7 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Verschneiden: eine Schnittlinie zeichnen, die die Linien teilt. */
   geometrieVerschneiden(): void {
     if (!this.editSketch) return;
+    this.editSketch.cancel();
     this.verschneideModus = true;
     this.editWerkzeug.set('verschneiden');
     this.editSketch.create('polyline');
