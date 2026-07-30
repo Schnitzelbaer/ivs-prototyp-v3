@@ -15,7 +15,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideAlignJustify,
   lucideArrowLeft,
   lucideArrowRight,
   lucideBookOpen,
@@ -23,21 +22,17 @@ import {
   lucideCamera,
   lucideCheck,
   lucideChevronDown,
-  lucideCircleSmall,
   lucideDownload,
   lucideExternalLink,
-  lucideFolderInput,
   lucideHistory,
   lucideImagePlus,
   lucideMagnet,
   lucideMapPin,
   lucideMerge,
   lucideMessageSquarePlus,
-  lucideMinus,
   lucidePencil,
   lucidePlus,
   lucideScissors,
-  lucideSlash,
   lucideSpline,
   lucideTrash2,
   lucideTriangleAlert,
@@ -89,6 +84,7 @@ import { ObjektGeo } from '../karte/objekt-geo';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
 import { BegehungDialog } from '../panorama/begehung-dialog';
 import { BewertungsPunkte } from './bewertungs-punkte';
+import { HierarchieMenu } from './hierarchie-menu';
 import { TextEditor } from './text-editor';
 
 type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
@@ -123,13 +119,13 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     HlmTooltipImports,
     BegehungDialog,
     BewertungsPunkte,
+    HierarchieMenu,
     Karte,
     KommentarPanel,
     TextEditor,
   ],
   providers: [
     provideIcons({
-      lucideAlignJustify,
       lucideArrowLeft,
       lucideArrowRight,
       lucideBookOpen,
@@ -137,21 +133,17 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideCamera,
       lucideCheck,
       lucideChevronDown,
-      lucideCircleSmall,
       lucideDownload,
       lucideExternalLink,
-      lucideFolderInput,
       lucideHistory,
       lucideImagePlus,
       lucideMagnet,
       lucideMapPin,
       lucideMerge,
       lucideMessageSquarePlus,
-      lucideMinus,
       lucidePencil,
       lucidePlus,
       lucideScissors,
-      lucideSlash,
       lucideSpline,
       lucideTrash2,
       lucideTriangleAlert,
@@ -235,25 +227,6 @@ export class ObjektDetail implements OnDestroy {
     return aktuell && !werte.includes(aktuell) ? [aktuell, ...werte] : werte;
   });
 
-  /** Flache Hierarchie der ganzen Strecke für das Dropdown. */
-  protected readonly hierarchie = computed<IvsObjekt[]>(() => {
-    const o = this.objekt();
-    if (!o) return [];
-    const strecke = this.store.strecke(o);
-    const sortiert = (liste: IvsObjekt[]) =>
-      [...liste].sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
-    const eintraege: IvsObjekt[] = [strecke];
-    for (const lf of sortiert(
-      this.store.kinder(strecke.signatur).filter((k) => k.ebene === 'linienfuehrung'),
-    )) {
-      eintraege.push(lf, ...sortiert(this.store.kinder(lf.signatur)));
-    }
-    eintraege.push(
-      ...sortiert(this.store.kinder(strecke.signatur).filter((k) => k.ebene === 'wegbegleiter')),
-    );
-    return eintraege;
-  });
-
   protected readonly uebergaenge = computed<StatusUebergang[]>(() => {
     const o = this.objekt();
     if (!o) return [];
@@ -312,10 +285,6 @@ export class ObjektDetail implements OnDestroy {
   protected readonly editWerkzeug = computed(() => this.karte()?.editWerkzeug() ?? null);
   protected readonly editAuswahl = computed(() => this.karte()?.editAuswahlAnzahl() ?? 0);
   protected readonly snappingAn = computed(() => this.karte()?.snappingAn() ?? true);
-
-  // Umteilen (07.09)
-  protected readonly umteilenOffen = signal(false);
-  protected readonly umteilenZiel = signal('');
 
   // Quellen (07.18)
   protected readonly quellenOffen = signal(false);
@@ -616,35 +585,6 @@ export class ObjektDetail implements OnDestroy {
   // ------------------------------------------------------------- Umteilen
 
   /** Mögliche neue Parent-Objekte (07.09): eine Ebene über dem Objekt. */
-  protected readonly umteilenZiele = computed(() => {
-    const o = this.objekt();
-    if (!o || o.ebene === 'strecke') return [];
-    const zielEbene = o.ebene === 'abschnitt' ? 'linienfuehrung' : 'strecke';
-    return this.store
-      .alle()
-      .filter((k) => k.ebene === zielEbene && k.signatur !== o.parent)
-      .sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
-  });
-
-  protected umteilenStarten(): void {
-    this.umteilenZiel.set('');
-    this.umteilenOffen.set(true);
-  }
-
-  protected umteilenSpeichern(): void {
-    const o = this.objekt();
-    const ziel = this.umteilenZiel();
-    if (!o || !ziel) return;
-    const vorher = o.parent;
-    this.store.update(o.id, { parent: ziel });
-    this.protokolliere(
-      o.id,
-      `Umgeteilt: von ${vorher ?? '—'} zu ${ziel} (07.09). Die Signatur wird bei der Umsetzung neu vergeben.`,
-    );
-    this.umteilenOffen.set(false);
-    toast.success(`${o.signatur} umgeteilt`, { description: `Neues Parent-Objekt: ${ziel}.` });
-  }
-
   // ------------------------------------------------------------- Quellen
 
   /** Quellen aus dem Beschrieb zusammenstellen und «abfragen» (07.18). */

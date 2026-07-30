@@ -12,13 +12,14 @@
           <span hlmBadge variant="destructive">inexistent</span>
         }
         <!-- Hierarchie: Wechsel zwischen Parent- und Child-Objekten -->
+        <ivs-hierarchie-menu #hierarchie [objekt]="o" (gewaehlt)="wechsleZu($event)" />
         <button
           hlmBtn
           variant="outline"
           size="icon"
           class="rounded-full"
           type="button"
-          [hlmDropdownMenuTrigger]="hierarchieMenu"
+          [hlmDropdownMenuTrigger]="hierarchie.menuTemplate()"
           align="start"
           aria-label="Objekthierarchie öffnen"
         >
@@ -138,60 +139,6 @@
         </button>
       </div>
     </header>
-
-    <!-- Hierarchie-Menü -->
-    <ng-template #hierarchieMenu>
-      <hlm-dropdown-menu class="w-96">
-        @for (eintrag of hierarchie(); track eintrag.id) {
-          <button
-            hlmDropdownMenuItem
-            (triggered)="wechsleZu(eintrag)"
-            [class.bg-accent]="eintrag.id === o.id"
-            [class.font-semibold]="eintrag.id === o.id"
-          >
-            <span
-              class="flex min-w-0 items-center gap-2"
-              [class.pl-0]="eintrag.ebene === 'strecke'"
-              [class.pl-4]="eintrag.ebene === 'linienfuehrung' || eintrag.ebene === 'wegbegleiter'"
-              [class.pl-8]="eintrag.ebene === 'abschnitt'"
-            >
-              @switch (eintrag.ebene) {
-                @case ('strecke') {
-                  <ng-icon name="lucideMinus" class="shrink-0 text-muted-foreground" />
-                  <span class="truncate">{{ eintrag.signatur }} {{ eintrag.name }}</span>
-                }
-                @case ('linienfuehrung') {
-                  <ng-icon name="lucideSlash" class="shrink-0 text-muted-foreground" />
-                  <span class="truncate">{{ eintrag.signatur.slice(3) }} {{ eintrag.name }}</span>
-                }
-                @case ('abschnitt') {
-                  <ng-icon name="lucideAlignJustify" class="shrink-0 text-muted-foreground" />
-                  <span class="truncate">{{ eintrag.signatur.slice(3) }} {{ eintrag.name }}</span>
-                }
-                @case ('wegbegleiter') {
-                  <span class="size-2.5 shrink-0 rounded-full bg-primary"></span>
-                  <span class="truncate">{{ eintrag.name }}</span>
-                }
-              }
-            </span>
-          </button>
-        }
-        @if (o.ebene !== 'strecke') {
-          <hlm-dropdown-menu-separator />
-          <button
-            hlmDropdownMenuItem
-            [disabled]="!darfBearbeiten()"
-            (triggered)="umteilenStarten()"
-          >
-            <ng-icon name="lucideFolderInput" />
-            Objekt umteilen …
-            @if (!darfBearbeiten()) {
-              <span class="ml-auto text-xs text-muted-foreground">gesperrt</span>
-            }
-          </button>
-        }
-      </hlm-dropdown-menu>
-    </ng-template>
 
     <div class="flex min-h-0 flex-1">
       <!-- Formular -->
@@ -1234,48 +1181,6 @@
 
   <!-- Begehung planen (Objekt vorausgewählt) -->
   <ivs-begehung-dialog [(offen)]="begehungOffen" [vorauswahl]="o.signatur" />
-
-  <!-- Objekt umteilen (07.09) -->
-  <hlm-dialog
-    [state]="umteilenOffen() ? 'open' : 'closed'"
-    (stateChanged)="umteilenOffen.set($event === 'open')"
-  >
-    <hlm-dialog-content *hlmDialogPortal>
-      <hlm-dialog-header>
-        <h3 hlmDialogTitle>{{ o.signatur }} umteilen</h3>
-        <p hlmDialogDescription>
-          Das Objekt wird einem anderen übergeordneten Objekt zugeteilt ({{
-            o.ebene === 'abschnitt' ? 'Linienführung' : 'Strecke'
-          }}). Die Signatur wird bei der Umsetzung neu vergeben — im Prototyp bleibt sie
-          unverändert.
-        </p>
-      </hlm-dialog-header>
-      <div class="grid gap-1.5 py-2">
-        <label hlmLabel for="ut-ziel">Neues übergeordnetes Objekt</label>
-        <hlm-native-select
-          id="ut-ziel"
-          [ngModel]="umteilenZiel()"
-          (ngModelChange)="umteilenZiel.set($event)"
-        >
-          <option hlmNativeSelectOption value="">Bitte wählen …</option>
-          @for (ziel of umteilenZiele(); track ziel.id) {
-            <option hlmNativeSelectOption [value]="ziel.signatur">
-              {{ ziel.signatur }} – {{ ziel.name }}
-            </option>
-          }
-        </hlm-native-select>
-        <p class="text-xs text-muted-foreground">Bisher: {{ o.parent ?? '—' }}</p>
-      </div>
-      <hlm-dialog-footer>
-        <button hlmBtn variant="outline" type="button" (click)="umteilenOffen.set(false)">
-          Abbrechen
-        </button>
-        <button hlmBtn type="button" [disabled]="!umteilenZiel()" (click)="umteilenSpeichern()">
-          Umteilen
-        </button>
-      </hlm-dialog-footer>
-    </hlm-dialog-content>
-  </hlm-dialog>
 
   <!-- Quellen / Bibliografie (07.18) -->
   <hlm-dialog

@@ -4,6 +4,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideChevronDown,
   lucideChevronRight,
   lucideDownload,
   lucideRotateCw,
@@ -13,6 +14,7 @@ import {
 } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
@@ -29,10 +31,14 @@ import {
   WorkflowStatus,
   bewertungMittel,
   bewertungText,
+  objektTyp,
+  objektTypText,
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
+import { TypSymbol } from '../karte/typ-symbol';
+import { HierarchieMenu } from '../objekt/hierarchie-menu';
 
 type SortSpalte = 'signatur' | 'name' | 'status' | 'bewertung';
 
@@ -49,14 +55,18 @@ type SortSpalte = 'signatur' | 'name' | 'status' | 'bewertung';
     NgIcon,
     HlmBadgeImports,
     HlmButtonImports,
+    HlmDropdownMenuImports,
     HlmEmptyImports,
     HlmInputGroupImports,
     HlmNativeSelectImports,
     HlmTooltipImports,
+    HierarchieMenu,
     Karte,
+    TypSymbol,
   ],
   providers: [
     provideIcons({
+      lucideChevronDown,
       lucideChevronRight,
       lucideDownload,
       lucideRotateCw,
@@ -80,6 +90,18 @@ export class Objekte {
   protected readonly substanzLabel = SUBSTANZGRAD_LABEL;
   protected readonly alleStati = ALLE_STATI;
   protected readonly bewertungText = bewertungText;
+  protected readonly objektTyp = objektTyp;
+  protected readonly objektTypText = objektTypText;
+
+  /** Die drei Teile der NHG-Bewertung fürs Side-Panel. */
+  protected readonly bewertungsTeile: readonly {
+    schluessel: 'geschichte' | 'morphologie' | 'substanzwert';
+    titel: string;
+  }[] = [
+    { schluessel: 'geschichte', titel: 'Geschichte' },
+    { schluessel: 'morphologie', titel: 'Morphologie' },
+    { schluessel: 'substanzwert', titel: 'Substanzwert' },
+  ];
 
   protected readonly suche = signal('');
   protected readonly statusFilter = signal<'alle' | WorkflowStatus>('alle');

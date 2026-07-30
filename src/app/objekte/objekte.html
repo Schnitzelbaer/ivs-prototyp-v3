@@ -178,16 +178,40 @@
       />
     </section>
 
-    <!-- Side-Panel mit dem Objektinhalt -->
+    <!-- Side-Panel mit dem vollständigen Objektinhalt (keine Kürzungen) -->
     @if (auswahl(); as o) {
       <aside class="flex w-96 shrink-0 flex-col border-l border-border">
         <header class="flex items-start gap-2 border-b border-border px-4 py-3">
           <div class="min-w-0 flex-1">
-            <p class="font-mono text-xs text-muted-foreground">{{ o.signatur }}</p>
+            <div class="flex items-center gap-1.5">
+              <p class="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
+                {{ o.signatur }}
+              </p>
+              <!-- Hierarchie-Menü wie auf der Objekt-Detailseite -->
+              <ivs-hierarchie-menu #hierarchie [objekt]="o" (gewaehlt)="waehle($event)" />
+              <button
+                hlmBtn
+                variant="outline"
+                size="icon"
+                class="size-6 rounded-full"
+                type="button"
+                [hlmDropdownMenuTrigger]="hierarchie.menuTemplate()"
+                align="end"
+                aria-label="Objekthierarchie öffnen"
+              >
+                <ng-icon name="lucideChevronDown" size="14" />
+              </button>
+            </div>
             <h2 class="text-sm leading-snug font-semibold">{{ o.name }}</h2>
             <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span hlmBadge variant="secondary">{{ statusLabel[o.status] }}</span>
-              <span hlmBadge variant="outline">{{ ebeneLabel[o.ebene] }}</span>
+              <span hlmBadge variant="secondary">
+                <span class="size-2 rounded-full {{ statusFarbe[o.status] }}"></span>
+                {{ statusLabel[o.status] }}
+              </span>
+              <span hlmBadge variant="outline">
+                <ivs-typ-symbol [typ]="objektTyp(o)" />
+                {{ objektTypText(o) }}
+              </span>
               @if (o.inexistent) {
                 <span hlmBadge variant="destructive">inexistent</span>
               }
@@ -228,13 +252,39 @@
               <dd>{{ o.bauzeit || '—' }}</dd>
             </div>
             <div>
+              <dt class="text-xs text-muted-foreground">Bauherrschaft</dt>
+              <dd>{{ o.bauherrschaft || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Planer</dt>
+              <dd>{{ o.planer || '—' }}</dd>
+            </div>
+            <div>
               <dt class="text-xs text-muted-foreground">Gemeinden</dt>
               <dd class="truncate">{{ o.gemeinden || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Kanton</dt>
+              <dd>{{ o.kanton }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Aufnahmejahr</dt>
+              <dd>{{ o.aufnahmejahr ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Übergeordnet</dt>
+              <dd>{{ o.parent ?? '—' }}</dd>
             </div>
             @if (o.wegbegleiterTyp) {
               <div>
                 <dt class="text-xs text-muted-foreground">Objektart</dt>
                 <dd>{{ o.wegbegleiterTyp }}</dd>
+              </div>
+            }
+            @if (o.kunstbauteTyp) {
+              <div>
+                <dt class="text-xs text-muted-foreground">Kunstbaute</dt>
+                <dd>{{ o.kunstbauteTyp }}</dd>
               </div>
             }
             <div>
@@ -243,11 +293,64 @@
             </div>
           </dl>
 
+          @if (o.inexistent; as inexistent) {
+            <div>
+              <h3 class="text-xs font-medium text-destructive">Inexistent</h3>
+              <p class="mt-1 text-sm">
+                Seit {{ inexistent.seit }} — {{ inexistent.begruendung }}
+              </p>
+            </div>
+          }
+
+          <!-- NHG-Bewertung (Punkte und Begründungen) -->
+          <div>
+            <h3 class="text-xs font-medium text-muted-foreground">
+              Schutzbegründung / Bewertung [NHG 5.1.b]
+            </h3>
+            <dl class="mt-1 flex flex-col gap-1.5 text-sm">
+              @for (teil of bewertungsTeile; track teil.schluessel) {
+                <div>
+                  <dt class="flex items-baseline justify-between">
+                    <span>{{ teil.titel }}</span>
+                    <span class="text-xs text-muted-foreground">
+                      {{
+                        o.bewertung[teil.schluessel].punkte !== null
+                          ? o.bewertung[teil.schluessel].punkte + ' / 4 Punkte'
+                          : 'nicht bewertet'
+                      }}
+                    </span>
+                  </dt>
+                  @if (o.bewertung[teil.schluessel].text) {
+                    <dd class="text-muted-foreground">{{ o.bewertung[teil.schluessel].text }}</dd>
+                  }
+                </div>
+              }
+            </dl>
+          </div>
+
+          @if (o.erhaltungsziel) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">Erhaltungsziel</h3>
+              <p class="mt-1 text-sm whitespace-pre-line">{{ o.erhaltungsziel }}</p>
+            </div>
+          }
+          @if (o.gefahrenMassnahmen) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">Gefahren und Massnahmen</h3>
+              <p class="mt-1 text-sm whitespace-pre-line">{{ o.gefahrenMassnahmen }}</p>
+            </div>
+          }
           @if (o.geschichteText) {
             <div>
               <h3 class="text-xs font-medium text-muted-foreground">Geschichte</h3>
+              @if (o.datierungGeschichte10 || o.datierungGeschichte20) {
+                <p class="text-xs text-muted-foreground">
+                  Stand IVS 1.0: {{ o.datierungGeschichte10 ?? '—' }} · Nachführung:
+                  {{ o.datierungGeschichte20 ?? '—' }}
+                </p>
+              }
               <div
-                class="mt-1 line-clamp-6 text-sm whitespace-pre-line"
+                class="mt-1 text-sm whitespace-pre-line"
                 [innerHTML]="alsHtml(o.geschichteText)"
               ></div>
             </div>
@@ -255,10 +358,42 @@
           @if (o.gelaendeText) {
             <div>
               <h3 class="text-xs font-medium text-muted-foreground">Gelände</h3>
+              @if (o.datierungGelaende20) {
+                <p class="text-xs text-muted-foreground">Aufnahme: {{ o.datierungGelaende20 }}</p>
+              }
               <div
-                class="mt-1 line-clamp-4 text-sm whitespace-pre-line"
+                class="mt-1 text-sm whitespace-pre-line"
                 [innerHTML]="alsHtml(o.gelaendeText)"
               ></div>
+            </div>
+          }
+          @if (o.bibliografie) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">Bibliografie</h3>
+              <p class="mt-1 text-sm whitespace-pre-line">{{ o.bibliografie }}</p>
+            </div>
+          }
+          @if (o.pruefkommentar) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">Prüfkommentar</h3>
+              <p class="mt-1 text-sm whitespace-pre-line">{{ o.pruefkommentar }}</p>
+            </div>
+          }
+          @if (o.lognotizen.length) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">
+                Lognotizen ({{ o.lognotizen.length }})
+              </h3>
+              <ul class="mt-1 flex flex-col gap-1.5 text-sm">
+                @for (notiz of o.lognotizen; track $index) {
+                  <li>
+                    <p class="text-xs text-muted-foreground">
+                      {{ notiz.datum }} · {{ notiz.autor }} ({{ notiz.rolle }})
+                    </p>
+                    <p>{{ notiz.text }}</p>
+                  </li>
+                }
+              </ul>
             </div>
           }
         </div>
