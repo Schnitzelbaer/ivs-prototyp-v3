@@ -11,24 +11,32 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideAlignJustify,
+  lucideBookOpen,
   lucideCamera,
   lucideCheck,
   lucideChevronDown,
   lucideCircleSmall,
   lucideDownload,
   lucideExternalLink,
+  lucideFolderInput,
   lucideHistory,
   lucideImagePlus,
   lucideLayers,
+  lucideMagnet,
+  lucideMapPin,
+  lucideMerge,
   lucideMessageSquarePlus,
   lucideMinus,
   lucidePencil,
   lucidePlus,
+  lucideScissors,
   lucideSlash,
+  lucideSpline,
   lucideTrash2,
   lucideTriangleAlert,
   lucideUpload,
@@ -65,6 +73,7 @@ import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
 import { BewertungsPunkte } from './bewertungs-punkte';
+import { TextEditor } from './text-editor';
 
 type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
 
@@ -97,24 +106,32 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     BewertungsPunkte,
     Karte,
     KommentarPanel,
+    TextEditor,
   ],
   providers: [
     provideIcons({
       lucideAlignJustify,
+      lucideBookOpen,
       lucideCamera,
       lucideCheck,
       lucideChevronDown,
       lucideCircleSmall,
       lucideDownload,
       lucideExternalLink,
+      lucideFolderInput,
       lucideHistory,
       lucideImagePlus,
       lucideLayers,
+      lucideMagnet,
+      lucideMapPin,
+      lucideMerge,
       lucideMessageSquarePlus,
       lucideMinus,
       lucidePencil,
       lucidePlus,
+      lucideScissors,
       lucideSlash,
+      lucideSpline,
       lucideTrash2,
       lucideTriangleAlert,
       lucideUpload,
@@ -128,9 +145,10 @@ export class ObjektDetail implements OnDestroy {
   private readonly sync = inject(KarteSync);
   private readonly geo = inject(ObjektGeo);
   private readonly kommentarStore = inject(KommentarStore);
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly einstellungen = inject(EinstellungenStore);
 
-  private readonly karte = viewChild(Karte);
+  protected readonly karte = viewChild(Karte);
 
   readonly id = input.required<string>();
 
@@ -220,6 +238,22 @@ export class ObjektDetail implements OnDestroy {
   /** Aktiver Tab des Kartenpanels — wechselbar auch programmatisch (Pin-Klick). */
   protected readonly kartenTab = signal('karte');
   protected readonly kommentarModusAktiv = computed(() => this.karte()?.kommentarModus() ?? false);
+
+  // Geometrie-Editing (05.05)
+  protected readonly geometrieModus = signal(false);
+  protected readonly geometrieAnzahl = signal(0);
+  private geometrieGeaendertFlag = false;
+  protected readonly editWerkzeug = computed(() => this.karte()?.editWerkzeug() ?? null);
+  protected readonly editAuswahl = computed(() => this.karte()?.editAuswahlAnzahl() ?? 0);
+  protected readonly snappingAn = computed(() => this.karte()?.snappingAn() ?? true);
+
+  // Umteilen (07.09)
+  protected readonly umteilenOffen = signal(false);
+  protected readonly umteilenZiel = signal('');
+
+  // Quellen (07.18)
+  protected readonly quellenOffen = signal(false);
+  protected readonly quellen = signal<QuellenTreffer[]>([]);
 
   // Dialog «Kommentar auf Karte» (05.11)
   protected readonly kartenKommentarOffen = signal(false);
@@ -372,6 +406,122 @@ export class ObjektDetail implements OnDestroy {
     this.karte()?.panelUmschalten();
   }
 
+  // ------------------------------------------------------ Rich-Text-Anzeige
+
+  /**
+   * Formatierter Objektbeschrieb (07.17) im Lesemodus: Der HTML-Wert stammt
+   * aus dem eigenen Editor bzw. localStorage — fürs Prototyping wird er ohne
+   * weitere Bereinigung dargestellt.
+   */
+  protected alsHtml(text: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(text);
+  }
+
+  // ------------------------------------------------------ Geometrie-Editing
+
+  protected geometrieModusUmschalten(): void {
+    const neu = !this.geometrieModus();
+    if (!neu && this.geometrieGeaendertFlag) {
+      const o = this.objekt();
+      if (o) {
+        this.protokolliere(o.id, `Kartengeometrie bearbeitet — ${this.geometrieAnzahl()} Arbeitsgeometrie(n) (05.07).`);
+      }
+      this.geometrieGeaendertFlag = false;
+    }
+    this.geometrieModus.set(neu);
+    if (neu) this.kartenTab.set('karte');
+  }
+
+  protected geometrieGeaendert(anzahl: number): void {
+    this.geometrieAnzahl.set(anzahl);
+    this.geometrieGeaendertFlag = true;
+  }
+
+  // ------------------------------------------------------------- Umteilen
+
+  /** Mögliche neue Parent-Objekte (07.09): eine Ebene über dem Objekt. */
+  protected readonly umteilenZiele = computed(() => {
+    const o = this.objekt();
+    if (!o || o.ebene === 'strecke') return [];
+    const zielEbene = o.ebene === 'abschnitt' ? 'linienfuehrung' : 'strecke';
+    return this.store
+      .alle()
+      .filter((k) => k.ebene === zielEbene && k.signatur !== o.parent)
+      .sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
+  });
+
+  protected umteilenStarten(): void {
+    this.umteilenZiel.set('');
+    this.umteilenOffen.set(true);
+  }
+
+  protected umteilenSpeichern(): void {
+    const o = this.objekt();
+    const ziel = this.umteilenZiel();
+    if (!o || !ziel) return;
+    const vorher = o.parent;
+    this.store.update(o.id, { parent: ziel });
+    this.protokolliere(o.id, `Umgeteilt: von ${vorher ?? '—'} zu ${ziel} (07.09). Die Signatur wird bei der Umsetzung neu vergeben.`);
+    this.umteilenOffen.set(false);
+  }
+
+  // ------------------------------------------------------------- Quellen
+
+  /** Quellen aus dem Beschrieb zusammenstellen und «abfragen» (07.18). */
+  protected quellenZusammenstellen(): void {
+    const o = this.objekt();
+    if (!o) return;
+    const texte = [
+      o.geschichteText,
+      o.gelaendeText,
+      o.bewertung.geschichte.text,
+      o.bewertung.morphologie.text,
+      o.bewertung.substanzwert.text,
+      o.gefahrenMassnahmen,
+    ].join('\n');
+    const muster = /\(([A-ZÄÖÜ][A-ZÄÖÜa-zäöü-]+) (\d{4}(?:\/[IVXLC]+)?): ?(\d+)\)/g;
+    const gefunden = new Map<string, QuellenTreffer>();
+    for (const treffer of texte.matchAll(muster)) {
+      const [, name, jahr, seite] = treffer;
+      const schluessel = `${name} ${jahr}`;
+      if (!gefunden.has(schluessel)) {
+        // Simulierte Abfrage der Literaturdatenbanken — deterministisch
+        const hash = [...schluessel].reduce((s, z) => s + z.charCodeAt(0), 0);
+        gefunden.set(schluessel, {
+          name,
+          jahr,
+          seiten: [seite],
+          helveticat: hash % 3 !== 0,
+          swissbib: hash % 2 === 0,
+          inBibliografie: o.bibliografie.toLowerCase().includes(name.toLowerCase()),
+        });
+      } else {
+        const eintrag = gefunden.get(schluessel)!;
+        if (!eintrag.seiten.includes(seite)) eintrag.seiten.push(seite);
+      }
+    }
+    this.quellen.set([...gefunden.values()].sort((a, b) => a.name.localeCompare(b.name)));
+    this.quellenOffen.set(true);
+  }
+
+  /** Fehlende Quellen formatiert in die Bibliografie übernehmen. */
+  protected quellenUebernehmen(): void {
+    const o = this.objekt();
+    if (!o) return;
+    const neue = this.quellen()
+      .filter((q) => !q.inBibliografie)
+      .map((q) => {
+        const nachweis = [q.helveticat ? 'Helveticat' : null, q.swissbib ? 'Swisscovery' : null]
+          .filter(Boolean)
+          .join(', ');
+        return `${titelSchreibweise(q.name)} (${q.jahr}). — Nachweis: ${nachweis || 'kein Treffer'}.`;
+      });
+    if (neue.length === 0) return;
+    const bibliografie = [o.bibliografie.trim(), ...neue].filter(Boolean).join('\n');
+    this.patch({ bibliografie });
+    this.quellen.update((liste) => liste.map((q) => ({ ...q, inBibliografie: true })));
+  }
+
   // ----------------------------------------------------------- Kommentare
 
   /** Alle Objekte für die Zuweisungs-Auswahl im Karten-Kommentar-Dialog. */
@@ -437,4 +587,18 @@ export class ObjektDetail implements OnDestroy {
 
 function heute(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+interface QuellenTreffer {
+  name: string;
+  jahr: string;
+  seiten: string[];
+  helveticat: boolean;
+  swissbib: boolean;
+  inBibliografie: boolean;
+}
+
+/** «ANDEREGG» → «Anderegg» für die Bibliografie-Übernahme. */
+function titelSchreibweise(name: string): string {
+  return name.charAt(0) + name.slice(1).toLowerCase();
 }

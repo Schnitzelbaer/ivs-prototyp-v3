@@ -154,6 +154,16 @@
             </span>
           </button>
         }
+        @if (o.ebene !== 'strecke') {
+          <hlm-dropdown-menu-separator />
+          <button hlmDropdownMenuItem [disabled]="!darfBearbeiten()" (triggered)="umteilenStarten()">
+            <ng-icon name="lucideFolderInput" />
+            Objekt umteilen …
+            @if (!darfBearbeiten()) {
+              <span class="ml-auto text-xs text-muted-foreground">gesperrt</span>
+            }
+          </button>
+        }
       </hlm-dropdown-menu>
     </ng-template>
 
@@ -453,15 +463,17 @@
                     (mit Datum) oder ergänzt/angepasst.
                   </p>
                   @if (istEdit()) {
-                    <textarea
-                      hlmTextarea
-                      id="f-geschichte"
-                      class="min-h-40 w-full"
-                      [ngModel]="o.geschichteText"
-                      (ngModelChange)="patch({ geschichteText: $event })"
-                    ></textarea>
+                    <ivs-text-editor
+                      [minHoehe]="160"
+                      [wert]="o.geschichteText"
+                      (wertChange)="patch({ geschichteText: $event })"
+                    />
                   } @else {
-                    <p class="text-sm whitespace-pre-line">{{ o.geschichteText || '—' }}</p>
+                    @if (o.geschichteText) {
+                      <div class="text-sm whitespace-pre-line" [innerHTML]="alsHtml(o.geschichteText)"></div>
+                    } @else {
+                      <p class="text-sm">—</p>
+                    }
                   }
                 </div>
 
@@ -503,17 +515,18 @@
                     Mit Standardhinweis.
                   </p>
                   @if (istEdit()) {
-                    <textarea
-                      hlmTextarea
-                      id="f-gelaende"
-                      class="min-h-32 w-full"
-                      maxlength="3000"
-                      [ngModel]="o.gelaendeText"
-                      (ngModelChange)="patch({ gelaendeText: $event })"
-                    ></textarea>
-                    <p class="text-right text-xs text-muted-foreground">{{ o.gelaendeText.length }}/3000</p>
+                    <ivs-text-editor
+                      [minHoehe]="128"
+                      [zeichenLimit]="3000"
+                      [wert]="o.gelaendeText"
+                      (wertChange)="patch({ gelaendeText: $event })"
+                    />
                   } @else {
-                    <p class="text-sm whitespace-pre-line">{{ o.gelaendeText || '—' }}</p>
+                    @if (o.gelaendeText) {
+                      <div class="text-sm whitespace-pre-line" [innerHTML]="alsHtml(o.gelaendeText)"></div>
+                    } @else {
+                      <p class="text-sm">—</p>
+                    }
                   }
                 </div>
 
@@ -562,6 +575,11 @@
                     <p class="text-sm whitespace-pre-line">{{ o.bibliografie || '—' }}</p>
                   }
                 </div>
+
+                <button hlmBtn variant="outline" size="sm" class="w-fit" type="button" (click)="quellenZusammenstellen()">
+                  <ng-icon name="lucideBookOpen" />
+                  Quellen zusammenstellen und in Literaturdatenbanken suchen
+                </button>
 
                 <div class="grid gap-1.5">
                   <span class="text-sm font-medium">Neue Geländeaufnahmen &amp; Abbildungen (inkl. Bildlegenden)</span>
@@ -765,14 +783,21 @@
             <div class="ml-auto flex items-center gap-1">
               <button
                 hlmBtn
-                variant="ghost"
+                [variant]="geometrieModus() ? 'secondary' : 'ghost'"
                 size="icon"
                 type="button"
-                disabled
-                hlmTooltip="Geometrie bearbeiten — folgt in einer späteren Etappe"
+                [disabled]="!darfBearbeiten()"
+                (click)="geometrieModusUmschalten()"
+                [hlmTooltip]="
+                  !darfBearbeiten()
+                    ? 'Geometrie bearbeiten ist der bearbeitenden Rolle im passenden Status vorbehalten'
+                    : geometrieModus()
+                      ? 'Geometrie-Bearbeitung abschliessen'
+                      : 'Geometrie bearbeiten (05.05)'
+                "
                 aria-label="Geometrie bearbeiten"
               >
-                <ng-icon name="lucidePencil" />
+                <ng-icon name="lucideSpline" />
               </button>
               <button
                 hlmBtn
@@ -811,10 +836,90 @@
             </div>
           </div>
 
+          <!-- Geometrie-Werkzeuge (05.05/05.09) -->
+          @if (geometrieModus()) {
+            <div class="flex flex-wrap items-center gap-1 border-b border-border bg-muted/40 px-2 py-1.5">
+              <button
+                hlmBtn
+                [variant]="editWerkzeug() === 'polyline' ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="karte()?.geometrieZeichnen('polyline')"
+                hlmTooltip="Linie zeichnen (Doppelklick beendet)"
+                aria-label="Linie zeichnen"
+              >
+                <ng-icon name="lucideSpline" />
+              </button>
+              <button
+                hlmBtn
+                [variant]="editWerkzeug() === 'point' ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="karte()?.geometrieZeichnen('point')"
+                hlmTooltip="Punkt setzen"
+                aria-label="Punkt setzen"
+              >
+                <ng-icon name="lucideMapPin" />
+              </button>
+              <div class="mx-1 h-5 w-px bg-border"></div>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                (click)="karte()?.geometrieZusammenfuegen()"
+                hlmTooltip="Alle Linien zusammenfügen"
+                aria-label="Linien zusammenfügen"
+              >
+                <ng-icon name="lucideMerge" />
+              </button>
+              <button
+                hlmBtn
+                [variant]="editWerkzeug() === 'verschneiden' ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="karte()?.geometrieVerschneiden()"
+                hlmTooltip="Verschneiden: Schnittlinie zeichnen, die Linien teilt"
+                aria-label="Verschneiden"
+              >
+                <ng-icon name="lucideScissors" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                [disabled]="editAuswahl() === 0"
+                (click)="karte()?.geometrieLoeschen()"
+                hlmTooltip="Selektierte Arbeitsgeometrie löschen"
+                aria-label="Selektierte löschen"
+              >
+                <ng-icon name="lucideTrash2" />
+              </button>
+              <div class="mx-1 h-5 w-px bg-border"></div>
+              <button
+                hlmBtn
+                [variant]="snappingAn() ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="karte()?.snappingUmschalten()"
+                hlmTooltip="Snapping an bestehender Geometrie (05.09) — TLM liegt nur als Rasterkarte vor"
+                aria-label="Snapping umschalten"
+              >
+                <ng-icon name="lucideMagnet" />
+              </button>
+              <span class="ml-auto text-xs text-muted-foreground">
+                Klick auf eine Zeichnung: verschieben und Stützpunkte ziehen
+              </span>
+            </div>
+          }
+
           <div hlmTabsContent="karte" class="min-h-0 flex-1">
             <ivs-karte
               class="block h-full"
               [selektion]="selektion()"
+              [geometrieEditObjekt]="geometrieModus() ? o.signatur : null"
+              (geometrieGeaendert)="geometrieGeaendert($event)"
               (objektKlick)="oeffneSignatur($event)"
               (kommentarKlick)="kommentarPinGeklickt()"
               (kommentarPosition)="kommentarPositionGewaehlt($event)"
@@ -892,6 +997,93 @@
         <button hlmBtn variant="outline" type="button" (click)="kartenKommentarOffen.set(false)">Abbrechen</button>
         <button hlmBtn type="button" [disabled]="!kartenKommentarText().trim()" (click)="kartenKommentarSpeichern()">
           Kommentar speichern
+        </button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
+
+  <!-- Objekt umteilen (07.09) -->
+  <hlm-dialog [state]="umteilenOffen() ? 'open' : 'closed'" (stateChanged)="umteilenOffen.set($event === 'open')">
+    <hlm-dialog-content *hlmDialogPortal>
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>{{ o.signatur }} umteilen</h3>
+        <p hlmDialogDescription>
+          Das Objekt wird einem anderen übergeordneten Objekt zugeteilt
+          ({{ o.ebene === 'abschnitt' ? 'Linienführung' : 'Strecke' }}). Die Signatur wird bei der
+          Umsetzung neu vergeben — im Prototyp bleibt sie unverändert.
+        </p>
+      </hlm-dialog-header>
+      <div class="grid gap-1.5 py-2">
+        <label hlmLabel for="ut-ziel">Neues übergeordnetes Objekt</label>
+        <hlm-native-select id="ut-ziel" [ngModel]="umteilenZiel()" (ngModelChange)="umteilenZiel.set($event)">
+          <option hlmNativeSelectOption value="">Bitte wählen …</option>
+          @for (ziel of umteilenZiele(); track ziel.id) {
+            <option hlmNativeSelectOption [value]="ziel.signatur">{{ ziel.signatur }} – {{ ziel.name }}</option>
+          }
+        </hlm-native-select>
+        <p class="text-xs text-muted-foreground">Bisher: {{ o.parent ?? '—' }}</p>
+      </div>
+      <hlm-dialog-footer>
+        <button hlmBtn variant="outline" type="button" (click)="umteilenOffen.set(false)">Abbrechen</button>
+        <button hlmBtn type="button" [disabled]="!umteilenZiel()" (click)="umteilenSpeichern()">Umteilen</button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
+
+  <!-- Quellen / Bibliografie (07.18) -->
+  <hlm-dialog [state]="quellenOffen() ? 'open' : 'closed'" (stateChanged)="quellenOffen.set($event === 'open')">
+    <hlm-dialog-content *hlmDialogPortal class="max-w-xl">
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>Quellen aus dem Objektbeschrieb</h3>
+        <p hlmDialogDescription>
+          Zitate im Stil «(ANDEREGG 1998: 41)» aus allen Textfeldern, abgefragt gegen die
+          Literaturdatenbanken (im Prototyp simuliert).
+        </p>
+      </hlm-dialog-header>
+      <div class="max-h-72 overflow-y-auto py-2">
+        @if (quellen().length === 0) {
+          <p class="py-4 text-center text-sm text-muted-foreground">Keine Zitate im Beschrieb gefunden.</p>
+        } @else {
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border text-left text-xs text-muted-foreground">
+                <th class="py-1.5 pr-2 font-medium">Quelle</th>
+                <th class="py-1.5 pr-2 font-medium">Seiten</th>
+                <th class="py-1.5 pr-2 font-medium">Helveticat</th>
+                <th class="py-1.5 pr-2 font-medium">Swisscovery</th>
+                <th class="py-1.5 font-medium">Bibliografie</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (quelle of quellen(); track quelle.name + quelle.jahr) {
+                <tr class="border-b border-border/60">
+                  <td class="py-1.5 pr-2 font-medium">{{ quelle.name }} {{ quelle.jahr }}</td>
+                  <td class="py-1.5 pr-2 text-muted-foreground">{{ quelle.seiten.join(', ') }}</td>
+                  <td class="py-1.5 pr-2">{{ quelle.helveticat ? 'Treffer' : '—' }}</td>
+                  <td class="py-1.5 pr-2">{{ quelle.swissbib ? 'Treffer' : '—' }}</td>
+                  <td class="py-1.5">
+                    @if (quelle.inBibliografie) {
+                      <span hlmBadge variant="secondary">erfasst</span>
+                    } @else {
+                      <span hlmBadge variant="outline">fehlt</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+      <hlm-dialog-footer>
+        <button hlmBtn variant="outline" type="button" (click)="quellenOffen.set(false)">Schliessen</button>
+        <button
+          hlmBtn
+          type="button"
+          [disabled]="!istEdit()"
+          (click)="quellenUebernehmen()"
+          [hlmTooltip]="!istEdit() ? 'Übernahme nur im Bearbeitungsmodus' : 'Fehlende Quellen in die Bibliografie übernehmen'"
+        >
+          Fehlende in Bibliografie übernehmen
         </button>
       </hlm-dialog-footer>
     </hlm-dialog-content>

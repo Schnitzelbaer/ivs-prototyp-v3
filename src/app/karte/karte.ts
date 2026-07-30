@@ -14,12 +14,17 @@ import {
 } from '@angular/core';
 import Basemap from '@arcgis/core/Basemap.js';
 import EsriMap from '@arcgis/core/Map.js';
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine.js';
 import type Polygon from '@arcgis/core/geometry/Polygon.js';
+import type Polyline from '@arcgis/core/geometry/Polyline.js';
+import * as geometryJsonUtils from '@arcgis/core/geometry/support/jsonUtils.js';
+import { GeometrieStore } from '../core/geometrie-store';
 import { KommentarStore } from '../core/kommentare';
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer.js';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer.js';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol.js';
+import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol.js';
 import MapView from '@arcgis/core/views/MapView.js';
 import SketchViewModel from '@arcgis/core/widgets/Sketch/SketchViewModel.js';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -30,7 +35,15 @@ import Point from '@arcgis/core/geometry/Point.js';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils.js';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol.js';
 import { Ebene } from '../core/model';
-import { LAYER_DEFS, LayerDef, OBJEKT_LAYER_IDS, erzeugeLayer } from './karten-layer';
+import {
+  BASEMAP_DEFS,
+  LAYER_DEFS,
+  LayerDef,
+  OBJEKT_LAYER_IDS,
+  OVERLAY_DEFS,
+  erzeugeLayer,
+  erzeugeWebTileLayer,
+} from './karten-layer';
 
 export interface KartenSelektion {
   ebene: Ebene;
@@ -66,7 +79,62 @@ export interface KartenSelektion {
           <ng-icon name="lucideChevronDown" class="transition-transform" [class.rotate-180]="panelEingeklappt()" />
         </button>
         @if (!panelEingeklappt()) {
-          <ul class="max-h-72 overflow-y-auto px-1 pb-1">
+          <div class="max-h-96 overflow-y-auto px-1 pb-2">
+            <!-- Hintergrund (05.04) -->
+            <p class="px-2 pt-1 pb-0.5 text-xs font-medium text-muted-foreground">Hintergrund</p>
+            @for (basemap of basemaps; track basemap.id) {
+              <label class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-0.5 text-sm hover:bg-accent">
+                <input
+                  type="radio"
+                  name="ivs-basemap"
+                  class="accent-primary"
+                  [checked]="basemapId() === basemap.id"
+                  (change)="basemapWechseln(basemap.id)"
+                />
+                {{ basemap.titel }}
+              </label>
+            }
+            @for (overlay of overlays; track overlay.id) {
+              <div class="rounded-sm px-2 py-0.5 text-sm hover:bg-accent">
+                <label class="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    class="accent-primary"
+                    [checked]="overlaySichtbar()[overlay.id]"
+                    (change)="overlayUmschalten(overlay.id)"
+                  />
+                  <span class="min-w-0 flex-1 truncate">{{ overlay.titel }}</span>
+                </label>
+                @if (overlaySichtbar()[overlay.id]) {
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    class="mt-0.5 h-1.5 w-full accent-primary"
+                    [value]="overlayDeckkraft()[overlay.id]"
+                    (input)="overlayDeckkraftSetzen(overlay.id, $event)"
+                    [attr.aria-label]="'Deckkraft ' + overlay.titel"
+                  />
+                }
+              </div>
+            }
+
+            <!-- Objekt-Deckkraft -->
+            <p class="px-2 pt-2 pb-0.5 text-xs font-medium text-muted-foreground">Objekt-Deckkraft</p>
+            <div class="px-2">
+              <input
+                type="range"
+                min="10"
+                max="100"
+                class="h-1.5 w-full accent-primary"
+                [value]="objektDeckkraft()"
+                (input)="objektDeckkraftSetzen($event)"
+                aria-label="Deckkraft der IVS-Objekte"
+              />
+            </div>
+
+            <p class="px-2 pt-2 pb-0.5 text-xs font-medium text-muted-foreground">Layer</p>
+            <ul>
             @for (def of layerDefs; track def.id) {
               <li>
                 <div class="flex items-center gap-2 rounded-sm px-2 py-1 text-sm hover:bg-accent">
@@ -106,7 +174,8 @@ export interface KartenSelektion {
                 </div>
               </li>
             }
-          </ul>
+            </ul>
+          </div>
         }
       </div>
     </div>
@@ -129,20 +198,43 @@ export class Karte implements AfterViewInit, OnDestroy {
   readonly kommentarKlick = output<string>();
   /** Nach dem Platzieren mit dem Kommentar-Werkzeug: gewählte Position. */
   readonly kommentarPosition = output<{ lon: number; lat: number }>();
+  /** Geometrie-Editing (05.05): Signatur des zu bearbeitenden Objekts, null = aus. */
+  readonly geometrieEditObjekt = input<string | null>(null);
+  /** Nach jeder Geometrie-Änderung: aktuelle Anzahl Arbeitsgeometrien. */
+  readonly geometrieGeaendert = output<number>();
 
   private readonly kommentarStore = inject(KommentarStore);
+  private readonly geometrieStore = inject(GeometrieStore);
 
   protected readonly layerDefs = LAYER_DEFS;
+  protected readonly basemaps = BASEMAP_DEFS;
+  protected readonly overlays = OVERLAY_DEFS;
   protected readonly panelEingeklappt = signal(false);
   readonly panelOffen = signal(true);
   readonly polygonAktiv = signal(false);
   /** Kommentar-Werkzeug aktiv: nächster Kartenklick wählt die Position. */
   readonly kommentarModus = signal(false);
+  /** Snapping des Geometrie-Editings (05.09) — an bestehender Geometrie. */
+  readonly snappingAn = signal(true);
+  /** Anzahl aktuell im Update-Modus selektierter Arbeitsgeometrien. */
+  readonly editAuswahlAnzahl = signal(0);
+  /** Aktives Zeichenwerkzeug des Geometrie-Editings. */
+  readonly editWerkzeug = signal<'polyline' | 'point' | 'verschneiden' | null>(null);
+
+  protected readonly basemapId = signal('pk-grau');
+  protected readonly overlaySichtbar = signal<Record<string, boolean>>(
+    Object.fromEntries(OVERLAY_DEFS.map((o) => [o.id, false])),
+  );
+  protected readonly overlayDeckkraft = signal<Record<string, number>>(
+    Object.fromEntries(OVERLAY_DEFS.map((o) => [o.id, o.deckkraft])),
+  );
+  protected readonly objektDeckkraft = signal(100);
   protected readonly sichtbarkeit = signal<Record<string, boolean>>(
     Object.fromEntries(LAYER_DEFS.map((d) => [d.id, d.sichtbar])),
   );
 
   private view: MapView | null = null;
+  private map: EsriMap | null = null;
   private layers = new Map<string, GeoJSONLayer>();
   /** Die beiden Objekt-Layer (Linien + Wegbegleiter-Punkte). */
   private objektLayers: GeoJSONLayer[] = [];
@@ -152,6 +244,12 @@ export class Karte implements AfterViewInit, OnDestroy {
   private kegelGraphic: Graphic | null = null;
   private sketch: SketchViewModel | null = null;
   private erstZoomErledigt = false;
+
+  private basemapCache = new Map<string, Basemap>();
+  private overlayLayers = new Map<string, WebTileLayer>();
+  private editLayer: GraphicsLayer | null = null;
+  private editSketch: SketchViewModel | null = null;
+  private verschneideModus = false;
 
   /** Zuletzt angewendete Selektion — verhindert redundante goTo/Query-Läufe,
    *  wenn sich nur die Objektreferenz, nicht aber die Selektion ändert. */
@@ -190,6 +288,16 @@ export class Karte implements AfterViewInit, OnDestroy {
     effect(() => {
       this.kommentarStore.alle(); // Tracking
       this.zeichneKommentarPins();
+    });
+    // Deckkraft der Objekt-Layer
+    effect(() => {
+      const deckkraft = this.objektDeckkraft() / 100;
+      for (const layer of this.objektLayers) layer.opacity = deckkraft;
+    });
+    // Geometrie-Editing an-/abschalten bzw. Objekt wechseln
+    effect(() => {
+      const signatur = this.geometrieEditObjekt();
+      untracked(() => this.geometrieEditStarten(signatur));
     });
   }
 
@@ -230,6 +338,8 @@ export class Karte implements AfterViewInit, OnDestroy {
     });
 
     const map = new EsriMap({ basemap });
+    this.map = map;
+    this.basemapCache.set('pk-grau', basemap);
 
     for (const def of this.layerDefs) {
       const layer = erzeugeLayer(def);
@@ -249,6 +359,10 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.kommentarLayer = new GraphicsLayer({ listMode: 'hide' });
     map.add(this.kommentarLayer);
     this.zeichneKommentarPins();
+
+    // Arbeitsgeometrien des Geometrie-Editings (05.05)
+    this.editLayer = new GraphicsLayer({ listMode: 'hide' });
+    map.add(this.editLayer);
 
     this.view = new MapView({
       container: this.kartenDiv().nativeElement,
@@ -278,9 +392,56 @@ export class Karte implements AfterViewInit, OnDestroy {
       }
     });
 
+    // Geometrie-Editing (05.05): Zeichnen, Verschieben, Stützpunkte,
+    // Verschneiden, Zusammenfügen — mit Snapping an bestehender Geometrie
+    // (05.09; TLM liegt nur als Rasterkarte vor, gesnappt wird an den
+    // IVS-Objekten, den Routen und den eigenen Arbeitsgeometrien).
+    this.editSketch = new SketchViewModel({
+      view: this.view,
+      layer: this.editLayer!,
+      updateOnGraphicClick: true,
+      polylineSymbol: editLinienSymbol(),
+      pointSymbol: editPunktSymbol(),
+      defaultUpdateOptions: { tool: 'reshape', toggleToolOnClick: true },
+      snappingOptions: {
+        enabled: this.snappingAn(),
+        featureSources: [
+          { layer: this.editLayer!, enabled: true },
+          { layer: this.layers.get('objekte')!, enabled: true },
+          { layer: this.layers.get('routen')!, enabled: true },
+        ],
+      } as never,
+    });
+    this.editSketch.on('create', (ereignis) => {
+      if (ereignis.state === 'cancel') {
+        this.editWerkzeug.set(null);
+        return;
+      }
+      if (ereignis.state !== 'complete') return;
+      const werkzeug = this.editWerkzeug();
+      this.editWerkzeug.set(null);
+      if (this.verschneideModus && ereignis.graphic?.geometry?.type === 'polyline') {
+        this.verschneideModus = false;
+        this.editLayer?.remove(ereignis.graphic);
+        this.verschneiden(ereignis.graphic.geometry as Polyline);
+        return;
+      }
+      if (werkzeug || ereignis.graphic) this.geometrienSpeichern();
+    });
+    this.editSketch.on('update', (ereignis) => {
+      this.editAuswahlAnzahl.set(ereignis.state === 'complete' ? 0 : ereignis.graphics.length);
+      if (ereignis.state === 'complete') this.geometrienSpeichern();
+    });
+    this.editSketch.on('delete', () => {
+      this.editAuswahlAnzahl.set(0);
+      this.geometrienSpeichern();
+    });
+
     this.view.on('click', (ereignis) => {
       const view = this.view;
       if (!view) return;
+      // Während des Geometrie-Editings gehören die Klicks dem Sketch
+      if (this.geometrieEditObjekt()) return;
       // Kommentar-Werkzeug: Klick wählt die Position (05.11)
       if (this.kommentarModus()) {
         this.kommentarModus.set(false);
@@ -329,6 +490,7 @@ export class Karte implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sketch?.destroy();
+    this.editSketch?.destroy();
     this.view?.destroy();
     this.view = null;
   }
@@ -370,6 +532,153 @@ export class Karte implements AfterViewInit, OnDestroy {
     const neu = { ...this.sichtbarkeit(), [id]: !this.sichtbarkeit()[id] };
     this.sichtbarkeit.set(neu);
     layer.visible = neu[id];
+  }
+
+  // ------------------------------------------- Hintergrund und Deckkraft
+
+  protected basemapWechseln(id: string): void {
+    if (!this.map) return;
+    let basemap = this.basemapCache.get(id);
+    if (!basemap) {
+      const def = BASEMAP_DEFS.find((b) => b.id === id);
+      if (!def) return;
+      basemap = new Basemap({
+        baseLayers: [erzeugeWebTileLayer(def.layerId, def.format, def.titel)],
+        id: def.id,
+      });
+      this.basemapCache.set(id, basemap);
+    }
+    this.map.basemap = basemap;
+    this.basemapId.set(id);
+  }
+
+  protected overlayUmschalten(id: string): void {
+    if (!this.map) return;
+    const sichtbar = !this.overlaySichtbar()[id];
+    this.overlaySichtbar.update((s) => ({ ...s, [id]: sichtbar }));
+    let layer = this.overlayLayers.get(id);
+    if (!layer && sichtbar) {
+      const def = OVERLAY_DEFS.find((o) => o.id === id);
+      if (!def) return;
+      layer = erzeugeWebTileLayer(def.layerId, def.format, def.titel);
+      layer.opacity = this.overlayDeckkraft()[id] / 100;
+      this.overlayLayers.set(id, layer);
+    }
+    if (!layer) return;
+    if (sichtbar) {
+      // Raster-Overlays gehören unter die Fach-Layer
+      this.map.add(layer, 0);
+    } else {
+      this.map.remove(layer);
+    }
+  }
+
+  protected overlayDeckkraftSetzen(id: string, ereignis: Event): void {
+    const wert = Number((ereignis.target as HTMLInputElement).value);
+    this.overlayDeckkraft.update((d) => ({ ...d, [id]: wert }));
+    const layer = this.overlayLayers.get(id);
+    if (layer) layer.opacity = wert / 100;
+  }
+
+  protected objektDeckkraftSetzen(ereignis: Event): void {
+    this.objektDeckkraft.set(Number((ereignis.target as HTMLInputElement).value));
+  }
+
+  // ------------------------------------------------- Geometrie-Editing
+
+  /** Arbeitsgeometrien laden und den Edit-Sketch scharfstellen. */
+  private geometrieEditStarten(signatur: string | null): void {
+    if (!this.editLayer || !this.editSketch) return;
+    this.editSketch.cancel();
+    this.verschneideModus = false;
+    this.editWerkzeug.set(null);
+    this.editAuswahlAnzahl.set(0);
+    this.editLayer.removeAll();
+    if (!signatur) return;
+    const graphics = this.geometrieStore.fuerObjekt(signatur).map(
+      (json) =>
+        new Graphic({
+          geometry: geometryJsonUtils.fromJSON(json as never) ?? undefined,
+          symbol: (json as { spatialReference?: unknown; x?: unknown })['x'] !== undefined
+            ? editPunktSymbol()
+            : editLinienSymbol(),
+        }),
+    );
+    this.editLayer.addMany(graphics);
+  }
+
+  /** Linie oder Punkt zeichnen. */
+  geometrieZeichnen(typ: 'polyline' | 'point'): void {
+    if (!this.editSketch) return;
+    if (this.editWerkzeug() === typ) {
+      this.editSketch.cancel();
+      this.editWerkzeug.set(null);
+      return;
+    }
+    this.verschneideModus = false;
+    this.editWerkzeug.set(typ);
+    this.editSketch.create(typ);
+  }
+
+  /** Verschneiden: eine Schnittlinie zeichnen, die die Linien teilt. */
+  geometrieVerschneiden(): void {
+    if (!this.editSketch) return;
+    this.verschneideModus = true;
+    this.editWerkzeug.set('verschneiden');
+    this.editSketch.create('polyline');
+  }
+
+  /** Selektierte Arbeitsgeometrien löschen. */
+  geometrieLoeschen(): void {
+    this.editSketch?.delete();
+  }
+
+  /** Alle Linien der Arbeitsgeometrien zu einer zusammenfügen (05.05). */
+  geometrieZusammenfuegen(): void {
+    if (!this.editLayer) return;
+    const linien = this.editLayer.graphics.filter((g) => g.geometry?.type === 'polyline');
+    if (linien.length < 2) return;
+    const vereint = geometryEngine.union(linien.map((g) => g.geometry!).toArray()) as Polyline | null;
+    if (!vereint) return;
+    this.editLayer.removeMany(linien.toArray());
+    this.editLayer.add(new Graphic({ geometry: vereint, symbol: editLinienSymbol() }));
+    this.geometrienSpeichern();
+  }
+
+  /** Alle Linien an der Schnittlinie teilen. */
+  private verschneiden(schnittlinie: Polyline): void {
+    if (!this.editLayer) return;
+    const linien = this.editLayer.graphics.filter((g) => g.geometry?.type === 'polyline').toArray();
+    let geschnitten = false;
+    for (const graphic of linien) {
+      const teile = geometryEngine.cut(graphic.geometry as Polyline, schnittlinie);
+      if (teile.length > 1) {
+        geschnitten = true;
+        this.editLayer.remove(graphic);
+        this.editLayer.addMany(
+          teile.map((teil) => new Graphic({ geometry: teil, symbol: editLinienSymbol() })),
+        );
+      }
+    }
+    if (geschnitten) this.geometrienSpeichern();
+  }
+
+  snappingUmschalten(): void {
+    const neu = !this.snappingAn();
+    this.snappingAn.set(neu);
+    if (this.editSketch) this.editSketch.snappingOptions.enabled = neu;
+  }
+
+  /** Arbeitsgeometrien in den Store spiegeln und Änderung melden. */
+  private geometrienSpeichern(): void {
+    const signatur = this.geometrieEditObjekt();
+    if (!signatur || !this.editLayer) return;
+    const geometrien = this.editLayer.graphics
+      .map((g) => g.geometry?.toJSON() as Record<string, unknown> | undefined)
+      .filter((g): g is Record<string, unknown> => !!g)
+      .toArray();
+    this.geometrieStore.setzen(signatur, geometrien);
+    this.geometrieGeaendert.emit(geometrien.length);
   }
 
   protected rgb(farbe: number[]): string {
@@ -513,6 +822,20 @@ function kegelSymbol(azimut: number): SimpleMarkerSymbol {
     color: [34, 197, 94, 0.45],
     angle: azimut,
     outline: { color: [22, 163, 74, 0.9], width: 1 },
+  });
+}
+
+/** Arbeitsgeometrien: kräftiges Orange, klar von den Objekt-Layern getrennt. */
+function editLinienSymbol(): SimpleLineSymbol {
+  return new SimpleLineSymbol({ color: [234, 88, 12], width: 3.5, style: 'short-dash' });
+}
+
+function editPunktSymbol(): SimpleMarkerSymbol {
+  return new SimpleMarkerSymbol({
+    style: 'circle',
+    color: [234, 88, 12],
+    size: 11,
+    outline: { color: [255, 255, 255], width: 1.2 },
   });
 }
 

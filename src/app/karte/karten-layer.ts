@@ -1,4 +1,5 @@
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer.js';
+import WebTileLayer from '@arcgis/core/layers/WebTileLayer.js';
 
 /**
  * Layer-Definitionen der Karte — Symbolik übernommen aus dem Projekt
@@ -242,6 +243,48 @@ export const LAYER_DEFS: LayerDef[] = [
 
 /** Ids der beiden Objekt-Layer (Selektion, Klick, Polygon-Abfragen). */
 export const OBJEKT_LAYER_IDS = ['objekte', 'objekte-wegbegleiter'] as const;
+
+// ---------------------------------------------------------------------------
+// Hintergrundkarten und Raster-Overlays (05.04: Inhalte aus der BGDI)
+// ---------------------------------------------------------------------------
+
+export interface BasemapDef {
+  id: string;
+  titel: string;
+  /** BGDI-Layer-Id auf wmts.geo.admin.ch */
+  layerId: string;
+  format: 'jpeg' | 'png';
+}
+
+export const BASEMAP_DEFS: readonly BasemapDef[] = [
+  { id: 'pk-grau', titel: 'Landeskarte grau', layerId: 'ch.swisstopo.pixelkarte-grau', format: 'jpeg' },
+  { id: 'pk-farbe', titel: 'Landeskarte farbig', layerId: 'ch.swisstopo.pixelkarte-farbe', format: 'jpeg' },
+  { id: 'dufour', titel: 'Dufourkarte (historisch)', layerId: 'ch.swisstopo.hiks-dufour', format: 'png' },
+  { id: 'luftbild', titel: 'Luftbild', layerId: 'ch.swisstopo.swissimage', format: 'jpeg' },
+];
+
+export interface OverlayDef {
+  id: string;
+  titel: string;
+  layerId: string;
+  format: 'jpeg' | 'png';
+  /** Start-Deckkraft in Prozent. */
+  deckkraft: number;
+}
+
+export const OVERLAY_DEFS: readonly OverlayDef[] = [
+  { id: 'ivs-gelaende', titel: 'IVS-Geländekarte', layerId: 'ch.astra.ivs-gelaendekarte', format: 'png', deckkraft: 70 },
+  { id: 'dufour-overlay', titel: 'Dufourkarte (Overlay)', layerId: 'ch.swisstopo.hiks-dufour', format: 'png', deckkraft: 50 },
+];
+
+export function erzeugeWebTileLayer(layerId: string, format: 'jpeg' | 'png', titel: string): WebTileLayer {
+  return new WebTileLayer({
+    urlTemplate: `https://wmts.geo.admin.ch/1.0.0/${layerId}/default/current/3857/{level}/{col}/{row}.${format}`,
+    title: titel,
+    copyright: '© <a href="https://www.swisstopo.admin.ch/">swisstopo</a> / BGDI',
+    maxScale: 250,
+  });
+}
 
 export function erzeugeLayer(def: LayerDef): GeoJSONLayer {
   return new GeoJSONLayer({
