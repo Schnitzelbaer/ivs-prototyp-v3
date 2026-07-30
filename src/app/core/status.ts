@@ -47,6 +47,21 @@ export const GRUPPE_LABEL: Record<StatusGruppe, string> = {
 
 export const ALLE_GRUPPEN: readonly StatusGruppe[] = ['backlog', 'in_arbeit', 'done'];
 
+/**
+ * Signalfarbe je Status (Status-Punkte in Listen und Badges). Die Klassen
+ * zeigen auf die --status-*-Tokens in styles.css und kippen im Dunkelmodus mit.
+ */
+export const STATUS_FARBE: Record<WorkflowStatus, string> = {
+  zugewiesen: 'bg-status-zugewiesen',
+  in_bearbeitung: 'bg-status-in-bearbeitung',
+  bereit_zur_pruefung: 'bg-status-bereit-zur-pruefung',
+  in_pruefung: 'bg-status-in-pruefung',
+  korrektur: 'bg-status-korrektur',
+  geprueft: 'bg-status-geprueft',
+  freigegeben: 'bg-status-freigegeben',
+  publiziert: 'bg-status-publiziert',
+};
+
 export interface StatusUebergang {
   von: WorkflowStatus;
   nach: WorkflowStatus;

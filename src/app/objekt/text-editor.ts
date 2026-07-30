@@ -102,7 +102,7 @@ const MARKER_FARBEN = [
             [attr.aria-label]="marker.label"
           >
             <span
-              class="size-3.5 rounded-full border border-black/20"
+              class="size-3.5 rounded-full border border-foreground/20"
               [style.background]="marker.farbe"
             ></span>
           </button>

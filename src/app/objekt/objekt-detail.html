@@ -4,7 +4,10 @@
     <header class="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
       <div class="flex min-w-0 items-center gap-2">
         <h1 class="truncate text-base font-semibold">{{ o.signatur }} – {{ o.name }}</h1>
-        <span hlmBadge variant="secondary">{{ statusLabel[o.status] }}</span>
+        <span hlmBadge variant="secondary">
+          <span class="size-2 rounded-full {{ statusFarbe[o.status] }}"></span>
+          {{ statusLabel[o.status] }}
+        </span>
         @if (o.inexistent) {
           <span hlmBadge variant="destructive">inexistent</span>
         }

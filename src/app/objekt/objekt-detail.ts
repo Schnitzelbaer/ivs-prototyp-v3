@@ -71,7 +71,7 @@ import { ObjektStore } from '../core/objekt-store';
 import { darfEditieren } from '../core/rollen';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
 import { StammdatenStore } from '../core/stammdaten';
-import { STATUS_LABEL, StatusUebergang, uebergaengeFuer } from '../core/status';
+import { STATUS_FARBE, STATUS_LABEL, StatusUebergang, uebergaengeFuer } from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
@@ -162,6 +162,7 @@ export class ObjektDetail implements OnDestroy {
   readonly id = input.required<string>();
 
   protected readonly statusLabel = STATUS_LABEL;
+  protected readonly statusFarbe = STATUS_FARBE;
   protected readonly nhgLabel = NHG_LABEL;
   protected readonly substanzLabel = SUBSTANZGRAD_LABEL;
   protected readonly ebeneLabel = EBENE_LABEL;

@@ -54,6 +54,7 @@ import { NAME_FUER_ROLLE } from '../core/seed-data';
 import {
   ALLE_GRUPPEN,
   GRUPPE_LABEL,
+  STATUS_FARBE,
   STATUS_GRUPPE,
   STATUS_LABEL,
   uebergaengeFuer,
@@ -126,6 +127,7 @@ export class Dashboard {
   private readonly karte = viewChild(Karte);
 
   protected readonly statusLabel = STATUS_LABEL;
+  protected readonly statusFarbe = STATUS_FARBE;
   protected readonly nhgLabel = NHG_LABEL;
   protected readonly substanzLabel = SUBSTANZGRAD_LABEL;
   protected readonly bewertungText = bewertungText;

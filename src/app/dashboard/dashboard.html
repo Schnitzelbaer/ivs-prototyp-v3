@@ -210,7 +210,13 @@
                           </td>
                           <td hlmTd (click)="$event.stopPropagation()">
                             @if (statusOptionen(o); as optionen) {
+                              <span
+                                class="mr-1.5 inline-block size-2 rounded-full align-middle {{
+                                  statusFarbe[o.status]
+                                }}"
+                              ></span>
                               <hlm-native-select
+                                class="inline-block align-middle"
                                 size="sm"
                                 [ngModel]="o.status"
                                 (ngModelChange)="statusWechseln(o, $event)"

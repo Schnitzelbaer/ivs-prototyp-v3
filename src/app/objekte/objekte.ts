@@ -29,22 +29,10 @@ import {
   bewertungText,
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
-import { ALLE_STATI, STATUS_LABEL } from '../core/status';
+import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
 
 type SortSpalte = 'signatur' | 'name' | 'status' | 'bewertung';
-
-/** Farbpunkt je Workflow-Status für die kompakte Liste. */
-const STATUS_FARBE: Record<WorkflowStatus, string> = {
-  zugewiesen: 'bg-slate-400',
-  in_bearbeitung: 'bg-blue-500',
-  bereit_zur_pruefung: 'bg-amber-500',
-  in_pruefung: 'bg-orange-500',
-  korrektur: 'bg-red-500',
-  geprueft: 'bg-teal-500',
-  freigegeben: 'bg-green-500',
-  publiziert: 'bg-green-700',
-};
 
 /**
  * Objekte (04.01) — Kartenansicht: Die Karte steht im Vordergrund, links
@@ -64,7 +52,9 @@ const STATUS_FARBE: Record<WorkflowStatus, string> = {
     HlmTooltipImports,
     Karte,
   ],
-  providers: [provideIcons({ lucideChevronRight, lucideDownload, lucideRotateCw, lucideSearch, lucideX })],
+  providers: [
+    provideIcons({ lucideChevronRight, lucideDownload, lucideRotateCw, lucideSearch, lucideX }),
+  ],
   templateUrl: './objekte.html',
 })
 export class Objekte {
@@ -119,7 +109,8 @@ export class Objekte {
         if (this.statusFilter() !== 'alle' && o.status !== this.statusFilter()) return false;
         if (this.ebeneFilter() !== 'alle' && o.ebene !== this.ebeneFilter()) return false;
         if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
-        if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter()) return false;
+        if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
+          return false;
         if (begriff) {
           const text = `${o.signatur} ${o.name} ${o.gemeinden} ${o.zustaendigName}`.toLowerCase();
           if (!text.includes(begriff)) return false;
