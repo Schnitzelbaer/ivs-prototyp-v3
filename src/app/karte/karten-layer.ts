@@ -1,5 +1,6 @@
 import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer.js';
 import WebTileLayer from '@arcgis/core/layers/WebTileLayer.js';
+import { ObjektZuordnung, ladeObjektModell, signaturKette } from '../core/objekt-generierung';
 
 /**
  * Layer-Definitionen der Karte — Symbolik übernommen aus dem Projekt
@@ -237,70 +238,10 @@ export const LAYER_DEFS: LayerDef[] = [
 export const OBJEKT_LAYER_IDS = ['routen', 'teilsegmente', 'punktobjekte'] as const;
 
 // ---------------------------------------------------------------------------
-// Zuordnung Mock-Objekte → Features der bestehenden Layer
-// (übernommen aus tools/build-objekte.mjs)
+// Objekt-Anreicherung: die Zuordnung liefert core/objekt-generierung.ts
+// (kuratierte Objekte plus generierte Vollabdeckung — jede Geometrie gehört
+// zu einem Objekt).
 // ---------------------------------------------------------------------------
-
-/** Abschnitt-Signatur → ganze Route (Feld NR in routen_bern_korrigiert). */
-const ROUTEN_ABSCHNITTE: Record<string, number> = {
-  'BE 21.1.1': 37,
-  'BE 21.1.2': 38,
-  'BE 21.1.3': 312,
-  'BE 21.2.1': 470,
-  'BE 21.2.2': 471,
-  'BE 22.1.1': 265,
-  'BE 22.1.2': 267,
-  'BE 22.2.1': 537,
-  'BE 22.2.2': 538,
-  'BE 23.1.1': 43,
-  'BE 23.2.1': 477,
-};
-
-/** Abschnitt-Signatur → Teilsegment (route_nr, seg_nr). */
-const SEGMENT_ABSCHNITTE: Record<string, [number, number]> = {
-  'BE 7.1.1': [911, 1],
-  'BE 7.1.2': [911, 2],
-  'BE 7.1.3': [911, 3],
-  'BE 7.1.4': [911, 4],
-  // Route 916 ist von West (Riedbach) nach Ost (Bümpliz) segmentiert,
-  // die Abschnitte BE 7.2.x sind aber von Bümpliz her benannt — gedreht.
-  'BE 7.2.1': [916, 4],
-  'BE 7.2.2': [916, 3],
-  'BE 7.2.3': [916, 2],
-  'BE 7.2.4': [916, 1],
-  'BE 35.1.1': [964, 1],
-  'BE 35.1.2': [964, 2],
-  'BE 35.1.3': [964, 3],
-};
-
-/** Wegbegleiter-Signatur → Punktobjekt (route_nr, ivs_deutsc). */
-const WEGBEGLEITER: Record<string, [number, string]> = {
-  'BE 7 W1': [911, 'Kirche'],
-  'BE 7 W2': [911, 'Profanes Gebäude'],
-  'BE 7 W3': [916, 'Distanzstein'],
-  'BE 7 W4': [916, 'Profanes Gebäude'],
-  'BE 21 W1': [910, 'Profanes Gebäude'],
-  'BE 21 W2': [917, 'Distanzstein'],
-  'BE 21 W3': [324, 'Kirche'],
-  'BE 22 W1': [446, 'Einzelbaum'],
-  'BE 35 W1': [964, 'Profanes Gebäude'],
-  'BE 35 W2': [964, 'Brunnen'],
-};
-
-/**
- * «BE 21.1.1» → Linienführung «BE 21.1» und Strecke «BE 21»;
- * Wegbegleiter «BE 7 W1» → Strecke «BE 7» ohne Linienführung.
- */
-function kette(signatur: string): { lf: string; strecke: string } {
-  if (/ W\d+$/.test(signatur)) {
-    return { lf: '', strecke: signatur.replace(/ W\d+$/, '') };
-  }
-  const teile = signatur.split('.');
-  return {
-    lf: teile.length === 3 ? teile.slice(0, 2).join('.') : '',
-    strecke: teile[0],
-  };
-}
 
 interface GeoJsonFeature {
   properties: Record<string, unknown>;
@@ -309,40 +250,45 @@ interface GeoJsonFeature {
 
 /** Objekt-Attribute auf ein Feature stempeln. */
 function stemple(feature: GeoJsonFeature, signatur: string, ebene: string): void {
-  const { lf, strecke } = kette(signatur);
+  const { lf, strecke } = signaturKette(signatur);
   Object.assign(feature.properties, { signatur, ebene, lf, strecke });
+}
+
+function ebeneAusSignatur(signatur: string): string {
+  if (/ W\d+$/.test(signatur)) return 'wegbegleiter';
+  const teile = signatur.split('.').length;
+  return teile === 3 ? 'abschnitt' : teile === 2 ? 'linienfuehrung' : 'strecke';
 }
 
 /**
  * Objekt-Attribute in die Features des geladenen GeoJSON eintragen.
- * Nicht zugeordnete Features bekommen leere Strings.
+ * Nicht zugeordnete Features bekommen leere Strings (ein durchgehend
+ * null-wertiges Feld würde der GeoJSONLayer verwerfen).
  */
-function reichereAn(layerId: string, features: GeoJsonFeature[]): void {
+function reichereAn(layerId: string, features: GeoJsonFeature[], zuordnung: ObjektZuordnung): void {
   for (const f of features) {
     Object.assign(f.properties, { signatur: '', ebene: '', lf: '', strecke: '' });
   }
   switch (layerId) {
     case 'routen':
-      for (const [signatur, nr] of Object.entries(ROUTEN_ABSCHNITTE)) {
-        const route = features.find((f) => f.properties['NR'] === nr);
-        if (route) stemple(route, signatur, 'abschnitt');
+      for (const f of features) {
+        const signatur = zuordnung.route.get(f.properties['NR'] as number);
+        if (signatur) stemple(f, signatur, ebeneAusSignatur(signatur));
       }
       break;
     case 'teilsegmente':
-      for (const [signatur, [nr, seg]] of Object.entries(SEGMENT_ABSCHNITTE)) {
-        const segment = features.find(
-          (f) => f.properties['route_nr'] === nr && f.properties['seg_nr'] === seg,
+      for (const f of features) {
+        const signatur = zuordnung.teilsegment.get(
+          `${f.properties['route_nr']}/${f.properties['seg_nr']}`,
         );
-        if (segment) stemple(segment, signatur, 'abschnitt');
+        if (signatur) stemple(f, signatur, ebeneAusSignatur(signatur));
       }
       break;
     case 'punktobjekte':
-      for (const [signatur, [nr, art]] of Object.entries(WEGBEGLEITER)) {
-        const punktobjekt = features.find(
-          (f) => f.properties['route_nr'] === nr && f.properties['ivs_deutsc'] === art,
-        );
-        if (punktobjekt) stemple(punktobjekt, signatur, 'wegbegleiter');
-      }
+      features.forEach((f, index) => {
+        const signatur = zuordnung.punkt.get(index);
+        if (signatur) stemple(f, signatur, 'wegbegleiter');
+      });
       break;
   }
 }
@@ -364,10 +310,13 @@ export interface ObjektFeature {
  */
 export async function ladeObjektFeatures(): Promise<ObjektFeature[]> {
   const defs = LAYER_DEFS.filter((d) => (OBJEKT_LAYER_IDS as readonly string[]).includes(d.id));
-  const geojsons = await Promise.all(defs.map((d) => ladeGeoJson(d.datei)));
+  const [{ zuordnung }, ...geojsons] = await Promise.all([
+    ladeObjektModell(),
+    ...defs.map((d) => ladeGeoJson(d.datei)),
+  ]);
   const features: ObjektFeature[] = [];
   for (const [i, geojson] of geojsons.entries()) {
-    reichereAn(defs[i].id, geojson.features);
+    reichereAn(defs[i].id, geojson.features, zuordnung);
     features.push(
       ...(geojson.features as unknown as ObjektFeature[]).filter(
         (f) => f.properties.signatur !== '',
@@ -382,8 +331,8 @@ export async function ladeObjektFeatures(): Promise<ObjektFeature[]> {
  * und den Layer aus einer Blob-URL speisen.
  */
 export async function erzeugeObjektLayer(def: LayerDef): Promise<GeoJSONLayer> {
-  const geojson = await ladeGeoJson(def.datei);
-  reichereAn(def.id, geojson.features);
+  const [{ zuordnung }, geojson] = await Promise.all([ladeObjektModell(), ladeGeoJson(def.datei)]);
+  reichereAn(def.id, geojson.features, zuordnung);
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(geojson)], { type: 'application/json' }),
   );

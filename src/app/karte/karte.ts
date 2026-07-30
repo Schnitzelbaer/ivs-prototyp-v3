@@ -716,7 +716,8 @@ export class Karte implements AfterViewInit, OnDestroy {
       const lf = attribute['lf'] as string;
       if (strecke) tiefen.set(strecke, 0);
       if (lf) tiefen.set(lf, 1);
-      tiefen.set(signatur, lf ? 2 : 1);
+      // Linienführungs-Features tragen sich selbst als lf — Tiefe 1, nicht 2
+      if (signatur !== strecke && signatur !== lf) tiefen.set(signatur, lf ? 2 : 1);
     }
     return [...tiefen]
       .sort((a, b) => a[0].localeCompare(b[0], 'de-CH', { numeric: true }))

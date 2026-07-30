@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus } from './model';
+import { ladeObjektModell } from './objekt-generierung';
 import { NAME_FUER_ROLLE, SEED_OBJEKTE, SEED_VERSION, rolleFuerStatus } from './seed-data';
 import { STATUS_LABEL } from './status';
 
@@ -31,6 +32,20 @@ export class ObjektStore {
       } catch {
         // Speicher voll oder blockiert — der Prototyp läuft dann ohne Persistenz weiter.
       }
+    });
+    // Vollabdeckung: generierte Objekte ergänzen den kuratierten Seed. Nach
+    // dem Laden aus dem localStorage sind sie bereits enthalten — der Filter
+    // auf vorhandene Ids macht den Aufruf idempotent.
+    void this.generierteErgaenzen();
+  }
+
+  /** Generierte Objekte (Vollabdeckung der Testdaten) nachladen. */
+  private async generierteErgaenzen(): Promise<void> {
+    const { generierte } = await ladeObjektModell();
+    this.objekte.update((liste) => {
+      const vorhanden = new Set(liste.map((o) => o.id));
+      const neue = generierte.filter((o) => !vorhanden.has(o.id));
+      return neue.length ? [...liste, ...neue.map((o) => strukturKopie(o))] : liste;
     });
   }
 
@@ -116,6 +131,7 @@ export class ObjektStore {
   zuruecksetzen(): void {
     localStorage.removeItem(STORAGE_KEY);
     this.objekte.set(SEED_OBJEKTE.map((o) => strukturKopie(o)));
+    void this.generierteErgaenzen();
   }
 }
 

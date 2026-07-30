@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 5;
+export const SEED_VERSION = 6;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -33,7 +33,7 @@ const STANDARD_ERHALTUNGSZIEL =
   'sind beizubehalten; Unterhalts- und Wiederherstellungsarbeiten in Absprache ' +
   'mit der zuständigen Fachstelle.';
 
-interface Vorlage {
+export interface Vorlage {
   signatur: string;
   ebene: Ebene;
   name: string;
@@ -96,7 +96,7 @@ function leereBewertung(): Bewertung {
   };
 }
 
-function objekt(v: Vorlage): IvsObjekt {
+export function objektAusVorlage(v: Vorlage): IvsObjekt {
   const rolle = rolleFuerStatus(v.status);
   return {
     id: idAusSignatur(v.signatur),
@@ -860,5 +860,5 @@ const BE_35: Vorlage[] = [
 ];
 
 export const SEED_OBJEKTE: IvsObjekt[] = [...BE_7, ...BE_21, ...BE_22, ...BE_23, ...BE_35].map(
-  objekt,
+  objektAusVorlage,
 );
