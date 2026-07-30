@@ -156,6 +156,10 @@ export class KommentarStore {
         // ohne Persistenz weiterfahren
       }
     });
+    // Änderungen aus anderen Fenstern übernehmen (separates Kartenfenster)
+    window.addEventListener('storage', (ereignis) => {
+      if (ereignis.key === STORAGE_KEY && ereignis.newValue) this.kommentare.set(laden());
+    });
   }
 
   fuerObjekt(signatur: string): Kommentar[] {

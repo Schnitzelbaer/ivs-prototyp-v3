@@ -31,6 +31,14 @@ export class EinstellungenStore {
         // ohne Persistenz weiterfahren
       }
     });
+    // Rollen-/Darstellungswechsel aus anderen Fenstern übernehmen
+    // (separates Kartenfenster; das storage-Ereignis feuert nur fremd)
+    window.addEventListener('storage', (ereignis) => {
+      if (ereignis.key !== STORAGE_KEY || !ereignis.newValue) return;
+      const neu = laden();
+      this.aktiveRolleId.set(neu.rolle);
+      this.dunkel.set(neu.dunkel);
+    });
   }
 
   aktiveRolle(): Rolle {

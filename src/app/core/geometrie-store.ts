@@ -31,6 +31,11 @@ export class GeometrieStore {
         // ohne Persistenz weiterfahren
       }
     });
+    // Änderungen aus anderen Fenstern übernehmen (das separate Kartenfenster
+    // zeichnet in denselben Bestand; das storage-Ereignis feuert nur fremd).
+    window.addEventListener('storage', (ereignis) => {
+      if (ereignis.key === STORAGE_KEY && ereignis.newValue) this.geometrien.set(laden());
+    });
   }
 
   fuerObjekt(signatur: string): GeometrieJson[] {
