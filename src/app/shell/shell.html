@@ -28,7 +28,10 @@
               <hlm-dropdown-menu-radio-indicator />
               <span class="whitespace-nowrap">{{ r.name }}</span>
               <span class="ml-auto pl-4 text-xs whitespace-nowrap text-muted-foreground">
-                {{ r.id }}@if (!r.waehlbar) {<span> · nicht wählbar</span>}
+                {{ r.id }}
+                @if (!r.waehlbar) {
+                  <span> · nicht wählbar</span>
+                }
               </span>
             </button>
           }
@@ -99,7 +102,9 @@
         size="icon"
         type="button"
         (click)="einstellungen.dunkelUmschalten()"
-        [hlmTooltip]="einstellungen.dunkel() ? 'Helles Erscheinungsbild' : 'Dunkles Erscheinungsbild'"
+        [hlmTooltip]="
+          einstellungen.dunkel() ? 'Helles Erscheinungsbild' : 'Dunkles Erscheinungsbild'
+        "
         position="right"
         aria-label="Erscheinungsbild wechseln"
       >
@@ -126,18 +131,32 @@
       </hlm-popover>
 
       <hlm-popover sideOffset="8" align="start">
-        <button hlmPopoverTrigger hlmBtn variant="ghost" size="icon" type="button" aria-label="Profil">
+        <button
+          hlmPopoverTrigger
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          aria-label="Profil"
+        >
           <ng-icon name="lucideUser" />
         </button>
         <hlm-popover-content *hlmPopoverPortal class="w-72">
           <hlm-popover-header>
             <div hlmPopoverTitle>{{ personaName[einstellungen.aktiveRolleId()] }}</div>
             <p hlmPopoverDescription>
-              {{ einstellungen.aktiveRolle().name }} ({{ einstellungen.aktiveRolleId() }}) —
-              im Prototyp direkt eingeloggt, eIAM entfällt.
+              {{ einstellungen.aktiveRolle().name }} ({{ einstellungen.aktiveRolleId() }}) — im
+              Prototyp direkt eingeloggt, eIAM entfällt.
             </p>
           </hlm-popover-header>
-          <button hlmBtn variant="outline" size="sm" class="mt-3 w-full" type="button" (click)="demodatenZuruecksetzen()">
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            class="mt-3 w-full"
+            type="button"
+            (click)="demodatenZuruecksetzen()"
+          >
             <ng-icon name="lucideRotateCcw" />
             Demodaten zurücksetzen
           </button>
@@ -184,4 +203,7 @@
   <main class="min-w-0 flex-1 overflow-hidden">
     <router-outlet />
   </main>
+
+  <!-- Toast-Meldungen für diskrete Aktionen (Statuswechsel, Umteilen …) -->
+  <hlm-toaster />
 </div>

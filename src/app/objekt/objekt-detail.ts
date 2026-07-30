@@ -42,6 +42,7 @@ import {
   lucideTriangleAlert,
   lucideUpload,
 } from '@ng-icons/lucide';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -368,6 +369,9 @@ export class ObjektDetail implements OnDestroy {
     if (!o || status === o.status) return;
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(o.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
+    toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
+      description: `${o.signatur} — Übergang protokolliert.`,
+    });
   }
 
   protected uebergangAusfuehren(uebergang: StatusUebergang): void {
@@ -380,6 +384,7 @@ export class ObjektDetail implements OnDestroy {
     const o = this.objekt();
     if (!o || !this.darfLoeschen()) return;
     this.store.loeschen(o.id);
+    toast.success(`${o.signatur} gelöscht`, { description: `${o.name} wurde entfernt (07.05).` });
     void this.router.navigate(['/dashboard']);
   }
 
@@ -459,6 +464,9 @@ export class ObjektDetail implements OnDestroy {
           o.id,
           `Kartengeometrie bearbeitet — ${this.geometrieAnzahl()} Arbeitsgeometrie(n) (05.07).`,
         );
+        toast.success('Geometrie übernommen', {
+          description: `${o.signatur} — ${this.geometrieAnzahl()} Arbeitsgeometrie(n) gespeichert und historisiert.`,
+        });
       }
       this.geometrieGeaendertFlag = false;
     }
@@ -500,6 +508,7 @@ export class ObjektDetail implements OnDestroy {
       `Umgeteilt: von ${vorher ?? '—'} zu ${ziel} (07.09). Die Signatur wird bei der Umsetzung neu vergeben.`,
     );
     this.umteilenOffen.set(false);
+    toast.success(`${o.signatur} umgeteilt`, { description: `Neues Parent-Objekt: ${ziel}.` });
   }
 
   // ------------------------------------------------------------- Quellen

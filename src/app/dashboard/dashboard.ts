@@ -9,6 +9,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { toast } from '@spartan-ng/brain/sonner';
 import {
   lucideChevronDown,
   lucideChevronLeft,
@@ -205,6 +206,9 @@ export class Dashboard {
     if (status === objekt.status) return;
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(objekt.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
+    toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
+      description: `${objekt.signatur} — Übergang protokolliert.`,
+    });
   }
 
   protected auswahlUmschalten(id: string, ausgewaehlt: boolean): void {

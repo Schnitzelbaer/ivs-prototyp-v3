@@ -13,9 +13,11 @@ import {
   lucideSun,
   lucideUser,
 } from '@ng-icons/lucide';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
+import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { BegehungsStore } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
@@ -46,6 +48,7 @@ import { KarteSync } from '../karte/karte-sync';
     HlmButtonImports,
     HlmDropdownMenuImports,
     HlmPopoverImports,
+    HlmToasterImports,
     HlmTooltipImports,
   ],
   providers: [
@@ -97,5 +100,8 @@ export class Shell {
     this.geometrieStore.zuruecksetzen();
     this.begehungsStore.zuruecksetzen();
     this.stammdatenStore.zuruecksetzen();
+    toast.success('Demodaten zurückgesetzt', {
+      description: 'Alle Objekte, Kommentare, Geometrien und Begehungen wieder im Ausgangszustand.',
+    });
   }
 }
