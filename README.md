@@ -36,14 +36,14 @@ fragen. Es ist so gebaut, dass es sich in eine neue Session einspeisen lässt.
 
 ## Technischer Stack
 
-| Baustein | Version | Bemerkung |
-|---|---|---|
-| Angular | 22 | Standalone, kein SSR (ArcGIS-SDK ist browser-only) |
-| Tailwind CSS | 4 | via `@tailwindcss/postcss`, konfiguriert in `.postcssrc.json` |
-| spartan/ui | 1.1.2 | alle 57 Primitives generiert unter `libs/ui`, Style «vega» |
-| Theme | shadcn-Preset `bInUyNX` | Indigo auf neutraler Basis, Radius 0.45 rem, Noto Sans, Lucide |
-| ArcGIS Maps SDK | 5 | `@arcgis/core`, für die Karte ohne Lizenzschlüssel nutzbar |
-| pnpm | 11 | Paketmanager |
+| Baustein        | Version                 | Bemerkung                                                      |
+| --------------- | ----------------------- | -------------------------------------------------------------- |
+| Angular         | 22                      | Standalone, kein SSR (ArcGIS-SDK ist browser-only)             |
+| Tailwind CSS    | 4                       | via `@tailwindcss/postcss`, konfiguriert in `.postcssrc.json`  |
+| spartan/ui      | 1.1.2                   | alle 57 Primitives generiert unter `libs/ui`, Style «vega»     |
+| Theme           | shadcn-Preset `bInUyNX` | Indigo auf neutraler Basis, Radius 0.45 rem, Noto Sans, Lucide |
+| ArcGIS Maps SDK | 5                       | `@arcgis/core`, für die Karte ohne Lizenzschlüssel nutzbar     |
+| pnpm            | 11                      | Paketmanager                                                   |
 
 spartan/ui kopiert seinen Quellcode ins Projekt (shadcn-Prinzip) — die
 Komponenten unter `libs/ui` sind unser Code und dürfen angepasst werden. Der
@@ -143,16 +143,14 @@ Nebenblöcke (Accounts, Arbeitspakete, Reports).
 
 Die Zuordnung Signatur → Testdaten-Feature liegt in
 `src/app/karte/karten-layer.ts` und wird zur Laufzeit auf die geladenen
-GeoJSON-Layer gestempelt. `tools/build-objekte.mjs` und die von ihm erzeugten
-Dateien `public/data/ivs-objekte.geojson` / `ivs-wegbegleiter.geojson` werden
-nicht mehr verwendet (Entfernung noch offen).
+GeoJSON-Layer gestempelt.
 
 ## Verwandte Projekte
 
-| Projekt | Inhalt |
-|---|---|
-| `ivs-map` | Testdaten (Testgebiet Bern) und Referenz-Kartenimplementation |
-| `ivs-prototyp` | Älterer Prototyp, nur begrenzt als Inspiration zu verwenden |
+| Projekt        | Inhalt                                                        |
+| -------------- | ------------------------------------------------------------- |
+| `ivs-map`      | Testdaten (Testgebiet Bern) und Referenz-Kartenimplementation |
+| `ivs-prototyp` | Älterer Prototyp, nur begrenzt als Inspiration zu verwenden   |
 
 ## Sprache
 

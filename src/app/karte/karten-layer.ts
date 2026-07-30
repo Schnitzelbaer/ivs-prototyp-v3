@@ -112,20 +112,8 @@ const LINIENBREITE = { wegoberflaeche: 7, wegform: 4.5, route: 3 };
 const ROUTENFARBE = [255, 61, 0];
 const WEGFORM_FARBE = [0, 145, 255];
 
-const IVS_KLASSEN: [string, number[]][] = [
-  ['Einzelbaum', [21, 128, 61]],
-  ['Profanes Gebäude', [120, 113, 108]],
-  ['Anderer Wegbegleiter', [14, 165, 233]],
-  ['Brunnen', [37, 99, 235]],
-  ['Anderer Stein', [113, 113, 122]],
-  ['Kirche', [147, 51, 234]],
-  ['Distanzstein', [217, 70, 239]],
-  ['Gewerbebetrieb', [234, 88, 12]],
-  ['Burg, Schloss / Burgstelle, Ruine', [190, 18, 60]],
-  ['Kapelle', [126, 34, 206]],
-  ['Fähre', [8, 145, 178]],
-  ['Inschrift', [202, 138, 4]],
-];
+/** Einheitliche Farbe der Punktobjekte (rot, wie in der Legende). */
+const PUNKTOBJEKT_FARBE = [220, 38, 38];
 
 export type WegoberflaechenArt =
   'Hartbelag' | 'Schotterung' | 'Lockermaterial' | 'Lockermaterial + Schotterung';
@@ -144,7 +132,10 @@ export interface LayerDef {
   sichtbar: boolean;
   renderer: Symbolik;
   /** Farbe für das Legenden-Symbol im Layer-Panel. */
-  legende: { form: 'linie' | 'punkt' | 'flaeche'; farbe: number[] };
+  legende: {
+    form: 'linie' | 'linie-dick' | 'linie-gestrichelt' | 'punkt' | 'flaeche';
+    farbe: number[];
+  };
   /** Optionaler Attributfilter (definitionExpression). */
   filter?: string;
   /** Erst ab diesem Massstab anzeigen (z. B. 20000 = ab 1:20'000). */
@@ -217,7 +208,7 @@ export const LAYER_DEFS: LayerDef[] = [
     // ganze Karte fluten, deshalb erst ab 1:20'000 sichtbar.
     minScale: 20000,
     renderer: grenzRenderer(grenzmarke(0.9, 5), 'Segmentgrenze'),
-    legende: { form: 'punkt', farbe: [0, 0, 0] },
+    legende: { form: 'linie-gestrichelt', farbe: [0, 0, 0] },
   },
   {
     id: 'routengrenzen',
@@ -226,24 +217,15 @@ export const LAYER_DEFS: LayerDef[] = [
     sichtbar: true,
     minScale: 20000,
     renderer: grenzRenderer(grenzmarke(1.8, 1), 'Routengrenze'),
-    legende: { form: 'punkt', farbe: [0, 0, 0] },
+    legende: { form: 'linie-dick', farbe: [0, 0, 0] },
   },
   {
     id: 'punktobjekte',
     titel: 'Punktobjekt',
     datei: 'prototyp2_ivs_punktobjekte_bern_with_text_new',
     sichtbar: true,
-    renderer: {
-      type: 'unique-value',
-      field: 'ivs_deutsc',
-      defaultSymbol: punkt([100, 100, 100], 7),
-      uniqueValueInfos: IVS_KLASSEN.map(([value, farbe]) => ({
-        value,
-        label: value,
-        symbol: punkt(farbe, 8),
-      })),
-    },
-    legende: { form: 'punkt', farbe: [220, 38, 38] },
+    renderer: einfach(punkt(PUNKTOBJEKT_FARBE, 8), 'Punktobjekt'),
+    legende: { form: 'punkt', farbe: PUNKTOBJEKT_FARBE },
   },
 ];
 

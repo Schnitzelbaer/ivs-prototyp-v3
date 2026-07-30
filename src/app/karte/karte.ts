@@ -212,6 +212,18 @@ type BildschirmPunkt = Parameters<MapView['hitTest']>[0];
                         [style.background]="rgb(def.legende.farbe)"
                       ></span>
                     }
+                    @case ('linie-dick') {
+                      <span
+                        class="h-1.5 w-4 shrink-0 rounded-full"
+                        [style.background]="rgb(def.legende.farbe)"
+                      ></span>
+                    }
+                    @case ('linie-gestrichelt') {
+                      <span
+                        class="w-4 shrink-0 border-t border-dashed"
+                        [style.border-color]="rgb(def.legende.farbe)"
+                      ></span>
+                    }
                     @case ('punkt') {
                       <span
                         class="size-2.5 shrink-0 rounded-full"
@@ -613,16 +625,21 @@ export class Karte implements AfterViewInit, OnDestroy {
             return;
           }
         }
-        const eintraege = this.trefferAuswerten(treffer);
-        if (eintraege.length === 0) return;
-        if (eintraege.length === 1) {
-          this.objektKlick.emit(eintraege[0].signatur);
+        // Klick springt direkt ins getroffene Objekt. Nur wenn mehrere echt
+        // verschiedene Objekte (unterschiedliche Blatt-Signaturen) getroffen
+        // sind, wird das MapTip zum Kontextmenü — die Eltern-Kette allein
+        // zählt nicht als Mehrfachtreffer.
+        const blaetter = this.blattSignaturen(treffer);
+        if (blaetter.length === 0) return;
+        if (blaetter.length === 1) {
+          this.objektKlick.emit(blaetter[0]);
           return;
         }
-        // Mehrere Objekte getroffen: MapTip wird zum Kontextmenü — dort
-        // wählt man in der Hierarchie, welches Objekt geöffnet werden soll.
         this.mapTip.set(null);
-        this.kontextMenu.set({ ...this.imSichtfeld(ereignis.x, ereignis.y), eintraege });
+        this.kontextMenu.set({
+          ...this.imSichtfeld(ereignis.x, ereignis.y),
+          eintraege: this.trefferAuswerten(treffer),
+        });
       });
     });
 
@@ -708,6 +725,17 @@ export class Karte implements AfterViewInit, OnDestroy {
         tiefe,
         name: this.objektStore.bySignatur(signatur)?.name ?? '',
       }));
+  }
+
+  /** Blatt-Signaturen der getroffenen Features (ohne Eltern-Kette), dedupliziert. */
+  private blattSignaturen(treffer: HitTestErgebnis): string[] {
+    const signaturen = new Set<string>();
+    for (const resultat of treffer.results) {
+      if (resultat.type !== 'graphic') continue;
+      const signatur = resultat.graphic.attributes?.['signatur'] as string | undefined;
+      if (signatur) signaturen.add(signatur);
+    }
+    return [...signaturen];
   }
 
   private async hoverPruefen(ereignis: { x: number; y: number }): Promise<void> {

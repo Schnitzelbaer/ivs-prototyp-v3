@@ -1,4 +1,14 @@
-import { Bewertung, Ebene, IvsObjekt, Lognotiz, NhgWert, RolleId, Substanzgrad, WorkflowStatus, idAusSignatur } from './model';
+import {
+  Bewertung,
+  Ebene,
+  IvsObjekt,
+  Lognotiz,
+  NhgWert,
+  RolleId,
+  Substanzgrad,
+  WorkflowStatus,
+  idAusSignatur,
+} from './model';
 
 /**
  * Mock-Objekte für das Testgebiet Bern.
@@ -6,8 +16,9 @@ import { Bewertung, Ebene, IvsObjekt, Lognotiz, NhgWert, RolleId, Substanzgrad, 
  * Die Hierarchie folgt den echten Gruppierungen der Testdaten aus `ivs-map`:
  * `ivs_ivsfk` fasst Routen zu Strecken zusammen, `ivs_signatur` (101/102)
  * unterscheidet Linienführungen, die Routen bzw. Teilsegmente sind die
- * Abschnitte. Die Zuordnung Signatur → Geometrie liegt im Generator
- * `tools/build-objekte.mjs`; er erzeugt `public/data/ivs-objekte.geojson`.
+ * Abschnitte. Die Zuordnung Signatur → Geometrie liegt in
+ * `src/app/karte/karten-layer.ts` und wird zur Laufzeit auf die Layer
+ * gestempelt.
  *
  * Die fachlichen Texte sind fiktiv, aber im Stil der echten Objektbeschriebe
  * (Fachkontext Abschnitt 3.2). Ortsnamen sind der realen Umgebung entnommen.
@@ -140,7 +151,10 @@ const BE_7: Vorlage[] = [
         punkte: 4,
         text: 'Hauptausfallachse der Stadt Bern nach Westen; Teil der 1740–1750 ausgebauten Chaussee Bern–Murten.',
       },
-      morphologie: { punkte: 3, text: 'Städtisch überformt, Alleenreste und Stundensteine erhalten.' },
+      morphologie: {
+        punkte: 3,
+        text: 'Städtisch überformt, Alleenreste und Stundensteine erhalten.',
+      },
       substanzwert: { punkte: 2, text: 'Verlauf weitgehend überbaut, Substanz punktuell.' },
     },
     geschichteText:
@@ -158,7 +172,12 @@ const BE_7: Vorlage[] = [
       'Anderegg, K. (1998): Der bernische Chausseebau im 18. Jahrhundert. Bern.\n' +
       'Flückiger, R. (2002): IVS Dokumentation Kanton Bern, Strecke BE 7.',
     lognotizen: [
-      { datum: '2025-03-02', autor: 'K. Aebischer', rolle: 'R-03', text: 'Publikation IVS 2.0 mit Version 2025-1.' },
+      {
+        datum: '2025-03-02',
+        autor: 'K. Aebischer',
+        rolle: 'R-03',
+        text: 'Publikation IVS 2.0 mit Version 2025-1.',
+      },
     ],
   },
   {
@@ -182,13 +201,50 @@ const BE_7: Vorlage[] = [
       '1742–1748 zwischen Heiliggeistkirche und Bümpliz Dorf. Der Bahnbau von 1860 und die Tramlinie von 1913 ' +
       'überformten die Achse stark.',
     datierungGeschichte10: '2002-03-12',
-    gelaendeText: 'Durchgehend asphaltierte Hauptstrasse; Verlauf und Flucht der Chaussee erhalten.',
+    gelaendeText:
+      'Durchgehend asphaltierte Hauptstrasse; Verlauf und Flucht der Chaussee erhalten.',
     datierungGelaende20: '2024-05-16',
   },
-  { signatur: 'BE 7.1.1', ebene: 'abschnitt', name: 'Heiliggeistkirche – Inselspital', parent: 'BE 7.1', status: 'publiziert', gemeinden: 'Bern', substanzgrad: 'wenig_substanz', aufnahmejahr: 2024 },
-  { signatur: 'BE 7.1.2', ebene: 'abschnitt', name: 'Inselspital – Ausserholligen', parent: 'BE 7.1', status: 'publiziert', gemeinden: 'Bern', substanzgrad: 'wenig_substanz', aufnahmejahr: 2024 },
-  { signatur: 'BE 7.1.3', ebene: 'abschnitt', name: 'Ausserholligen – Untermatt', parent: 'BE 7.1', status: 'publiziert', gemeinden: 'Bern', substanzgrad: 'wenig_substanz', aufnahmejahr: 2024 },
-  { signatur: 'BE 7.1.4', ebene: 'abschnitt', name: 'Untermatt – Bümpliz Dorf', parent: 'BE 7.1', status: 'publiziert', gemeinden: 'Bern', substanzgrad: 'wenig_substanz', aufnahmejahr: 2024 },
+  {
+    signatur: 'BE 7.1.1',
+    ebene: 'abschnitt',
+    name: 'Heiliggeistkirche – Inselspital',
+    parent: 'BE 7.1',
+    status: 'publiziert',
+    gemeinden: 'Bern',
+    substanzgrad: 'wenig_substanz',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 7.1.2',
+    ebene: 'abschnitt',
+    name: 'Inselspital – Ausserholligen',
+    parent: 'BE 7.1',
+    status: 'publiziert',
+    gemeinden: 'Bern',
+    substanzgrad: 'wenig_substanz',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 7.1.3',
+    ebene: 'abschnitt',
+    name: 'Ausserholligen – Untermatt',
+    parent: 'BE 7.1',
+    status: 'publiziert',
+    gemeinden: 'Bern',
+    substanzgrad: 'wenig_substanz',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 7.1.4',
+    ebene: 'abschnitt',
+    name: 'Untermatt – Bümpliz Dorf',
+    parent: 'BE 7.1',
+    status: 'publiziert',
+    gemeinden: 'Bern',
+    substanzgrad: 'wenig_substanz',
+    aufnahmejahr: 2024,
+  },
   {
     signatur: 'BE 7.2',
     ebene: 'linienfuehrung',
@@ -215,10 +271,42 @@ const BE_7: Vorlage[] = [
       'und ein Stundenstein von 1790 erhalten.',
     datierungGelaende20: '2024-06-21',
   },
-  { signatur: 'BE 7.2.1', ebene: 'abschnitt', name: 'Bümpliz Dorf – Fellergut', parent: 'BE 7.2', status: 'freigegeben', gemeinden: 'Bern', aufnahmejahr: 2024 },
-  { signatur: 'BE 7.2.2', ebene: 'abschnitt', name: 'Fellergut – Niederbottigen', parent: 'BE 7.2', status: 'freigegeben', gemeinden: 'Bern', aufnahmejahr: 2024 },
-  { signatur: 'BE 7.2.3', ebene: 'abschnitt', name: 'Niederbottigen – Oberbottigen', parent: 'BE 7.2', status: 'freigegeben', gemeinden: 'Bern', aufnahmejahr: 2024 },
-  { signatur: 'BE 7.2.4', ebene: 'abschnitt', name: 'Oberbottigen – Riedbach', parent: 'BE 7.2', status: 'freigegeben', gemeinden: 'Bern', aufnahmejahr: 2024 },
+  {
+    signatur: 'BE 7.2.1',
+    ebene: 'abschnitt',
+    name: 'Bümpliz Dorf – Fellergut',
+    parent: 'BE 7.2',
+    status: 'freigegeben',
+    gemeinden: 'Bern',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 7.2.2',
+    ebene: 'abschnitt',
+    name: 'Fellergut – Niederbottigen',
+    parent: 'BE 7.2',
+    status: 'freigegeben',
+    gemeinden: 'Bern',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 7.2.3',
+    ebene: 'abschnitt',
+    name: 'Niederbottigen – Oberbottigen',
+    parent: 'BE 7.2',
+    status: 'freigegeben',
+    gemeinden: 'Bern',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 7.2.4',
+    ebene: 'abschnitt',
+    name: 'Oberbottigen – Riedbach',
+    parent: 'BE 7.2',
+    status: 'freigegeben',
+    gemeinden: 'Bern',
+    aufnahmejahr: 2024,
+  },
   {
     signatur: 'BE 7 W1',
     ebene: 'wegbegleiter',
@@ -230,7 +318,8 @@ const BE_7: Vorlage[] = [
     gemeinden: 'Bern',
     aufnahmejahr: 2024,
     substanzgrad: 'viel_substanz',
-    geschichteText: 'Barocke Predigtkirche am Kopf der westlichen Ausfallachse; Ausgangspunkt der Distanzmessung der Murtenstrasse.',
+    geschichteText:
+      'Barocke Predigtkirche am Kopf der westlichen Ausfallachse; Ausgangspunkt der Distanzmessung der Murtenstrasse.',
   },
   {
     signatur: 'BE 7 W2',
@@ -243,7 +332,8 @@ const BE_7: Vorlage[] = [
     gemeinden: 'Bern',
     aufnahmejahr: 2024,
     substanzgrad: 'viel_substanz',
-    geschichteText: 'Spital- und Herbergsbau am Stadtausgang; beherbergte Reisende und Fuhrleute der Murtenstrasse.',
+    geschichteText:
+      'Spital- und Herbergsbau am Stadtausgang; beherbergte Reisende und Fuhrleute der Murtenstrasse.',
   },
   {
     signatur: 'BE 7 W3',
@@ -291,8 +381,14 @@ const BE_21: Vorlage[] = [
         punkte: 4,
         text: 'Vorgängerin der Chaussee von 1748; mittelalterliche Hauptverbindung zum Saane-Übergang Gümmenen.',
       },
-      morphologie: { punkte: 3, text: 'Weitgehend offene Kulturlandschaft, Hohlwegpassagen erhalten.' },
-      substanzwert: { punkte: 3, text: 'Lange Abschnitte mit originaler Kofferung und Hohlwegprofil.' },
+      morphologie: {
+        punkte: 3,
+        text: 'Weitgehend offene Kulturlandschaft, Hohlwegpassagen erhalten.',
+      },
+      substanzwert: {
+        punkte: 3,
+        text: 'Lange Abschnitte mit originaler Kofferung und Hohlwegprofil.',
+      },
     },
     geschichteText:
       'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Die alte Murtenstrasse verband Bern über ' +
@@ -303,7 +399,12 @@ const BE_21: Vorlage[] = [
     gelaendeText: '',
     bibliografie: 'Flückiger, R. (1993): IVS Dokumentation Kanton Bern, Strecke BE 21.',
     lognotizen: [
-      { datum: '2026-06-12', autor: 'T. Nyffenegger', rolle: 'R-04', text: 'Arbeitspaket «Wohlensee Süd» zugewiesen an B. Anderegg.' },
+      {
+        datum: '2026-06-12',
+        autor: 'T. Nyffenegger',
+        rolle: 'R-04',
+        text: 'Arbeitspaket «Wohlensee Süd» zugewiesen an B. Anderegg.',
+      },
     ],
   },
   {
@@ -333,8 +434,14 @@ const BE_21: Vorlage[] = [
     bauherrschaft: 'Gemeinde',
     bewertung: {
       geschichte: { punkte: 4, text: 'Bedeutender historischer West-Ost-Übergang am Dorfausgang.' },
-      morphologie: { punkte: 3, text: 'Eindrücklicher Verlauf der Flanke entlang, mit Trockenmauern und Obstbaumreihe.' },
-      substanzwert: { punkte: 3, text: 'Über weite Strecken originale Wegbreite und Pflästerung erhalten.' },
+      morphologie: {
+        punkte: 3,
+        text: 'Eindrücklicher Verlauf der Flanke entlang, mit Trockenmauern und Obstbaumreihe.',
+      },
+      substanzwert: {
+        punkte: 3,
+        text: 'Über weite Strecken originale Wegbreite und Pflästerung erhalten.',
+      },
     },
     geschichteText:
       'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Der Abschnitt verliess das Dorf westwärts ' +
@@ -348,7 +455,12 @@ const BE_21: Vorlage[] = [
     datierungGelaende20: '2025-04-30',
     bibliografie: 'Anderegg, K. (1998): Der bernische Chausseebau im 18. Jahrhundert. Bern.',
     lognotizen: [
-      { datum: '2026-07-08', autor: 'B. Anderegg', rolle: 'R-05', text: 'Geländebegehung abgeschlossen, Fotos ergänzt; Substanzwert neu begründet.' },
+      {
+        datum: '2026-07-08',
+        autor: 'B. Anderegg',
+        rolle: 'R-05',
+        text: 'Geländebegehung abgeschlossen, Fotos ergänzt; Substanzwert neu begründet.',
+      },
     ],
   },
   {
@@ -371,13 +483,21 @@ const BE_21: Vorlage[] = [
       morphologie: { punkte: 4, text: 'Markantes Hohlwegprofil, Tiefe bis 2,5 m.' },
       substanzwert: { punkte: 4, text: 'Ungestörtes Hohlwegprofil mit alter Sohle.' },
     },
-    geschichteText: 'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Kurzer Hohlwegrest im Zälgli.',
+    geschichteText:
+      'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Kurzer Hohlwegrest im Zälgli.',
     datierungGeschichte10: '1993-09-14',
-    gelaendeText: 'Geländebeschrieb 2025: Hohlweg von rund 30 m Länge, Tiefe bis 2,5 m, Sohle unbefestigt.',
+    gelaendeText:
+      'Geländebeschrieb 2025: Hohlweg von rund 30 m Länge, Tiefe bis 2,5 m, Sohle unbefestigt.',
     datierungGelaende20: '2025-05-02',
-    pruefkommentar: 'Datierung des Hohlwegs prüfen — «mittelalterlich» ist im Text nicht belegt. Bitte Quelle ergänzen oder Formulierung abschwächen.',
+    pruefkommentar:
+      'Datierung des Hohlwegs prüfen — «mittelalterlich» ist im Text nicht belegt. Bitte Quelle ergänzen oder Formulierung abschwächen.',
     lognotizen: [
-      { datum: '2026-07-19', autor: 'M. Gerber', rolle: 'R-06', text: 'Zur Korrektur zurückgewiesen: Datierungsbeleg fehlt.' },
+      {
+        datum: '2026-07-19',
+        autor: 'M. Gerber',
+        rolle: 'R-06',
+        text: 'Zur Korrektur zurückgewiesen: Datierungsbeleg fehlt.',
+      },
     ],
   },
   {
@@ -389,7 +509,13 @@ const BE_21: Vorlage[] = [
     geschichteText: 'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993).',
     datierungGeschichte10: '1993-09-14',
   },
-  { signatur: 'BE 21.2.1', ebene: 'abschnitt', name: 'Aumatt – Bergli', parent: 'BE 21.2', status: 'zugewiesen' },
+  {
+    signatur: 'BE 21.2.1',
+    ebene: 'abschnitt',
+    name: 'Aumatt – Bergli',
+    parent: 'BE 21.2',
+    status: 'zugewiesen',
+  },
   {
     signatur: 'BE 21.2.2',
     ebene: 'abschnitt',
@@ -411,7 +537,8 @@ const BE_21: Vorlage[] = [
     bauzeit: '1671, Umbau 1804',
     substanzgrad: 'viel_substanz',
     gemeinden: 'Mühleberg',
-    geschichteText: 'Taverne an der Dorfdurchfahrt von Mühleberg; Umspannstation der alten Murtenstrasse.',
+    geschichteText:
+      'Taverne an der Dorfdurchfahrt von Mühleberg; Umspannstation der alten Murtenstrasse.',
   },
   {
     signatur: 'BE 21 W2',
@@ -432,7 +559,8 @@ const BE_21: Vorlage[] = [
     bauzeit: '12. Jh., Chor 1524',
     substanzgrad: 'viel_substanz',
     gemeinden: 'Mühleberg',
-    geschichteText: 'Kirchort an der alten Murtenstrasse; Ziel der Kirchwege aus den umliegenden Höfen.',
+    geschichteText:
+      'Kirchort an der alten Murtenstrasse; Ziel der Kirchwege aus den umliegenden Höfen.',
   },
 ];
 
@@ -451,17 +579,25 @@ const BE_22: Vorlage[] = [
     bauzeit: 'Spätmittelalter',
     gemeinden: 'Frauenkappelen, Wohlen bei Bern',
     bewertung: {
-      geschichte: { punkte: 3, text: 'Kirch- und Marktweg zwischen den Kirchgemeinden Frauenkappelen und Wohlen.' },
-      morphologie: { punkte: 3, text: 'Abwechslungsreiche Führung durch Wald und offene Flur zum Wohlensee.' },
+      geschichte: {
+        punkte: 3,
+        text: 'Kirch- und Marktweg zwischen den Kirchgemeinden Frauenkappelen und Wohlen.',
+      },
+      morphologie: {
+        punkte: 3,
+        text: 'Abwechslungsreiche Führung durch Wald und offene Flur zum Wohlensee.',
+      },
       substanzwert: { punkte: 2, text: 'Substanz auf die Waldpassagen beschränkt.' },
     },
     geschichteText:
       'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 03.05.1994). Die Wohleistrasse verband die Dörfer am ' +
       'Südufer des Wohlensees; als Kirchweg nach Wohlen ist sie 1481 erstmals erwähnt (BÜTTNER 1953: 583).',
     datierungGeschichte10: '1994-05-03',
-    gelaendeText: 'Geländebeschrieb 2025: Führung grösstenteils auf heutigen Flurstrassen; Substanz in den Waldstücken.',
+    gelaendeText:
+      'Geländebeschrieb 2025: Führung grösstenteils auf heutigen Flurstrassen; Substanz in den Waldstücken.',
     datierungGelaende20: '2025-03-18',
-    bibliografie: 'Büttner, H. (1953): Studien zur Geschichte der Kirchgemeinden des Berner Mittellandes. Bern.',
+    bibliografie:
+      'Büttner, H. (1953): Studien zur Geschichte der Kirchgemeinden des Berner Mittellandes. Bern.',
   },
   {
     signatur: 'BE 22.1',
@@ -470,13 +606,29 @@ const BE_22: Vorlage[] = [
     parent: 'BE 22',
     status: 'bereit_zur_pruefung',
     nhgWert: 'regional',
-    geschichteText: 'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 03.05.1994). Ältere, talnahe Führung.',
+    geschichteText:
+      'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 03.05.1994). Ältere, talnahe Führung.',
     datierungGeschichte10: '1994-05-03',
-    gelaendeText: 'Geländebeschrieb 2025: Zwei kurze Wegstücke mit Lockermaterial-Oberfläche beidseits des Talbachs.',
+    gelaendeText:
+      'Geländebeschrieb 2025: Zwei kurze Wegstücke mit Lockermaterial-Oberfläche beidseits des Talbachs.',
     datierungGelaende20: '2025-03-18',
   },
-  { signatur: 'BE 22.1.1', ebene: 'abschnitt', name: 'Salzmatt – Talbach', parent: 'BE 22.1', status: 'bereit_zur_pruefung', nhgWert: 'regional' },
-  { signatur: 'BE 22.1.2', ebene: 'abschnitt', name: 'Talbach – Eichholz', parent: 'BE 22.1', status: 'bereit_zur_pruefung', nhgWert: 'regional' },
+  {
+    signatur: 'BE 22.1.1',
+    ebene: 'abschnitt',
+    name: 'Salzmatt – Talbach',
+    parent: 'BE 22.1',
+    status: 'bereit_zur_pruefung',
+    nhgWert: 'regional',
+  },
+  {
+    signatur: 'BE 22.1.2',
+    ebene: 'abschnitt',
+    name: 'Talbach – Eichholz',
+    parent: 'BE 22.1',
+    status: 'bereit_zur_pruefung',
+    nhgWert: 'regional',
+  },
   {
     signatur: 'BE 22.2',
     ebene: 'linienfuehrung',
@@ -493,7 +645,8 @@ const BE_22: Vorlage[] = [
       'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 03.05.1994). Die obere Linie umging die Nässe der ' +
       'Talbachsenke und wurde im 19. Jahrhundert zur Hauptführung.',
     datierungGeschichte10: '1994-05-03',
-    gelaendeText: 'Geländebeschrieb 2025: Feldweg in Kantenlage; die Linde am Kirchweg markiert die Abzweigung.',
+    gelaendeText:
+      'Geländebeschrieb 2025: Feldweg in Kantenlage; die Linde am Kirchweg markiert die Abzweigung.',
     datierungGelaende20: '2025-03-19',
     pruefkommentar: '',
   },
@@ -509,7 +662,14 @@ const BE_22: Vorlage[] = [
       'der Wegrand ist im mittleren Teil durch Viehtritt stellenweise erodiert.',
     datierungGelaende20: '2025-03-19',
   },
-  { signatur: 'BE 22.2.2', ebene: 'abschnitt', name: 'Hostatt – Wohleiwald', parent: 'BE 22.2', status: 'in_pruefung', nhgWert: 'regional' },
+  {
+    signatur: 'BE 22.2.2',
+    ebene: 'abschnitt',
+    name: 'Hostatt – Wohleiwald',
+    parent: 'BE 22.2',
+    status: 'in_pruefung',
+    nhgWert: 'regional',
+  },
   {
     signatur: 'BE 22 W1',
     ebene: 'wegbegleiter',
@@ -538,7 +698,8 @@ const BE_23: Vorlage[] = [
     nhgWert: 'lokal',
     bauzeit: 'Mittelalter',
     gemeinden: 'Bern, Frauenkappelen',
-    geschichteText: 'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Höhenweg über Matzwil, Vorgänger der Talstrasse.',
+    geschichteText:
+      'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Höhenweg über Matzwil, Vorgänger der Talstrasse.',
     datierungGeschichte10: '1993-09-14',
   },
   {
@@ -550,7 +711,15 @@ const BE_23: Vorlage[] = [
     zustaendigName: 'L. Furrer',
     nhgWert: 'lokal',
   },
-  { signatur: 'BE 23.1.1', ebene: 'abschnitt', name: 'Kirchgasse Frauenkappelen', parent: 'BE 23.1', status: 'zugewiesen', zustaendigName: 'L. Furrer', nhgWert: 'lokal' },
+  {
+    signatur: 'BE 23.1.1',
+    ebene: 'abschnitt',
+    name: 'Kirchgasse Frauenkappelen',
+    parent: 'BE 23.1',
+    status: 'zugewiesen',
+    zustaendigName: 'L. Furrer',
+    nhgWert: 'lokal',
+  },
   {
     signatur: 'BE 23.2',
     ebene: 'linienfuehrung',
@@ -560,7 +729,15 @@ const BE_23: Vorlage[] = [
     zustaendigName: 'L. Furrer',
     nhgWert: 'lokal',
   },
-  { signatur: 'BE 23.2.1', ebene: 'abschnitt', name: 'Riedbach – Matzwil', parent: 'BE 23.2', status: 'zugewiesen', zustaendigName: 'L. Furrer', nhgWert: 'lokal' },
+  {
+    signatur: 'BE 23.2.1',
+    ebene: 'abschnitt',
+    name: 'Riedbach – Matzwil',
+    parent: 'BE 23.2',
+    status: 'zugewiesen',
+    zustaendigName: 'L. Furrer',
+    nhgWert: 'lokal',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -580,9 +757,18 @@ const BE_35: Vorlage[] = [
     gemeinden: 'Köniz',
     aufnahmejahr: 2024,
     bewertung: {
-      geschichte: { punkte: 3, text: 'Landstrasse nach Freiburg durch das Wangental, Post- und Marktweg.' },
-      morphologie: { punkte: 3, text: 'Talstrasse in offener Kulturlandschaft mit erhaltenen Wegräumen.' },
-      substanzwert: { punkte: 3, text: 'Abschnittweise alte Wegbreite mit Brunnen- und Gasthausstandorten.' },
+      geschichte: {
+        punkte: 3,
+        text: 'Landstrasse nach Freiburg durch das Wangental, Post- und Marktweg.',
+      },
+      morphologie: {
+        punkte: 3,
+        text: 'Talstrasse in offener Kulturlandschaft mit erhaltenen Wegräumen.',
+      },
+      substanzwert: {
+        punkte: 3,
+        text: 'Abschnittweise alte Wegbreite mit Brunnen- und Gasthausstandorten.',
+      },
     },
     geschichteText:
       'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 22.06.1994). Die Freiburgstrasse führte vom ' +
@@ -593,9 +779,15 @@ const BE_35: Vorlage[] = [
       'Geländebeschrieb 2024: Verlauf zwischen Oberwangen und Thörishaus als Tal- und Feldstrasse ' +
       'neben der heutigen Hauptstrasse erhalten.',
     datierungGelaende20: '2024-09-12',
-    pruefkommentar: 'Prüfung abgeschlossen 05.07.2026 (M. Gerber). Terminologie und Datierungen konsistent.',
+    pruefkommentar:
+      'Prüfung abgeschlossen 05.07.2026 (M. Gerber). Terminologie und Datierungen konsistent.',
     lognotizen: [
-      { datum: '2026-07-05', autor: 'M. Gerber', rolle: 'R-06', text: 'Fachliche Prüfung abgeschlossen, keine offenen Befunde.' },
+      {
+        datum: '2026-07-05',
+        autor: 'M. Gerber',
+        rolle: 'R-06',
+        text: 'Fachliche Prüfung abgeschlossen, keine offenen Befunde.',
+      },
     ],
   },
   {
@@ -613,9 +805,33 @@ const BE_35: Vorlage[] = [
     geschichteText: 'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 22.06.1994).',
     datierungGeschichte10: '1994-06-22',
   },
-  { signatur: 'BE 35.1.1', ebene: 'abschnitt', name: 'Oberwangen Dorf – Stegacker', parent: 'BE 35.1', status: 'geprueft', gemeinden: 'Köniz', aufnahmejahr: 2024 },
-  { signatur: 'BE 35.1.2', ebene: 'abschnitt', name: 'Stegacker – Bruchmatt', parent: 'BE 35.1', status: 'geprueft', gemeinden: 'Köniz', aufnahmejahr: 2024 },
-  { signatur: 'BE 35.1.3', ebene: 'abschnitt', name: 'Bruchmatt – Thörishaus Dorf', parent: 'BE 35.1', status: 'geprueft', gemeinden: 'Köniz', aufnahmejahr: 2024 },
+  {
+    signatur: 'BE 35.1.1',
+    ebene: 'abschnitt',
+    name: 'Oberwangen Dorf – Stegacker',
+    parent: 'BE 35.1',
+    status: 'geprueft',
+    gemeinden: 'Köniz',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 35.1.2',
+    ebene: 'abschnitt',
+    name: 'Stegacker – Bruchmatt',
+    parent: 'BE 35.1',
+    status: 'geprueft',
+    gemeinden: 'Köniz',
+    aufnahmejahr: 2024,
+  },
+  {
+    signatur: 'BE 35.1.3',
+    ebene: 'abschnitt',
+    name: 'Bruchmatt – Thörishaus Dorf',
+    parent: 'BE 35.1',
+    status: 'geprueft',
+    gemeinden: 'Köniz',
+    aufnahmejahr: 2024,
+  },
   {
     signatur: 'BE 35 W1',
     ebene: 'wegbegleiter',
@@ -626,7 +842,8 @@ const BE_35: Vorlage[] = [
     bauzeit: '1788',
     gemeinden: 'Köniz',
     aufnahmejahr: 2024,
-    geschichteText: 'Wirtshaus an der Strasse in Thörishaus; Zoll- und Umspannstation vor der Sensebrücke.',
+    geschichteText:
+      'Wirtshaus an der Strasse in Thörishaus; Zoll- und Umspannstation vor der Sensebrücke.',
   },
   {
     signatur: 'BE 35 W2',
@@ -642,4 +859,6 @@ const BE_35: Vorlage[] = [
   },
 ];
 
-export const SEED_OBJEKTE: IvsObjekt[] = [...BE_7, ...BE_21, ...BE_22, ...BE_23, ...BE_35].map(objekt);
+export const SEED_OBJEKTE: IvsObjekt[] = [...BE_7, ...BE_21, ...BE_22, ...BE_23, ...BE_35].map(
+  objekt,
+);

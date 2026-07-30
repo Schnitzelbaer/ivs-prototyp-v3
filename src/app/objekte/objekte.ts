@@ -136,8 +136,10 @@ export class Objekte {
     this.auswahlSignatur.set(objekt.signatur);
   }
 
-  protected waehleSignatur(signatur: string): void {
-    if (this.store.bySignatur(signatur)) this.auswahlSignatur.set(signatur);
+  /** Karten-Klick springt direkt ins Objekt — ohne Zwischenschritt Side-Panel. */
+  protected oeffneSignatur(signatur: string): void {
+    const objekt = this.store.bySignatur(signatur);
+    if (objekt) void this.router.navigate(['/objekt', objekt.id]);
   }
 
   protected schliessePanel(): void {
