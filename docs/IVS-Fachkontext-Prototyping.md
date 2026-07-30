@@ -1199,6 +1199,16 @@ Fehler, die schon einmal Zeit gekostet haben:
   Folgefehler im Code: Ein boolescher In-Flight-Guard um `hitTest` bleibt
   nach einem hängenden Aufruf für immer gesperrt — deshalb ist der
   Hover-Guard in `karte.ts` zeitbasiert.
+- **`hitTest` taugt nicht für Objekt-Interaktion auf GeoJSON-Layern.**
+  Er prüft nur die gerenderten Symbolpixel (eine 3-px-Linie ist praktisch
+  untreffbar) und liefert nur die im Renderer verwendeten Attribute — zur
+  Laufzeit gestempelte Felder fehlen im Trefferobjekt. Hover und Klick der
+  Karte suchen deshalb räumlich: Zeigerposition → `view.toMap` →
+  `geometryEngine.buffer` (8 px, Touch 14 px) → `queryFeatures` mit
+  `outFields` auf den Objekt-Layern. Kommentar-Pins werden synchron im
+  Bildschirmraum (`view.toScreen`, Distanz) geprüft. Nebeneffekt: Dieser
+  Pfad hängt nicht am gedrosselten WebGL und ist mit synthetischen
+  Pointer-Events auch im versteckten Pane end-to-end verifizierbar.
 - **hlm-accordion-content bringt Typografie-Meinungen mit**
   (`[&_p]:mb-4`, Link-Unterstreichung) — für Formular-Container deshalb
   `hlm-collapsible` verwenden: ungestylt, gleiche ARIA/Touch-Vorteile,
@@ -1295,11 +1305,11 @@ Stand nach der zweiten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
 2. **Versionsvergleich (08.05, Vorgabe 10).** Text-Diff mit
    Änderungsmarkierungen plus Geometrie-Overlay alt/neu; der Einstieg
    existiert bereits als deaktivierter Eintrag im Historie-Menü.
-3. **Manuelle Prüfung der Karten-Interaktionen.** Geometrie-Zeichnen,
-   Kommentar-Pins und neu der Hover-MapTip samt Kontextmenü wurden wegen
-   des gedrosselten Browser-Panes nur skriptbasiert (Logik und Rendering
-   mit Mock-Treffern) verifiziert — ein Durchgang mit echter Maus steht
-   aus.
+3. **Manuelle Prüfung der Karten-Interaktionen.** Hover-MapTip, Direktklick,
+   Kontextmenü und Pin-Klick sind inzwischen end-to-end mit synthetischen
+   Pointer-Events verifiziert (identischer Event-Pfad wie echte Eingabe);
+   Geometrie-Zeichnen bleibt nur skriptbasiert geprüft — ein Durchgang mit
+   echter Maus schadet weiterhin nicht.
 4. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
    Arbeitspakete (03.01–03.04), Reports (12.01–12.04).
 5. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
