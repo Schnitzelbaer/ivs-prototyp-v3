@@ -27,26 +27,22 @@
       </div>
 
       <div class="ml-auto flex items-center gap-1.5">
-        <!-- Löschen (07.05: bis zur Publikation) -->
-        <hlm-alert-dialog>
-          <button
-            hlmAlertDialogTrigger
-            hlmBtn
-            variant="outline"
-            size="icon"
-            type="button"
-            [disabled]="!darfLoeschen()"
-            [hlmTooltip]="
-              o.status === 'publiziert'
-                ? 'Nach Publikation nicht mehr löschbar'
-                : darfLoeschen()
-                  ? 'Objekt löschen'
-                  : 'Löschen ist den Inventarisierenden (R-05) und der Fachlichen Administration (R-03) vorbehalten'
-            "
-            aria-label="Objekt löschen"
-          >
-            <ng-icon name="lucideTrash2" />
-          </button>
+        <!-- Löschen (07.05): immer aktiv — wenn nicht möglich, erklärt ein Modal warum -->
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          type="button"
+          (click)="loeschenKlick()"
+          hlmTooltip="Objekt löschen"
+          aria-label="Objekt löschen"
+        >
+          <ng-icon name="lucideTrash2" />
+        </button>
+        <hlm-alert-dialog
+          [state]="loeschenDialogOffen() ? 'open' : 'closed'"
+          (stateChanged)="loeschenDialogOffen.set($event === 'open')"
+        >
           <hlm-alert-dialog-content *hlmAlertDialogPortal>
             <hlm-alert-dialog-header>
               <h3 hlmAlertDialogTitle>{{ o.signatur }} löschen?</h3>
@@ -56,7 +52,9 @@
               </p>
             </hlm-alert-dialog-header>
             <hlm-alert-dialog-footer>
-              <button hlmAlertDialogCancel>Abbrechen</button>
+              <button hlmAlertDialogCancel (click)="loeschenDialogOffen.set(false)">
+                Abbrechen
+              </button>
               <button hlmAlertDialogAction (click)="loeschen()">Löschen</button>
             </hlm-alert-dialog-footer>
           </hlm-alert-dialog-content>
@@ -88,7 +86,7 @@
         </button>
         <ng-template #historieMenu>
           <hlm-dropdown-menu class="w-64">
-            <button hlmDropdownMenuItem disabled>
+            <button hlmDropdownMenuItem (triggered)="versionsvergleichHinweis()">
               Versionsvergleich
               <span class="ml-auto text-xs text-muted-foreground">folgt</span>
             </button>
@@ -96,39 +94,43 @@
           </hlm-dropdown-menu>
         </ng-template>
 
-        <!-- Statusübergänge der aktiven Rolle -->
-        @for (uebergang of uebergaenge(); track uebergang.nach) {
-          <button
-            hlmBtn
-            variant="outline"
-            size="sm"
-            type="button"
-            (click)="uebergangAusfuehren(uebergang)"
-          >
-            {{ uebergang.aktion }}
-          </button>
-        }
+        <!-- Status-Dropdown: nächster und vorheriger Status der Workflow-Kette;
+             nicht erlaubte Übergänge erklären sich beim Klick im Modal -->
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [hlmDropdownMenuTrigger]="statusMenu"
+          align="end"
+        >
+          Status ändern
+          <ng-icon name="lucideChevronDown" />
+        </button>
+        <ng-template #statusMenu>
+          <hlm-dropdown-menu class="w-64">
+            @for (eintrag of statusWahl(); track eintrag.status) {
+              <button hlmDropdownMenuItem (triggered)="statusWaehlen(eintrag)">
+                <ng-icon
+                  [name]="eintrag.richtung === 'weiter' ? 'lucideArrowRight' : 'lucideArrowLeft'"
+                  class="text-muted-foreground"
+                />
+                <span class="size-2 rounded-full {{ statusFarbe[eintrag.status] }}"></span>
+                {{ statusLabel[eintrag.status] }}
+              </button>
+            }
+          </hlm-dropdown-menu>
+        </ng-template>
 
         <div class="mx-1 h-5 w-px bg-border"></div>
 
-        <!-- View ↔ Edit -->
+        <!-- View ↔ Edit: immer aktiv — ohne Recht erklärt ein Modal warum -->
         <button
           hlmBtn
           size="icon"
           type="button"
           (click)="modusUmschalten()"
-          [disabled]="!darfBearbeiten()"
-          [hlmTooltip]="
-            !darfBearbeiten()
-              ? 'Bearbeitung im Status «' +
-                statusLabel[o.status] +
-                '» für ' +
-                einstellungen.aktiveRolle().name +
-                ' nicht möglich'
-              : istEdit()
-                ? 'Bearbeitung abschliessen'
-                : 'Bearbeiten'
-          "
+          [hlmTooltip]="istEdit() ? 'Bearbeitung abschliessen' : 'Bearbeiten'"
           position="left"
           [attr.aria-label]="istEdit() ? 'Bearbeitung abschliessen' : 'Bearbeiten'"
         >
@@ -226,7 +228,6 @@
                     <hlm-native-select
                       [ngModel]="o.status"
                       (ngModelChange)="statusSetzen($event)"
-                      [disabled]="statusOptionen().length === 1"
                     >
                       @for (option of statusOptionen(); track option.wert) {
                         <option hlmNativeSelectOption [value]="option.wert">
@@ -801,15 +802,8 @@
                 hlmBtn
                 size="sm"
                 type="button"
-                [disabled]="einstellungen.aktiveRolleId() !== 'R-06' || o.status !== 'in_pruefung'"
-                (click)="statusSetzen('geprueft')"
-                [hlmTooltip]="
-                  einstellungen.aktiveRolleId() !== 'R-06'
-                    ? 'Nur das Fachlektorat (R-06) kennzeichnet Objekte als geprüft'
-                    : o.status !== 'in_pruefung'
-                      ? 'Nur im Status «In Prüfung» möglich'
-                      : 'Setzt den Status auf «Geprüft»'
-                "
+                (click)="geprueftKennzeichnen()"
+                hlmTooltip="Setzt den Status auf «Geprüft» (09.02)"
               >
                 Als geprüft kennzeichnen
               </button>
@@ -855,24 +849,25 @@
                   variant="outline"
                   size="sm"
                   type="button"
-                  [disabled]="!darfBearbeiten()"
-                  (click)="wiederExistentSetzen()"
+                  (click)="wiederExistentKlick()"
                 >
                   Wieder als existent führen
                 </button>
               } @else {
-                <hlm-alert-dialog>
-                  <button
-                    hlmAlertDialogTrigger
-                    hlmBtn
-                    variant="destructive"
-                    size="sm"
-                    type="button"
-                    [disabled]="!darfBearbeiten()"
-                  >
-                    <ng-icon name="lucideTriangleAlert" />
-                    Auf inexistent setzen
-                  </button>
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  size="sm"
+                  type="button"
+                  (click)="inexistentKlick()"
+                >
+                  <ng-icon name="lucideTriangleAlert" />
+                  Auf inexistent setzen
+                </button>
+                <hlm-alert-dialog
+                  [state]="inexistentDialogOffen() ? 'open' : 'closed'"
+                  (stateChanged)="inexistentDialogOffen.set($event === 'open')"
+                >
                   <hlm-alert-dialog-content *hlmAlertDialogPortal>
                     <hlm-alert-dialog-header>
                       <h3 hlmAlertDialogTitle>{{ o.signatur }} auf inexistent setzen?</h3>
@@ -894,7 +889,9 @@
                       ></textarea>
                     </div>
                     <hlm-alert-dialog-footer>
-                      <button hlmAlertDialogCancel>Abbrechen</button>
+                      <button hlmAlertDialogCancel (click)="inexistentDialogOffen.set(false)">
+                        Abbrechen
+                      </button>
                       <button
                         hlmAlertDialogAction
                         [disabled]="!inexistentBegruendung().trim()"

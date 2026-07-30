@@ -16,6 +16,8 @@ import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideAlignJustify,
+  lucideArrowLeft,
+  lucideArrowRight,
   lucideBookOpen,
   lucideCalendarPlus,
   lucideCamera,
@@ -58,21 +60,30 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
+import { HinweisStore } from '../core/hinweis-store';
 import { KommentarStore, jetztLokal } from '../core/kommentare';
 import {
   BewertungsTeil,
   EBENE_LABEL,
   IvsObjekt,
   NHG_LABEL,
+  RolleId,
   SUBSTANZGRAD_LABEL,
   WorkflowStatus,
   bewertungText,
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
-import { darfEditieren } from '../core/rollen';
-import { NAME_FUER_ROLLE } from '../core/seed-data';
+import { ROLLEN, darfEditieren } from '../core/rollen';
+import { NAME_FUER_ROLLE, rolleFuerStatus } from '../core/seed-data';
 import { StammdatenStore } from '../core/stammdaten';
-import { STATUS_FARBE, STATUS_LABEL, StatusUebergang, uebergaengeFuer } from '../core/status';
+import {
+  STATUS_FARBE,
+  STATUS_LABEL,
+  StatusUebergang,
+  nachbarStati,
+  rollenFuerUebergang,
+  uebergaengeFuer,
+} from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
@@ -120,6 +131,8 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
   providers: [
     provideIcons({
       lucideAlignJustify,
+      lucideArrowLeft,
+      lucideArrowRight,
       lucideBookOpen,
       lucideCalendarPlus,
       lucideCamera,
@@ -157,6 +170,7 @@ export class ObjektDetail implements OnDestroy {
   private readonly kommentarStore = inject(KommentarStore);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly stammdaten = inject(StammdatenStore);
+  private readonly hinweis = inject(HinweisStore);
   protected readonly einstellungen = inject(EinstellungenStore);
 
   protected readonly karte = viewChild(Karte);
@@ -248,6 +262,31 @@ export class ObjektDetail implements OnDestroy {
     return uebergaengeFuer(this.einstellungen.aktiveRolleId(), o.status);
   });
 
+  /**
+   * Einträge des Status-Dropdowns in der Kopfzeile: der jeweils nächste und
+   * vorherige Status der Workflow-Kette. Nicht erlaubte Übergänge erscheinen
+   * ebenfalls — der Klick erklärt dann im Modal, wem der Schritt vorbehalten
+   * ist (nie-disabled-Regel).
+   */
+  protected readonly statusWahl = computed(() => {
+    const o = this.objekt();
+    if (!o) return [];
+    const erlaubteZiele = new Set(this.uebergaenge().map((u) => u.nach));
+    const { weiter, zurueck } = nachbarStati(o.status);
+    return [
+      ...weiter.map((status) => ({
+        status,
+        richtung: 'weiter' as const,
+        erlaubt: erlaubteZiele.has(status),
+      })),
+      ...zurueck.map((status) => ({
+        status,
+        richtung: 'zurueck' as const,
+        erlaubt: erlaubteZiele.has(status),
+      })),
+    ];
+  });
+
   protected readonly statusOptionen = computed(() => {
     const o = this.objekt();
     if (!o) return [];
@@ -261,6 +300,8 @@ export class ObjektDetail implements OnDestroy {
   protected readonly inexistentBegruendung = signal('');
   protected readonly neueLognotiz = signal('');
   protected readonly logOffen = signal(false);
+  protected readonly loeschenDialogOffen = signal(false);
+  protected readonly inexistentDialogOffen = signal(false);
 
   /** Aktiver Tab des Kartenpanels — wechselbar auch programmatisch (Pin-Klick). */
   protected readonly kartenTab = signal('karte');
@@ -344,7 +385,23 @@ export class ObjektDetail implements OnDestroy {
   // ------------------------------------------------------------------ Modus
 
   protected modusUmschalten(): void {
+    if (!this.darfBearbeiten()) {
+      this.bearbeitenHinweis();
+      return;
+    }
     this.gewuenschterModus.set(this.istEdit() ? 'view' : 'edit');
+  }
+
+  /** Modal, warum die Bearbeitung mit Rolle × Status gerade nicht möglich ist. */
+  private bearbeitenHinweis(): void {
+    const o = this.objekt();
+    if (!o) return;
+    const zustaendig = rolleFuerStatus(o.status);
+    this.hinweis.zeige(
+      'Bearbeitung nicht möglich',
+      `Im Status «${STATUS_LABEL[o.status]}» kann die Rolle «${this.einstellungen.aktiveRolle().name}» ` +
+        `dieses Objekt nicht bearbeiten. Am Zug ist: ${rollenName(zustaendig)}.`,
+    );
   }
 
   // ------------------------------------------------------------- Formularwerte
@@ -377,27 +434,104 @@ export class ObjektDetail implements OnDestroy {
     });
   }
 
-  protected uebergangAusfuehren(uebergang: StatusUebergang): void {
-    this.statusSetzen(uebergang.nach);
+  /** Auswahl im Status-Dropdown: ausführen oder im Modal erklären. */
+  protected statusWaehlen(eintrag: { status: WorkflowStatus; erlaubt: boolean }): void {
+    const o = this.objekt();
+    if (!o) return;
+    if (eintrag.erlaubt) {
+      this.statusSetzen(eintrag.status);
+      return;
+    }
+    const berechtigt = rollenFuerUebergang(o.status, eintrag.status);
+    this.hinweis.zeige(
+      'Statuswechsel nicht möglich',
+      `Der Wechsel von «${STATUS_LABEL[o.status]}» zu «${STATUS_LABEL[eintrag.status]}» ist mit der ` +
+        `Rolle «${this.einstellungen.aktiveRolle().name}» nicht möglich. ` +
+        (berechtigt.length
+          ? `Vorgesehen ist dieser Schritt für: ${berechtigt.map(rollenName).join(', ')}.`
+          : 'Dieser Rückschritt ist im Workflow nicht vorgesehen — zurück führt der Weg über die Korrektur.'),
+    );
   }
 
   // ------------------------------------------------------------- Aktionen
 
+  /** Löschen-Klick: Dialog öffnen oder im Modal erklären, warum nicht (07.05). */
+  protected loeschenKlick(): void {
+    const o = this.objekt();
+    if (!o) return;
+    if (this.darfLoeschen()) {
+      this.loeschenDialogOffen.set(true);
+      return;
+    }
+    this.hinweis.zeige(
+      'Löschen nicht möglich',
+      o.status === 'publiziert'
+        ? `${o.signatur} ist publiziert. Publizierte Objekte sind Teil des rechtsverbindlichen ` +
+            'Inventars und können nicht mehr gelöscht werden (07.05).'
+        : 'Löschen ist den Inventarisierenden (R-05) in ihren Bearbeitungsstati und der ' +
+            'Fachlichen Administration (R-03) vorbehalten.',
+    );
+  }
+
   protected loeschen(): void {
     const o = this.objekt();
     if (!o || !this.darfLoeschen()) return;
+    this.loeschenDialogOffen.set(false);
     this.store.loeschen(o.id);
     toast.success(`${o.signatur} gelöscht`, { description: `${o.name} wurde entfernt (07.05).` });
     void this.router.navigate(['/dashboard']);
+  }
+
+  /** Versionsvergleich (08.05) ist noch nicht gebaut — erklären statt sperren. */
+  protected versionsvergleichHinweis(): void {
+    this.hinweis.zeige(
+      'Versionsvergleich folgt',
+      'Der Versionsvergleich (08.05) ist im Prototyp noch nicht umgesetzt und folgt in einer späteren Etappe.',
+    );
+  }
+
+  /** «Als geprüft kennzeichnen» (09.02): ausführen oder im Modal erklären. */
+  protected geprueftKennzeichnen(): void {
+    const o = this.objekt();
+    if (!o) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    if (rolle !== 'R-06' || o.status !== 'in_pruefung') {
+      this.hinweis.zeige(
+        'Kennzeichnen nicht möglich',
+        rolle !== 'R-06'
+          ? 'Nur das Fachlektorat (R-06) kennzeichnet Objekte als geprüft (09.02).'
+          : `Möglich ist das nur im Status «In Prüfung» — aktuell steht das Objekt auf ` +
+              `«${STATUS_LABEL[o.status]}».`,
+      );
+      return;
+    }
+    this.statusSetzen('geprueft');
+  }
+
+  protected inexistentKlick(): void {
+    if (!this.darfBearbeiten()) {
+      this.bearbeitenHinweis();
+      return;
+    }
+    this.inexistentDialogOffen.set(true);
   }
 
   protected inexistentSetzen(): void {
     const o = this.objekt();
     const begruendung = this.inexistentBegruendung().trim();
     if (!o || !begruendung) return;
+    this.inexistentDialogOffen.set(false);
     this.patch({ inexistent: { seit: heute(), begruendung } });
     this.protokolliere(o.id, `Auf inexistent gesetzt: ${begruendung}`);
     this.inexistentBegruendung.set('');
+  }
+
+  protected wiederExistentKlick(): void {
+    if (!this.darfBearbeiten()) {
+      this.bearbeitenHinweis();
+      return;
+    }
+    this.wiederExistentSetzen();
   }
 
   protected wiederExistentSetzen(): void {
@@ -642,6 +776,12 @@ export class ObjektDetail implements OnDestroy {
 
 function heute(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** «R-06» → «Fachlektorat (R-06)» für Hinweistexte. */
+function rollenName(id: RolleId): string {
+  const name = ROLLEN.find((rolle) => rolle.id === id)?.name;
+  return name ? `${name} (${id})` : id;
 }
 
 interface QuellenTreffer {

@@ -28,7 +28,9 @@ import { RolleId } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN } from '../core/rollen';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
+import { HinweisStore } from '../core/hinweis-store';
 import { KarteSync } from '../karte/karte-sync';
+import { HinweisDialog } from './hinweis-dialog';
 
 /**
  * App-Gerüst: schmale Icon-Leiste links, Inhalt rechts.
@@ -50,6 +52,7 @@ import { KarteSync } from '../karte/karte-sync';
     HlmPopoverImports,
     HlmToasterImports,
     HlmTooltipImports,
+    HinweisDialog,
   ],
   providers: [
     provideIcons({
@@ -76,6 +79,7 @@ export class Shell {
   private readonly stammdatenStore = inject(StammdatenStore);
   private readonly sync = inject(KarteSync);
   private readonly router = inject(Router);
+  private readonly hinweis = inject(HinweisStore);
 
   protected readonly rollen = ROLLEN;
   protected readonly personaName = NAME_FUER_ROLLE;
@@ -91,6 +95,16 @@ export class Shell {
   }
 
   protected rolleWaehlen(id: RolleId): void {
+    const rolle = ROLLEN.find((r) => r.id === id);
+    if (!rolle?.waehlbar) {
+      // Nie-disabled-Regel: der Klick erklärt, warum die Rolle gesperrt ist
+      this.hinweis.zeige(
+        'Rolle nicht wählbar',
+        `«${rolle?.name ?? id}» (${id}) ist im Prototyp nicht wählbar — der Rollen-Umschalter ` +
+          'deckt die fünf fachlich relevanten Rollen R-03 bis R-07 ab (Vorgabe 5).',
+      );
+      return;
+    }
     this.einstellungen.rolleWechseln(id);
   }
 
