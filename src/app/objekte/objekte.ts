@@ -8,10 +8,12 @@ import {
   lucideDownload,
   lucideRotateCw,
   lucideSearch,
+  lucideSearchX,
   lucideX,
 } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
@@ -47,13 +49,21 @@ type SortSpalte = 'signatur' | 'name' | 'status' | 'bewertung';
     NgIcon,
     HlmBadgeImports,
     HlmButtonImports,
+    HlmEmptyImports,
     HlmInputGroupImports,
     HlmNativeSelectImports,
     HlmTooltipImports,
     Karte,
   ],
   providers: [
-    provideIcons({ lucideChevronRight, lucideDownload, lucideRotateCw, lucideSearch, lucideX }),
+    provideIcons({
+      lucideChevronRight,
+      lucideDownload,
+      lucideRotateCw,
+      lucideSearch,
+      lucideSearchX,
+      lucideX,
+    }),
   ],
   templateUrl: './objekte.html',
 })

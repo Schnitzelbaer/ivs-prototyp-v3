@@ -19,25 +19,41 @@ import {
   lucideEllipsis,
   lucideHash,
   lucideListFilter,
+  lucideMessageSquare,
   lucideSearch,
   lucideSend,
 } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { OBJEKT_ATTRIBUTE, attributVonLabel } from '../core/attribute';
 import { EinstellungenStore } from '../core/einstellungen-store';
-import { Kommentar, KommentarSegment, KommentarStore, jetztLokal, parseKommentarText } from '../core/kommentare';
+import {
+  Kommentar,
+  KommentarSegment,
+  KommentarStore,
+  jetztLokal,
+  parseKommentarText,
+} from '../core/kommentare';
 import { ROLLEN } from '../core/rollen';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
 
 type KommentarFilter = 'alle' | 'offen' | 'erledigt' | 'meine';
 
-const WOCHENTAGE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+const WOCHENTAGE = [
+  'Sonntag',
+  'Montag',
+  'Dienstag',
+  'Mittwoch',
+  'Donnerstag',
+  'Freitag',
+  'Samstag',
+];
 
 /**
  * Kommentar-Panel (09/10) nach Skizze: Suche, Sortierung, Filter, Threads
@@ -54,6 +70,7 @@ const WOCHENTAGE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', '
     HlmBadgeImports,
     HlmButtonImports,
     HlmDropdownMenuImports,
+    HlmEmptyImports,
     HlmInputImports,
     HlmInputGroupImports,
     HlmTextareaImports,
@@ -68,6 +85,7 @@ const WOCHENTAGE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', '
       lucideEllipsis,
       lucideHash,
       lucideListFilter,
+      lucideMessageSquare,
       lucideSearch,
       lucideSend,
     }),
@@ -110,7 +128,11 @@ export class KommentarPanel {
 
   protected readonly persona = computed(() => {
     const rolle = this.einstellungen.aktiveRolleId();
-    return { name: NAME_FUER_ROLLE[rolle], rolle, rollenName: this.einstellungen.aktiveRolle().name };
+    return {
+      name: NAME_FUER_ROLLE[rolle],
+      rolle,
+      rollenName: this.einstellungen.aktiveRolle().name,
+    };
   });
 
   protected readonly kommentare = computed(() => {
@@ -129,7 +151,8 @@ export class KommentarPanel {
         if (filter === 'erledigt' && !k.erledigt) return false;
         if (filter === 'meine' && k.autor !== ich) return false;
         if (begriff) {
-          const text = `${k.titel} ${k.text} ${k.autor} ${k.antworten.map((a) => a.text).join(' ')}`.toLowerCase();
+          const text =
+            `${k.titel} ${k.text} ${k.autor} ${k.antworten.map((a) => a.text).join(' ')}`.toLowerCase();
           if (!text.includes(begriff)) return false;
         }
         return true;

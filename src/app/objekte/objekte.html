@@ -35,14 +35,24 @@
       />
     </div>
 
-    <hlm-native-select class="w-40" size="sm" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+    <hlm-native-select
+      class="w-40"
+      size="sm"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
+    >
       <option hlmNativeSelectOption value="alle">Workflow-Status</option>
       @for (status of alleStati; track status) {
         <option hlmNativeSelectOption [value]="status">{{ statusLabel[status] }}</option>
       }
     </hlm-native-select>
 
-    <hlm-native-select class="w-36" size="sm" [ngModel]="ebeneFilter()" (ngModelChange)="ebeneFilter.set($event)">
+    <hlm-native-select
+      class="w-36"
+      size="sm"
+      [ngModel]="ebeneFilter()"
+      (ngModelChange)="ebeneFilter.set($event)"
+    >
       <option hlmNativeSelectOption value="alle">Ebene</option>
       <option hlmNativeSelectOption value="strecke">Strecke</option>
       <option hlmNativeSelectOption value="linienfuehrung">Linienführung</option>
@@ -50,14 +60,24 @@
       <option hlmNativeSelectOption value="wegbegleiter">Wegbegleiter</option>
     </hlm-native-select>
 
-    <hlm-native-select class="w-32" size="sm" [ngModel]="bedeutungFilter()" (ngModelChange)="bedeutungFilter.set($event)">
+    <hlm-native-select
+      class="w-32"
+      size="sm"
+      [ngModel]="bedeutungFilter()"
+      (ngModelChange)="bedeutungFilter.set($event)"
+    >
       <option hlmNativeSelectOption value="alle">Bedeutung</option>
       <option hlmNativeSelectOption value="national">national</option>
       <option hlmNativeSelectOption value="regional">regional</option>
       <option hlmNativeSelectOption value="lokal">lokal</option>
     </hlm-native-select>
 
-    <hlm-native-select class="w-36" size="sm" [ngModel]="substanzFilter()" (ngModelChange)="substanzFilter.set($event)">
+    <hlm-native-select
+      class="w-36"
+      size="sm"
+      [ngModel]="substanzFilter()"
+      (ngModelChange)="substanzFilter.set($event)"
+    >
       <option hlmNativeSelectOption value="alle">Substanzgrad</option>
       <option hlmNativeSelectOption value="viel_substanz">Viel Substanz</option>
       <option hlmNativeSelectOption value="mit_substanz">Mit Substanz</option>
@@ -65,7 +85,12 @@
       <option hlmNativeSelectOption value="ohne_substanz">Ohne Substanz</option>
     </hlm-native-select>
 
-    <hlm-native-select class="w-40" size="sm" [ngModel]="sortierung()" (ngModelChange)="sortierung.set($event)">
+    <hlm-native-select
+      class="w-40"
+      size="sm"
+      [ngModel]="sortierung()"
+      (ngModelChange)="sortierung.set($event)"
+    >
       <option hlmNativeSelectOption value="signatur">Nach Signatur</option>
       <option hlmNativeSelectOption value="name">Nach Bezeichnung</option>
       <option hlmNativeSelectOption value="status">Nach Status</option>
@@ -102,8 +127,13 @@
                 [hlmTooltip]="statusLabel[o.status]"
               ></span>
               <span class="min-w-0 flex-1">
-                <span class="block font-mono text-[11px] text-muted-foreground">{{ o.signatur }}</span>
-                <span class="block truncate text-sm" [class.font-medium]="auswahlSignatur() === o.signatur">
+                <span class="block font-mono text-[11px] text-muted-foreground">{{
+                  o.signatur
+                }}</span>
+                <span
+                  class="block truncate text-sm"
+                  [class.font-medium]="auswahlSignatur() === o.signatur"
+                >
                   {{ o.name }}
                 </span>
               </span>
@@ -113,14 +143,39 @@
             </button>
           </li>
         } @empty {
-          <li class="px-3 py-6 text-center text-sm text-muted-foreground">Keine Objekte entsprechen den Filtern.</li>
+          <li>
+            <div hlmEmpty class="border-0 p-6">
+              <div hlmEmptyHeader>
+                <div hlmEmptyMedia variant="icon">
+                  <ng-icon name="lucideSearchX" />
+                </div>
+                <div hlmEmptyTitle>Keine Objekte gefunden</div>
+                <div hlmEmptyDescription>Kein Objekt entspricht den gesetzten Filtern.</div>
+              </div>
+              <div hlmEmptyContent>
+                <button
+                  hlmBtn
+                  size="sm"
+                  variant="outline"
+                  type="button"
+                  (click)="filterZuruecksetzen()"
+                >
+                  Filter zurücksetzen
+                </button>
+              </div>
+            </div>
+          </li>
         }
       </ul>
     </nav>
 
     <!-- Karte im Vordergrund -->
     <section class="min-w-0 flex-1">
-      <ivs-karte class="block h-full" [selektion]="kartenSelektion()" (objektKlick)="waehleSignatur($event)" />
+      <ivs-karte
+        class="block h-full"
+        [selektion]="kartenSelektion()"
+        (objektKlick)="waehleSignatur($event)"
+      />
     </section>
 
     <!-- Side-Panel mit dem Objektinhalt -->
@@ -150,7 +205,7 @@
           </button>
         </header>
 
-        <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3">
+        <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-3">
           <dl class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
             <div>
               <dt class="text-xs text-muted-foreground">Zuständig</dt>
@@ -191,13 +246,19 @@
           @if (o.geschichteText) {
             <div>
               <h3 class="text-xs font-medium text-muted-foreground">Geschichte</h3>
-              <div class="mt-1 line-clamp-6 text-sm whitespace-pre-line" [innerHTML]="alsHtml(o.geschichteText)"></div>
+              <div
+                class="mt-1 line-clamp-6 text-sm whitespace-pre-line"
+                [innerHTML]="alsHtml(o.geschichteText)"
+              ></div>
             </div>
           }
           @if (o.gelaendeText) {
             <div>
               <h3 class="text-xs font-medium text-muted-foreground">Gelände</h3>
-              <div class="mt-1 line-clamp-4 text-sm whitespace-pre-line" [innerHTML]="alsHtml(o.gelaendeText)"></div>
+              <div
+                class="mt-1 line-clamp-4 text-sm whitespace-pre-line"
+                [innerHTML]="alsHtml(o.gelaendeText)"
+              ></div>
             </div>
           }
         </div>

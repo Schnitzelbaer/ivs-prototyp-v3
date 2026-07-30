@@ -49,6 +49,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
@@ -102,6 +103,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     HlmCollapsibleImports,
     HlmDialogImports,
     HlmDropdownMenuImports,
+    HlmEmptyImports,
     HlmInputImports,
     HlmLabelImports,
     HlmNativeSelectImports,

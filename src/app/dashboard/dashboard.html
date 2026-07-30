@@ -158,9 +158,17 @@
 
             <div hlmCollapsibleContent>
               @if (block.objekte.length === 0) {
-                <p class="px-3 py-3 text-sm text-muted-foreground">
-                  Keine Objekte in dieser Gruppe.
-                </p>
+                <div hlmEmpty class="border-0 p-6">
+                  <div hlmEmptyHeader>
+                    <div hlmEmptyMedia variant="icon">
+                      <ng-icon name="lucideInbox" />
+                    </div>
+                    <div hlmEmptyTitle>Keine Objekte in dieser Gruppe</div>
+                    <div hlmEmptyDescription>
+                      Für die aktive Rolle und die gesetzten Filter liegt hier nichts an.
+                    </div>
+                  </div>
+                </div>
               } @else {
                 <div hlmTableContainer>
                   <table hlmTable>

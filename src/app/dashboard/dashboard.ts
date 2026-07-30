@@ -16,6 +16,7 @@ import {
   lucideChevronRight,
   lucideDownload,
   lucideExternalLink,
+  lucideInbox,
   lucideLasso,
   lucideLayers,
   lucideListFilter,
@@ -28,6 +29,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
@@ -89,6 +91,7 @@ interface StatusOption {
     HlmCheckboxImports,
     HlmCollapsibleImports,
     HlmDialogImports,
+    HlmEmptyImports,
     HlmInputImports,
     HlmInputGroupImports,
     HlmLabelImports,
@@ -108,6 +111,7 @@ interface StatusOption {
       lucideChevronRight,
       lucideDownload,
       lucideExternalLink,
+      lucideInbox,
       lucideLasso,
       lucideLayers,
       lucideListFilter,

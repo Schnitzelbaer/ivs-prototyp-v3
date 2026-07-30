@@ -1,6 +1,6 @@
 <div class="flex h-full flex-col">
   <!-- Kopf: Suche, Sortierung, Filter -->
-  <div class="space-y-2 border-b border-border px-3 py-2.5">
+  <div class="flex flex-col gap-2 border-b border-border px-3 py-2.5">
     <div class="flex items-center justify-between gap-2">
       <h3 class="text-sm font-semibold">
         Kommentare
@@ -73,7 +73,7 @@
   </div>
 
   <!-- Liste -->
-  <div class="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
+  <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-3">
     @for (k of kommentare(); track k.id) {
       <article class="rounded-md border border-border bg-card p-3">
         <header class="flex items-start gap-2">
@@ -180,7 +180,7 @@
           </button>
         }
         @if (offeneAntworten().has(k.id)) {
-          <div class="mt-2 space-y-2 border-t border-border pt-2">
+          <div class="mt-2 flex flex-col gap-2 border-t border-border pt-2">
             @for (antwort of k.antworten; track $index) {
               <div class="border-b border-border/60 pb-2 last:border-b-0">
                 <p class="text-xs text-muted-foreground">
@@ -217,12 +217,22 @@
         </div>
       </article>
     } @empty {
-      <p class="py-6 text-center text-sm text-muted-foreground">Keine Kommentare vorhanden.</p>
+      <div hlmEmpty class="border-0 p-6">
+        <div hlmEmptyHeader>
+          <div hlmEmptyMedia variant="icon">
+            <ng-icon name="lucideMessageSquare" />
+          </div>
+          <div hlmEmptyTitle>Keine Kommentare vorhanden</div>
+          <div hlmEmptyDescription>
+            Zum Objekt oder zur aktuellen Filterung gibt es noch keine Kommentare.
+          </div>
+        </div>
+      </div>
     }
   </div>
 
   <!-- Composer -->
-  <div class="space-y-2 border-t border-border px-3 py-2.5">
+  <div class="flex flex-col gap-2 border-t border-border px-3 py-2.5">
     <p class="text-xs text-muted-foreground">{{ persona().name }} · {{ persona().rollenName }}</p>
     <input
       hlmInput
