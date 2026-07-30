@@ -1,0 +1,132 @@
+<div class="flex h-full flex-col">
+  <!-- Kopfzeile -->
+  <header class="flex items-center justify-between gap-4 border-b border-border px-4 py-2.5">
+    <h1 class="text-base font-semibold">
+      Objekte
+      <span class="ml-1 text-sm font-normal text-muted-foreground">
+        {{ gefiltert().length }} von {{ gesamt() }}
+      </span>
+    </h1>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      type="button"
+      hlmTooltip="Gefilterte und sortierte Liste als Excel exportieren (im Prototyp ohne Funktion)"
+      position="left"
+      aria-label="Exportieren"
+    >
+      <ng-icon name="lucideDownload" />
+    </button>
+  </header>
+
+  <!-- Filterleiste -->
+  <div class="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
+    <div hlmInputGroup class="w-72 max-w-full">
+      <div hlmInputGroupAddon>
+        <ng-icon name="lucideSearch" />
+      </div>
+      <input
+        hlmInputGroupInput
+        type="search"
+        placeholder="Signatur, Bezeichnung, Gemeinde, Person …"
+        [ngModel]="suche()"
+        (ngModelChange)="suche.set($event)"
+      />
+    </div>
+
+    <hlm-native-select class="w-44" size="sm" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Workflow-Status</option>
+      @for (status of alleStati; track status) {
+        <option hlmNativeSelectOption [value]="status">{{ statusLabel[status] }}</option>
+      }
+    </hlm-native-select>
+
+    <hlm-native-select class="w-40" size="sm" [ngModel]="ebeneFilter()" (ngModelChange)="ebeneFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Ebene</option>
+      <option hlmNativeSelectOption value="strecke">Strecke</option>
+      <option hlmNativeSelectOption value="linienfuehrung">Linienführung</option>
+      <option hlmNativeSelectOption value="abschnitt">Abschnitt</option>
+      <option hlmNativeSelectOption value="wegbegleiter">Wegbegleiter</option>
+    </hlm-native-select>
+
+    <hlm-native-select class="w-36" size="sm" [ngModel]="bedeutungFilter()" (ngModelChange)="bedeutungFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Bedeutung</option>
+      <option hlmNativeSelectOption value="national">national</option>
+      <option hlmNativeSelectOption value="regional">regional</option>
+      <option hlmNativeSelectOption value="lokal">lokal</option>
+    </hlm-native-select>
+
+    <hlm-native-select class="w-40" size="sm" [ngModel]="substanzFilter()" (ngModelChange)="substanzFilter.set($event)">
+      <option hlmNativeSelectOption value="alle">Substanzgrad</option>
+      <option hlmNativeSelectOption value="viel_substanz">Viel Substanz</option>
+      <option hlmNativeSelectOption value="mit_substanz">Mit Substanz</option>
+      <option hlmNativeSelectOption value="wenig_substanz">Wenig Substanz</option>
+      <option hlmNativeSelectOption value="ohne_substanz">Ohne Substanz</option>
+    </hlm-native-select>
+
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon"
+      type="button"
+      (click)="filterZuruecksetzen()"
+      hlmTooltip="Filter zurücksetzen"
+      aria-label="Filter zurücksetzen"
+    >
+      <ng-icon name="lucideRotateCw" />
+    </button>
+  </div>
+
+  <!-- Tabelle -->
+  <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+    <div hlmTableContainer class="rounded-md border border-border">
+      <table hlmTable>
+        <thead hlmTHead>
+          <tr hlmTr>
+            @for (spalte of spalten; track spalte.id) {
+              <th hlmTh>
+                <button type="button" class="flex items-center gap-1 whitespace-nowrap" (click)="sortiere(spalte.id)">
+                  {{ spalte.label }}
+                  @if (sortSpalte() === spalte.id) {
+                    <ng-icon
+                      name="lucideChevronDown"
+                      class="text-xs transition-transform"
+                      [class.rotate-180]="!sortAufsteigend()"
+                    />
+                  }
+                </button>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody hlmTBody>
+          @for (o of gefiltert(); track o.id) {
+            <tr hlmTr class="cursor-pointer" (click)="oeffne(o)">
+              <td hlmTd class="font-mono text-xs whitespace-nowrap">{{ o.signatur }}</td>
+              <td hlmTd class="max-w-56 truncate font-medium">
+                {{ o.name }}
+                @if (o.inexistent) {
+                  <span hlmBadge variant="destructive" class="ml-1">inexistent</span>
+                }
+              </td>
+              <td hlmTd>{{ ebeneLabel[o.ebene] }}</td>
+              <td hlmTd class="max-w-40 truncate">{{ o.gemeinden }}</td>
+              <td hlmTd>{{ nhgLabel[o.nhgWert] }}</td>
+              <td hlmTd>{{ o.substanzgrad ? substanzLabel[o.substanzgrad] : '—' }}</td>
+              <td hlmTd class="text-muted-foreground">{{ bewertungText(o.bewertung) }}</td>
+              <td hlmTd><span hlmBadge variant="secondary">{{ statusLabel[o.status] }}</span></td>
+              <td hlmTd class="whitespace-nowrap">{{ o.zustaendigName }}</td>
+            </tr>
+          } @empty {
+            <tr hlmTr>
+              <td hlmTd colspan="9" class="py-6 text-center text-muted-foreground">
+                Keine Objekte entsprechen den Filtern.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
