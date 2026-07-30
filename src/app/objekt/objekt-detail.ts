@@ -29,7 +29,6 @@ import {
   lucideFolderInput,
   lucideHistory,
   lucideImagePlus,
-  lucideLayers,
   lucideMagnet,
   lucideMapPin,
   lucideMerge,
@@ -144,7 +143,6 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideFolderInput,
       lucideHistory,
       lucideImagePlus,
-      lucideLayers,
       lucideMagnet,
       lucideMapPin,
       lucideMerge,
@@ -389,6 +387,9 @@ export class ObjektDetail implements OnDestroy {
       this.bearbeitenHinweis();
       return;
     }
+    // Beim Abschliessen der Bearbeitung auch den Geometrie-Modus sauber
+    // beenden (inkl. Protokoll/Toast) — sein Werkzeug lebt nur im Edit-Modus.
+    if (this.istEdit() && this.geometrieModus()) this.geometrieModusUmschalten();
     this.gewuenschterModus.set(this.istEdit() ? 'view' : 'edit');
   }
 
@@ -573,10 +574,6 @@ export class ObjektDetail implements OnDestroy {
   protected inNeuemTabOeffnen(): void {
     const o = this.objekt();
     window.open(o ? `/karte?sig=${encodeURIComponent(o.id)}` : '/karte', '_blank', 'noopener');
-  }
-
-  protected layerPanel(): void {
-    this.karte()?.panelUmschalten();
   }
 
   // ------------------------------------------------------ Rich-Text-Anzeige

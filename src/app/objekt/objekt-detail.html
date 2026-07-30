@@ -986,47 +986,38 @@
               <button hlmTabsTrigger="kommentare">Kommentare</button>
             </hlm-tabs-list>
             <div class="ml-auto flex items-center gap-1">
-              <button
-                hlmBtn
-                [variant]="geometrieModus() ? 'secondary' : 'ghost'"
-                size="icon"
-                type="button"
-                [disabled]="!darfBearbeiten()"
-                (click)="geometrieModusUmschalten()"
-                [hlmTooltip]="
-                  !darfBearbeiten()
-                    ? 'Geometrie bearbeiten ist der bearbeitenden Rolle im passenden Status vorbehalten'
-                    : geometrieModus()
-                      ? 'Geometrie-Bearbeitung abschliessen'
-                      : 'Geometrie bearbeiten (05.05)'
-                "
-                aria-label="Geometrie bearbeiten"
-              >
-                <ng-icon name="lucideSpline" />
-              </button>
-              <button
-                hlmBtn
-                variant="ghost"
-                size="icon"
-                type="button"
-                (click)="layerPanel()"
-                hlmTooltip="Layer-Auswahl ein-/ausblenden"
-                aria-label="Layer-Auswahl"
-              >
-                <ng-icon name="lucideLayers" />
-              </button>
-              <button
-                hlmBtn
-                [variant]="kommentarModusAktiv() ? 'secondary' : 'ghost'"
-                size="icon"
-                type="button"
-                (click)="kommentarWerkzeug()"
-                hlmTooltip="Kommentar auf der Karte platzieren (Klick wählt die Position)"
-                aria-label="Kommentar auf der Karte platzieren"
-              >
-                <ng-icon name="lucideMessageSquarePlus" />
-              </button>
-              <div class="mx-1 h-5 w-px bg-border"></div>
+              <!-- Werkzeuge nur auf dem Karten-Tab; Geometrie nur im Edit-Modus -->
+              @if (kartenTab() === 'karte') {
+                @if (istEdit()) {
+                  <button
+                    hlmBtn
+                    [variant]="geometrieModus() ? 'secondary' : 'ghost'"
+                    size="icon"
+                    type="button"
+                    (click)="geometrieModusUmschalten()"
+                    [hlmTooltip]="
+                      geometrieModus()
+                        ? 'Geometrie-Bearbeitung abschliessen'
+                        : 'Geometrie bearbeiten (05.05)'
+                    "
+                    aria-label="Geometrie bearbeiten"
+                  >
+                    <ng-icon name="lucideSpline" />
+                  </button>
+                }
+                <button
+                  hlmBtn
+                  [variant]="kommentarModusAktiv() ? 'secondary' : 'ghost'"
+                  size="icon"
+                  type="button"
+                  (click)="kommentarWerkzeug()"
+                  hlmTooltip="Kommentar auf der Karte platzieren (Klick wählt die Position)"
+                  aria-label="Kommentar auf der Karte platzieren"
+                >
+                  <ng-icon name="lucideMessageSquarePlus" />
+                </button>
+                <div class="mx-1 h-5 w-px bg-border"></div>
+              }
               <button
                 hlmBtn
                 variant="ghost"

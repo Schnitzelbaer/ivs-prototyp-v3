@@ -18,7 +18,6 @@ import {
   lucideExternalLink,
   lucideInbox,
   lucideLasso,
-  lucideLayers,
   lucideListFilter,
   lucideMessageSquarePlus,
   lucideRotateCw,
@@ -113,7 +112,6 @@ interface StatusOption {
       lucideExternalLink,
       lucideInbox,
       lucideLasso,
-      lucideLayers,
       lucideListFilter,
       lucideMessageSquarePlus,
       lucideRotateCw,
@@ -252,10 +250,6 @@ export class Dashboard {
 
   protected polygonWerkzeug(): void {
     this.karte()?.polygonUmschalten();
-  }
-
-  protected layerPanel(): void {
-    this.karte()?.panelUmschalten();
   }
 
   protected inNeuemTabOeffnen(): void {

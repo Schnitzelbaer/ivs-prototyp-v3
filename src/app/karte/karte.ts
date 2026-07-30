@@ -145,7 +145,6 @@ const TREFFER_RADIUS_TOUCH_PX = 14;
         [expanded]="true"
         #panelAuf="brnCollapsible"
         class="absolute right-3 bottom-6 w-60 rounded-md border border-border bg-background/95 shadow-md backdrop-blur"
-        [class.hidden]="!panelOffen()"
       >
         <button
           hlmCollapsibleTrigger
@@ -337,7 +336,6 @@ export class Karte implements AfterViewInit, OnDestroy {
     ...BASEMAP_DEFS.map((b) => ({ ...b, deckkraft: 100, sichtbar: b.id === 'pk-grau' })),
     ...OVERLAY_DEFS.map((o) => ({ ...o, sichtbar: false })),
   ];
-  readonly panelOffen = signal(true);
   readonly polygonAktiv = signal(false);
   /** Kommentar-Werkzeug aktiv: nächster Kartenklick wählt die Position. */
   readonly kommentarModus = signal(false);
@@ -702,11 +700,6 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.editSketch?.destroy();
     this.view?.destroy();
     this.view = null;
-  }
-
-  /** Layer-Panel ein-/ausblenden (Toolbar-Knopf der einbettenden Seite). */
-  panelUmschalten(): void {
-    this.panelOffen.set(!this.panelOffen());
   }
 
   // ------------------------------------------- Hover-MapTip und Kontextmenü
