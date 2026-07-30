@@ -11,7 +11,13 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideBold, lucideEraser, lucideHighlighter, lucideItalic, lucideStrikethrough } from '@ng-icons/lucide';
+import {
+  lucideBold,
+  lucideEraser,
+  lucideHighlighter,
+  lucideItalic,
+  lucideStrikethrough,
+} from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 
@@ -33,10 +39,18 @@ const MARKER_FARBEN = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgIcon, HlmButtonImports, HlmTooltipImports],
   providers: [
-    provideIcons({ lucideBold, lucideEraser, lucideHighlighter, lucideItalic, lucideStrikethrough }),
+    provideIcons({
+      lucideBold,
+      lucideEraser,
+      lucideHighlighter,
+      lucideItalic,
+      lucideStrikethrough,
+    }),
   ],
   template: `
-    <div class="rounded-md border border-input bg-transparent shadow-xs focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+    <div
+      class="rounded-md border border-input bg-transparent shadow-xs focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50"
+    >
       <div class="flex items-center gap-0.5 border-b border-border px-1.5 py-1">
         <button
           hlmBtn
@@ -81,13 +95,16 @@ const MARKER_FARBEN = [
         @for (marker of markerFarben; track marker.id) {
           <button
             type="button"
-            class="flex size-7 items-center justify-center rounded-md hover:bg-accent"
+            class="flex size-7 items-center justify-center rounded-md hover:bg-accent pointer-coarse:size-11"
             (mousedown)="$event.preventDefault()"
             (click)="markieren(marker.farbe)"
             [hlmTooltip]="marker.label"
             [attr.aria-label]="marker.label"
           >
-            <span class="size-3.5 rounded-full border border-black/20" [style.background]="marker.farbe"></span>
+            <span
+              class="size-3.5 rounded-full border border-black/20"
+              [style.background]="marker.farbe"
+            ></span>
           </button>
         }
         <button
@@ -104,7 +121,11 @@ const MARKER_FARBEN = [
           <ng-icon name="lucideEraser" />
         </button>
         @if (zeichenLimit(); as limit) {
-          <span class="ml-auto pr-1 text-xs tabular-nums" [class.text-destructive]="zeichen() > limit" [class.text-muted-foreground]="zeichen() <= limit">
+          <span
+            class="ml-auto pr-1 text-xs tabular-nums"
+            [class.text-destructive]="zeichen() > limit"
+            [class.text-muted-foreground]="zeichen() <= limit"
+          >
             {{ zeichen() }}/{{ limit }}
           </span>
         }

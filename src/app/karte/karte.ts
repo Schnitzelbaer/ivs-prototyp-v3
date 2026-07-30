@@ -174,7 +174,7 @@ export interface KartenSelektion {
                   </span>
                   <button
                     type="button"
-                    class="text-muted-foreground hover:text-foreground"
+                    class="relative text-muted-foreground hover:text-foreground pointer-coarse:after:absolute pointer-coarse:after:-inset-x-2 pointer-coarse:after:-inset-y-2.5 pointer-coarse:after:content-['']"
                     (click)="layerUmschalten(def.id)"
                     [attr.aria-label]="
                       'Layer ' +

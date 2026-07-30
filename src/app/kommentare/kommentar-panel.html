@@ -4,7 +4,9 @@
     <div class="flex items-center justify-between gap-2">
       <h3 class="text-sm font-semibold">
         Kommentare
-        <span class="ml-1 font-normal text-muted-foreground">{{ kommentare().length }} von {{ gesamt() }}</span>
+        <span class="ml-1 font-normal text-muted-foreground"
+          >{{ kommentare().length }} von {{ gesamt() }}</span
+        >
       </h3>
       <div class="flex items-center gap-1">
         <button
@@ -38,7 +40,7 @@
                 { wert: 'alle', label: 'Alle' },
                 { wert: 'offen', label: 'Offene' },
                 { wert: 'erledigt', label: 'Erledigte' },
-                { wert: 'meine', label: 'Eigene' }
+                { wert: 'meine', label: 'Eigene' },
               ];
               track eintrag.wert
             ) {
@@ -86,8 +88,14 @@
           </div>
           @if (objektSignatur() === null || k.objektSignatur !== objektSignatur()) {
             @if (k.objektSignatur) {
-              <button type="button" (click)="objektKlick.emit(k.objektSignatur)" hlmTooltip="Objekt öffnen">
-                <span hlmBadge variant="secondary" class="font-mono text-[11px]">{{ k.objektSignatur }}</span>
+              <button
+                type="button"
+                (click)="objektKlick.emit(k.objektSignatur)"
+                hlmTooltip="Objekt öffnen"
+              >
+                <span hlmBadge variant="secondary" class="font-mono text-[11px]">{{
+                  k.objektSignatur
+                }}</span>
               </button>
             } @else {
               <span hlmBadge variant="outline" class="text-[11px]">Karte</span>
@@ -158,13 +166,17 @@
         @if (k.antworten.length > 0) {
           <button
             type="button"
-            class="mt-2 flex items-center gap-1 text-sm text-primary"
+            class="mt-2 flex items-center gap-1 text-sm text-primary pointer-coarse:min-h-11"
             (click)="antwortenUmschalten(k.id)"
           >
             {{ k.antworten.length }}
             {{ k.antworten.length === 1 ? 'Antwort' : 'Antworten' }}
             {{ offeneAntworten().has(k.id) ? 'ausblenden' : 'anzeigen' }}
-            <ng-icon name="lucideChevronDown" class="transition-transform" [class.rotate-180]="offeneAntworten().has(k.id)" />
+            <ng-icon
+              name="lucideChevronDown"
+              class="transition-transform"
+              [class.rotate-180]="offeneAntworten().has(k.id)"
+            />
           </button>
         }
         @if (offeneAntworten().has(k.id)) {

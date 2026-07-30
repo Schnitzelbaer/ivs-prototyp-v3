@@ -9,11 +9,15 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
   selector: 'ivs-bewertungs-punkte',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex items-center gap-1.5" role="group" aria-label="Punktewertung 0 bis 4">
+    <div
+      class="flex items-center gap-1.5 pointer-coarse:gap-2.5"
+      role="group"
+      aria-label="Punktewertung 0 bis 4"
+    >
       @for (p of stufen; track p) {
         <button
           type="button"
-          class="size-4 rounded-full border border-primary transition-colors disabled:cursor-default"
+          class="relative size-4 rounded-full border border-primary transition-colors disabled:cursor-default pointer-coarse:size-7 pointer-coarse:after:absolute pointer-coarse:after:-inset-x-1 pointer-coarse:after:-inset-y-2 pointer-coarse:after:content-['']"
           [class.bg-primary]="(wert() ?? 0) >= p"
           [class.hover:bg-primary/40]="!nurLesen() && (wert() ?? 0) < p"
           [disabled]="nurLesen()"
@@ -25,7 +29,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       @if (!nurLesen() && wert() !== null) {
         <button
           type="button"
-          class="ml-0.5 text-sm leading-none text-muted-foreground hover:text-foreground"
+          class="relative ml-0.5 text-sm leading-none text-muted-foreground hover:text-foreground pointer-coarse:after:absolute pointer-coarse:after:-inset-3.5 pointer-coarse:after:content-['']"
           (click)="setze(null)"
           aria-label="Wertung löschen"
         >
