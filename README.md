@@ -87,7 +87,7 @@ Themengruppe.
 
 ## Stand
 
-Der Kern-Workflow steht in zweiter Ausbaustufe (30.07.2026). Der vollständige
+Der Kern-Workflow steht in dritter Ausbaustufe (30.07.2026). Der vollständige
 Projektstand — abgestimmte Entscheide, Architektur, Fallstricke und nächste
 Schritte — liegt in [docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md),
 Abschnitte 9.8, 12.4–12.6 und 14. Dieses Dokument allein genügt, um in einer
@@ -111,9 +111,10 @@ neuen Session weiterzuarbeiten.
   bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden mit
   den Objekt-Attributen angereichert (`karten-layer.ts`). Selektion mit
   SDK-Highlight, Abblendung und Zoom; Hover zeigt einen MapTip mit der
-  Hierarchie der getroffenen Objekte, Klick selektiert (bei Mehrfachtreffern
-  über ein Kontextmenü). `/karte` öffnet ein eigenständiges Kartenfenster, das
-  per BroadcastChannel bidirektional mit dem Hauptfenster synchronisiert.
+  Hierarchie der getroffenen Objekte, Klick öffnet das Objekt direkt — nur
+  bei mehreren echt verschiedenen getroffenen Objekten erscheint ein
+  Kontextmenü zur Auswahl. `/karte` öffnet ein eigenständiges Kartenfenster,
+  das per BroadcastChannel bidirektional mit dem Hauptfenster synchronisiert.
 - **Objekte** (`/objekte`): Kartenansicht mit dezenter Objektliste, Suche,
   Filtern und Side-Panel mit dem Objektinhalt (04.01–04.03), Export-Attrappe.
 - **360°-Aufnahmen** (`/panorama`): Galerie der Befahrung mit echt drehbarem
@@ -133,10 +134,17 @@ neuen Session weiterzuarbeiten.
 - **Stammdatenverwaltung** (`/stammdaten`, nur R-03): Auswahllisten mit
   DE/FR/IT, deaktivieren statt löschen (02.01/02.02); die Wegbegleiter-Typen
   speisen das Objektformular.
-- **Mock-Daten** (`src/app/core/seed-data.ts`): 46 Objekte im Testgebiet Bern
-  (5 Strecken, 9 Linienführungen, 22 Abschnitte, 10 Wegbegleiter), abgeleitet
-  aus den echten Gruppierungen der Testdaten (`ivs_ivsfk`, `ivs_signatur`);
-  Änderungen überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
+- **Mock-Daten**: 46 kuratierte Objekte (`src/app/core/seed-data.ts`, fünf
+  Strecken mit ausformulierten Beschrieben) plus eine generierte
+  **Vollabdeckung** aller Testgeometrien (`src/app/core/objekt-generierung.ts`):
+  Jede Route, jedes Teilsegment und jedes Punktobjekt gehört zu einem
+  Mock-Objekt (insgesamt ~2565, generierte im Status «publiziert») und
+  reagiert auf der Karte auf Hover und Klick. Die Ableitung folgt den echten
+  Gruppierungen (`ivs_ivsfk` → Strecke, `ivs_signatur` → Linienführung,
+  Route → Abschnitt), räumlich getrennte Gruppen werden über
+  Zusammenhangskomponenten aufgeteilt — kein Objekt besteht aus
+  unverbundenen Stücken. Änderungen überleben im localStorage
+  (`SEED_VERSION` erhöhen verwirft sie).
 
 Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Versionsvergleich,
 Nebenblöcke (Accounts, Arbeitspakete, Reports).

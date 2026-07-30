@@ -20,7 +20,7 @@
 > (abgestimmte Detailentscheide), 12.4 (Projektstruktur und Persistenz),
 > 12.5 (was gebaut ist), 12.6 (Fallstricke) und 14 (nächste Schritte).
 >
-> **Stand:** 30.07.2026, zweite Ausbaustufe. Repository auf `main`, gepusht.
+> **Stand:** 30.07.2026, dritte Ausbaustufe. Repository auf `main`.
 
 ---
 
@@ -46,16 +46,16 @@ Die Spalte «Ref. Arbeitshilfe» zeigt die Rollen der Arbeitshilfe, welche die
 entsprechende Zugriffsrolle erhalten. Eine Person kann mehrere Rollen erhalten
 (z. B. Ausbildungsverantwortliche).
 
-| ID | Rolle | Ref. Arbeitshilfe | Beschreibung | Hauptverantwortung im Prozess |
-|---|---|---|---|---|
-| R-01 | Alle Benutzer | — | Authentifizierte Personen | Anmeldung via eIAM; Erstellung von Reports |
-| R-02 | Technische Administration | — | Verantwortlich für Systemzugriff | Verwaltung Accounts, Berechtigungen, technische Konfiguration |
-| R-03 | Fachliche Administration | PL ASTRA, Gesamtkoordination | Fachverantwortliche Stellen | Verwaltung von Auswahllisten/Stammdaten, Freigabe von Versionen, Zusammenstellen von Arbeitspaketen |
-| R-04 | Regionale Koordination | Teamleitung | Verantwortlicher eines oder mehrerer Inventarisierungsteams | Koordiniert die Inventarisierenden seines Gebietes |
-| R-05 | Inventarisierende | Inventarisierungsteam, Inventarisierende, Ausbildungsverantwortliche | Externe/interne Bearbeitende | Erfassung und Aktualisierung von Bundes-Objekten |
-| R-06 | Fachlektorat | Fachlektorat, Sprachlektorat, Ausbildungsverantwortliche | Fachliches Review, 1. Stufe der Qualitätsprüfung | Prüfung, Kommentierung, Rückmeldung an Inventarisierende, Editieren |
-| R-07 | Fachliche Prüfstelle | Fachexperte/in, Kantonale IVS-Fachstellen, Fachgremium | Prüfung während des Genehmigungsverfahrens, 1. und 2. Stufe der Qualitätsprüfung | Kann gewisse Felder kommentieren. Nur bei Objekten in festgelegten Gebieten resp. schweizweit |
-| R-08 | System | — | Automatisierte Prozesse | Statuswechsel, Zuweisungen |
+| ID   | Rolle                     | Ref. Arbeitshilfe                                                    | Beschreibung                                                                     | Hauptverantwortung im Prozess                                                                       |
+| ---- | ------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| R-01 | Alle Benutzer             | —                                                                    | Authentifizierte Personen                                                        | Anmeldung via eIAM; Erstellung von Reports                                                          |
+| R-02 | Technische Administration | —                                                                    | Verantwortlich für Systemzugriff                                                 | Verwaltung Accounts, Berechtigungen, technische Konfiguration                                       |
+| R-03 | Fachliche Administration  | PL ASTRA, Gesamtkoordination                                         | Fachverantwortliche Stellen                                                      | Verwaltung von Auswahllisten/Stammdaten, Freigabe von Versionen, Zusammenstellen von Arbeitspaketen |
+| R-04 | Regionale Koordination    | Teamleitung                                                          | Verantwortlicher eines oder mehrerer Inventarisierungsteams                      | Koordiniert die Inventarisierenden seines Gebietes                                                  |
+| R-05 | Inventarisierende         | Inventarisierungsteam, Inventarisierende, Ausbildungsverantwortliche | Externe/interne Bearbeitende                                                     | Erfassung und Aktualisierung von Bundes-Objekten                                                    |
+| R-06 | Fachlektorat              | Fachlektorat, Sprachlektorat, Ausbildungsverantwortliche             | Fachliches Review, 1. Stufe der Qualitätsprüfung                                 | Prüfung, Kommentierung, Rückmeldung an Inventarisierende, Editieren                                 |
+| R-07 | Fachliche Prüfstelle      | Fachexperte/in, Kantonale IVS-Fachstellen, Fachgremium               | Prüfung während des Genehmigungsverfahrens, 1. und 2. Stufe der Qualitätsprüfung | Kann gewisse Felder kommentieren. Nur bei Objekten in festgelegten Gebieten resp. schweizweit       |
+| R-08 | System                    | —                                                                    | Automatisierte Prozesse                                                          | Statuswechsel, Zuweisungen                                                                          |
 
 ---
 
@@ -113,8 +113,7 @@ Kapitel:
 - **Abbildungen** mit Legende im linken Seitenrand, z. B.
   «Frei gelegte Pflästerung oberhalb Simplon Dorf. Abb. 1 (RF, 23. 7. 1992)».
 - Auf Streckenebene zusätzlich **Nachträge** mit eigenem Vermerk, z. B.
-  «Ergänzung der Fassung von 1992/94 von Roland Flückiger (Klaus Aerni,
-  10. 1. 2003)» mit nummerierten Punkten.
+  «Ergänzung der Fassung von 1992/94 von Roland Flückiger (Klaus Aerni, 10. 1. 2003)» mit nummerierten Punkten.
 - Abschluss: `—— Ende des Beschriebs ——`
 
 **Merkmale für realistische Mock-Texte:** wissenschaftlicher, nüchterner Ton;
@@ -145,22 +144,22 @@ mit den Bearbeitungsschritten durch eine explizite Rückkopplung verbunden.
 
 Vier Zeilen von oben nach unten:
 
-| Zeile | Farbe | Bedeutung |
-|---|---|---|
-| Wer | violett | Persona / Rolle |
-| Warum | grün | Ziel |
-| Was | blau | Aufgabe (Backbone) |
-| Wie | gelb | Teilaufgabe |
+| Zeile | Farbe   | Bedeutung          |
+| ----- | ------- | ------------------ |
+| Wer   | violett | Persona / Rolle    |
+| Warum | grün    | Ziel               |
+| Was   | blau    | Aufgabe (Backbone) |
+| Wie   | gelb    | Teilaufgabe        |
 
 ### 4.2 Markierungen
 
-| Markierung | Farbe | Bedeutung |
-|---|---|---|
-| `[Feld]` | hellblau | «Muss im Feld möglich sein» — betrifft Backbone-Karten |
-| `[WS]` | orange | «Ergänzungen im Workshop» |
-| `[AH]` | pink | «Ergänzungen aus der Arbeitshilfe» — **neu in dieser Fassung** |
-| `[SOLL]` | Badge | Priorität Soll, direkt auf der Karte vermerkt |
-| `[?]` | rot | offene Frage auf dem Board |
+| Markierung | Farbe    | Bedeutung                                                      |
+| ---------- | -------- | -------------------------------------------------------------- |
+| `[Feld]`   | hellblau | «Muss im Feld möglich sein» — betrifft Backbone-Karten         |
+| `[WS]`     | orange   | «Ergänzungen im Workshop»                                      |
+| `[AH]`     | pink     | «Ergänzungen aus der Arbeitshilfe» — **neu in dieser Fassung** |
+| `[SOLL]`   | Badge    | Priorität Soll, direkt auf der Karte vermerkt                  |
+| `[?]`      | rot      | offene Frage auf dem Board                                     |
 
 Als `[Feld]` markiert sind die Backbone-Aufgaben **Bearbeitungsstand prüfen,
 Bildmaterial ergänzen, Kartendaten anpassen, Informationen bearbeiten** und
@@ -173,32 +172,32 @@ ein, das in der alten Karte fehlte (siehe 4.5).
 
 ### 4.3 Backbone
 
-| Aufgabe (Backbone) | Persona | Ziel |
-|---|---|---|
-| Anmelden | Alle Benutzer (R-01) | Zugriff aufs IVS beschränken |
-| Zutritte verteilen (manuell) | Technische Administration (R-02) | Zugriff aufs IVS beschränken |
-| Verwalten von Auswahllisten | — (keine Persona auf dem Board) | Basis für Erfassung und Beurteilung schaffen |
-| 360-Grad-Bilder importieren | `[?]` | Basis für Erfassung und Beurteilung schaffen |
-| Lücken bestimmen | Regionale Koordination (R-04), Fachliche Administration (R-03) | Koordination der Erfassung |
-| Arbeitspakete zuweisen | Fachliche Administration (R-03) | Koordination der Erfassung |
-| Bearbeitungsstand prüfen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
-| Bildmaterial ergänzen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
-| Kartendaten anpassen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
-| Informationen bearbeiten `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
-| Bedeutung einschätzen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
-| Bericht generieren | Fachlektorat (R-06), Inventarisierende (R-05) | Inventar auf neuesten Stand bringen und halten |
-| Status wechseln | Inventarisierende (R-05), Fachlektorat (R-06) | Qualität des Inventars sicherstellen |
-| Versionen vergleichen | Inventarisierende (R-05), Fachlektorat (R-06) | Qualität des Inventars sicherstellen |
-| Fachliche Prüfung | Fachlektorat (R-06) | Qualität des Inventars sicherstellen |
-| Kommentieren | Fachlektorat (R-06), Fachliche Prüfstelle (R-07), Inventarisierende (R-05) | Qualität des Inventars sicherstellen |
-| Sprachliche Prüfung | Sprachlektorat (gleiche Rolle wie Fachlektorat R-06) | Qualität des Inventars sicherstellen |
-| Übergreifende Prüfung | Fachliche Prüfstelle (R-07) | Qualität des Inventars sicherstellen |
-| Zusammenfassung prüfen | — (keine Persona auf dem Board) | Qualität des Inventars sicherstellen |
-| Rückmeldungen einarbeiten | Inventarisierende (R-05) | Qualität des Inventars sicherstellen |
-| Version definitiv setzen | Fachliche Administration (R-03) | Inventar der Öffentlichkeit zur Verfügung stellen |
-| Freigeben | Fachliche Prüfstelle (R-07), Fachliche Administration (R-03) | Inventar der Öffentlichkeit zur Verfügung stellen |
-| Publizieren | System (R-08), swisstopo | Inventar der Öffentlichkeit zur Verfügung stellen |
-| Reports erstellen | `[?]` | `[?]` |
+| Aufgabe (Backbone)                | Persona                                                                    | Ziel                                              |
+| --------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------- |
+| Anmelden                          | Alle Benutzer (R-01)                                                       | Zugriff aufs IVS beschränken                      |
+| Zutritte verteilen (manuell)      | Technische Administration (R-02)                                           | Zugriff aufs IVS beschränken                      |
+| Verwalten von Auswahllisten       | — (keine Persona auf dem Board)                                            | Basis für Erfassung und Beurteilung schaffen      |
+| 360-Grad-Bilder importieren       | `[?]`                                                                      | Basis für Erfassung und Beurteilung schaffen      |
+| Lücken bestimmen                  | Regionale Koordination (R-04), Fachliche Administration (R-03)             | Koordination der Erfassung                        |
+| Arbeitspakete zuweisen            | Fachliche Administration (R-03)                                            | Koordination der Erfassung                        |
+| Bearbeitungsstand prüfen `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05)                              | Inventar auf neuesten Stand bringen und halten    |
+| Bildmaterial ergänzen `[Feld]`    | Fachlektorat (R-06), Inventarisierende (R-05)                              | Inventar auf neuesten Stand bringen und halten    |
+| Kartendaten anpassen `[Feld]`     | Fachlektorat (R-06), Inventarisierende (R-05)                              | Inventar auf neuesten Stand bringen und halten    |
+| Informationen bearbeiten `[Feld]` | Fachlektorat (R-06), Inventarisierende (R-05)                              | Inventar auf neuesten Stand bringen und halten    |
+| Bedeutung einschätzen `[Feld]`    | Fachlektorat (R-06), Inventarisierende (R-05)                              | Inventar auf neuesten Stand bringen und halten    |
+| Bericht generieren                | Fachlektorat (R-06), Inventarisierende (R-05)                              | Inventar auf neuesten Stand bringen und halten    |
+| Status wechseln                   | Inventarisierende (R-05), Fachlektorat (R-06)                              | Qualität des Inventars sicherstellen              |
+| Versionen vergleichen             | Inventarisierende (R-05), Fachlektorat (R-06)                              | Qualität des Inventars sicherstellen              |
+| Fachliche Prüfung                 | Fachlektorat (R-06)                                                        | Qualität des Inventars sicherstellen              |
+| Kommentieren                      | Fachlektorat (R-06), Fachliche Prüfstelle (R-07), Inventarisierende (R-05) | Qualität des Inventars sicherstellen              |
+| Sprachliche Prüfung               | Sprachlektorat (gleiche Rolle wie Fachlektorat R-06)                       | Qualität des Inventars sicherstellen              |
+| Übergreifende Prüfung             | Fachliche Prüfstelle (R-07)                                                | Qualität des Inventars sicherstellen              |
+| Zusammenfassung prüfen            | — (keine Persona auf dem Board)                                            | Qualität des Inventars sicherstellen              |
+| Rückmeldungen einarbeiten         | Inventarisierende (R-05)                                                   | Qualität des Inventars sicherstellen              |
+| Version definitiv setzen          | Fachliche Administration (R-03)                                            | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Freigeben                         | Fachliche Prüfstelle (R-07), Fachliche Administration (R-03)               | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Publizieren                       | System (R-08), swisstopo                                                   | Inventar der Öffentlichkeit zur Verfügung stellen |
+| Reports erstellen                 | `[?]`                                                                      | `[?]`                                             |
 
 **Änderungen gegenüber der alten Fassung, die für das Prototyping zählen:**
 
@@ -372,17 +371,17 @@ Die Checkliste, auf der das Prüfprotokoll aufbaut. Neun Prüffragen, jede als
 kein «nicht anwendbar». Blau gesetzte Kapitelnummern sind Links in die
 Arbeitshilfe beziehungsweise ins Terminologie-Handbuch.
 
-| Nr. | Prüffrage | Verweis |
-|---|---|---|
-| 1 | Ist der Beschrieb verständlich? | — |
-| 2 | Sind Aufbau und Argumentation des Beschriebs nachvollziehbar? | — |
-| 3 | Entspricht der Inhalt des Beschriebs den Bestimmungen der Arbeitshilfe? | Arbeitshilfe Kap. 3.6, 4.7 |
-| 4 | Ist der Inhalt des Beschriebs aktuell und für den Vollzug des IVS relevant? | — |
-| 5 | Ist der Inhalt des Beschriebs widerspruchsfrei? | — |
-| 6 | Werden inhaltliche Lücken explizit erwähnt und gegebenenfalls begründet? Sind die Begründungen nachvollziehbar und fachlich korrekt? | — |
-| 7 | Ist die Terminologie der Beschriebe korrekt? | Terminologie-Handbuch |
-| 8 | Werden die wichtigsten Aussagen des Beschriebs hervorgehoben und korrekt bewertet? | Arbeitshilfe Kap. 5.1, 5.2, 5.3 |
-| 9 | Entsprechen die Eckdaten dem Inhalt des Beschriebs? | — |
+| Nr. | Prüffrage                                                                                                                            | Verweis                         |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| 1   | Ist der Beschrieb verständlich?                                                                                                      | —                               |
+| 2   | Sind Aufbau und Argumentation des Beschriebs nachvollziehbar?                                                                        | —                               |
+| 3   | Entspricht der Inhalt des Beschriebs den Bestimmungen der Arbeitshilfe?                                                              | Arbeitshilfe Kap. 3.6, 4.7      |
+| 4   | Ist der Inhalt des Beschriebs aktuell und für den Vollzug des IVS relevant?                                                          | —                               |
+| 5   | Ist der Inhalt des Beschriebs widerspruchsfrei?                                                                                      | —                               |
+| 6   | Werden inhaltliche Lücken explizit erwähnt und gegebenenfalls begründet? Sind die Begründungen nachvollziehbar und fachlich korrekt? | —                               |
+| 7   | Ist die Terminologie der Beschriebe korrekt?                                                                                         | Terminologie-Handbuch           |
+| 8   | Werden die wichtigsten Aussagen des Beschriebs hervorgehoben und korrekt bewertet?                                                   | Arbeitshilfe Kap. 5.1, 5.2, 5.3 |
+| 9   | Entsprechen die Eckdaten dem Inhalt des Beschriebs?                                                                                  | —                               |
 
 **Für das Prototyping relevant:**
 
@@ -408,151 +407,151 @@ Grobanforderungen. Priorität: **M** (Muss), **S** (Soll), **K** (Kann).
 
 ### 5.1 Accounts- und Rollenverwaltung
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 01.01 | — | eIAM-Login | Alle (R-01) | Authentifizierung über eIAM gemäss BIT-Standard | Erfolgreicher SSO-Login | M |
-| 01.02 | — | Rollenbasierte Berechtigung | System (R-08) | Rollenspezifische Funktionen nach Login | UI zeigt nur erlaubte Aktionen | M |
-| 01.03 | 0502, 0503 | Account-Verwaltung | Tech. Admin (R-02) | Anlegen / Deaktivieren | Accounts können erstellt / gelöscht werden | M |
-| 01.04 | 0501 | Rollen-Verwaltung | Tech. Admin (R-02) | Rollen erstellen, umbenennen, löschen | Rollen zuweisbar / entziehbar | M |
-| 01.05 | — | Session-Handling | System (R-08) | Auto-Logout nach Inaktivität gemäss BIT | Logout nach definierter Zeit | M |
+| ID    | Ref.       | Anforderung                 | Rolle              | Beschreibung                                    | Akzeptanzkriterium                         | Prio |
+| ----- | ---------- | --------------------------- | ------------------ | ----------------------------------------------- | ------------------------------------------ | ---- |
+| 01.01 | —          | eIAM-Login                  | Alle (R-01)        | Authentifizierung über eIAM gemäss BIT-Standard | Erfolgreicher SSO-Login                    | M    |
+| 01.02 | —          | Rollenbasierte Berechtigung | System (R-08)      | Rollenspezifische Funktionen nach Login         | UI zeigt nur erlaubte Aktionen             | M    |
+| 01.03 | 0502, 0503 | Account-Verwaltung          | Tech. Admin (R-02) | Anlegen / Deaktivieren                          | Accounts können erstellt / gelöscht werden | M    |
+| 01.04 | 0501       | Rollen-Verwaltung           | Tech. Admin (R-02) | Rollen erstellen, umbenennen, löschen           | Rollen zuweisbar / entziehbar              | M    |
+| 01.05 | —          | Session-Handling            | System (R-08)      | Auto-Logout nach Inaktivität gemäss BIT         | Logout nach definierter Zeit               | M    |
 
 ### 5.2 Auswahllisten / Stammdaten verwalten
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 02.01 | 0601 | Inhalte der Auswahllisten verwalten | Fachl. Admin (R-03) | CRUD für Stammdaten (Wegoberflächen, -formen und -begleiter, Kunstbauten, Bedeutungsstufen national/regional/lokal, Substanzgrad, Typ des GIS-Objekts, Status der Bearbeitung) | Werte hinzufügen / ändern / deaktivieren | S |
-| 02.02 | — | Mehrsprachigkeit der Listeninhalte | Fachl. Admin (R-03) | Stammdaten in DE/FR/IT pflegbar | Übersetzungen pro Eintrag | S |
+| ID    | Ref. | Anforderung                         | Rolle               | Beschreibung                                                                                                                                                                   | Akzeptanzkriterium                       | Prio |
+| ----- | ---- | ----------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- | ---- |
+| 02.01 | 0601 | Inhalte der Auswahllisten verwalten | Fachl. Admin (R-03) | CRUD für Stammdaten (Wegoberflächen, -formen und -begleiter, Kunstbauten, Bedeutungsstufen national/regional/lokal, Substanzgrad, Typ des GIS-Objekts, Status der Bearbeitung) | Werte hinzufügen / ändern / deaktivieren | S    |
+| 02.02 | —    | Mehrsprachigkeit der Listeninhalte  | Fachl. Admin (R-03) | Stammdaten in DE/FR/IT pflegbar                                                                                                                                                | Übersetzungen pro Eintrag                | S    |
 
 ### 5.3 Vorbereitungen Arbeitspakete (Push-Methode)
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 03.01 | — | Arbeitspakete bilden | Fachl. Admin (R-03) | Zusammenstellung von Bundes-Objekten zu Paketen (z. B. nach Kanton / Region) | Paket erstellbar, benennbar | M |
-| 03.02 | — | Push-Zuweisung von Arbeitspaketen | Fachl. Admin (R-03) | Aktive Zuweisung eines Pakets an Regionale Koordination | Regionale Koordination sieht Arbeitspakete und dazugehörige Objekte | M |
-| 03.03 | — | Push-Zuweisung an Inventarisierende | Reg. Koordination (R-04) | Aktive Zuweisung eines Objekts an Inventarisierende | Inventarisierende sehen Objekte im Dashboard | M |
-| 03.04 | — | Einsatzlisten generieren | Fachl. Admin (R-03), Reg. Koordination (R-04) | Export von Arbeitspaketen als Excel-File mit Bundes-Objekten und Bearbeitenden | Excel-File herunterladbar, enthält Strecke mit allen Linienführungen und Abschnitten inkl. Objektname, Objektnummer, Kilometer pro Objekt, Region, Kanton und Bearbeitern | S |
+| ID    | Ref. | Anforderung                         | Rolle                                         | Beschreibung                                                                   | Akzeptanzkriterium                                                                                                                                                        | Prio |
+| ----- | ---- | ----------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| 03.01 | —    | Arbeitspakete bilden                | Fachl. Admin (R-03)                           | Zusammenstellung von Bundes-Objekten zu Paketen (z. B. nach Kanton / Region)   | Paket erstellbar, benennbar                                                                                                                                               | M    |
+| 03.02 | —    | Push-Zuweisung von Arbeitspaketen   | Fachl. Admin (R-03)                           | Aktive Zuweisung eines Pakets an Regionale Koordination                        | Regionale Koordination sieht Arbeitspakete und dazugehörige Objekte                                                                                                       | M    |
+| 03.03 | —    | Push-Zuweisung an Inventarisierende | Reg. Koordination (R-04)                      | Aktive Zuweisung eines Objekts an Inventarisierende                            | Inventarisierende sehen Objekte im Dashboard                                                                                                                              | M    |
+| 03.04 | —    | Einsatzlisten generieren            | Fachl. Admin (R-03), Reg. Koordination (R-04) | Export von Arbeitspaketen als Excel-File mit Bundes-Objekten und Bearbeitenden | Excel-File herunterladbar, enthält Strecke mit allen Linienführungen und Abschnitten inkl. Objektname, Objektnummer, Kilometer pro Objekt, Region, Kanton und Bearbeitern | S    |
 
 ### 5.4 Bearbeitungsstand prüfen / Übersicht
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 04.01 | — | Übersicht | Alle (R-01) | Übersicht aller Objekte inkl. Status und Fortschritt | Alle Objekte werden gemäss Berechtigungen aufgelistet | M |
-| 04.01 | — | Dashboard | Alle (R-01) | Darstellung von vorgefilterten Objekten für eine spezifische Aufgabe | Einstiegsseite für spezifische Aufgaben zeigt alle zu bearbeitenden Objekte | S |
-| 04.02 | 0102, 0201, 0701, 0702 | Suche & Filter | Alle (R-01) | Volltext- und Attributsuche; Filter nach allen Stammdaten inkl. Bedeutungsattribut, Status, Bearbeiter, Region, Substanzgrad, Alter, Objekt-Typ | Trefferliste mit Sprung zu Karte/Detail | M |
-| 04.03 | 0703 | Sortierung | Alle (R-01) | Nach allen Spalten der Übersichtstabelle sortierbar | Übersicht auf- und absteigend sortiert | K |
-| 04.04 | — | Gleichzeitige Bearbeitung von Attributen | Fachl. Admin (R-03), Inventarisierende (R-05), Fachlektorat (R-06) | Mehrere Objekte selektieren, gemeinsames Attribut wählen, neuen Wert definieren; Änderung wird auf alle ausgewählten Objekte angewendet | Ein Wert wird für mehrere gewählte Objekte gleichzeitig geändert | S |
-| 04.05 | 0704 | Export einer gefilterten und sortierten Liste | Alle (R-01) | Gefilterte und sortierte Tabelle als Excel-File | Excel enthält alle im UI sichtbaren Spalten mit den gefilterten Zeilen, gleich sortiert wie im UI | M |
+| ID    | Ref.                   | Anforderung                                   | Rolle                                                              | Beschreibung                                                                                                                                    | Akzeptanzkriterium                                                                                | Prio |
+| ----- | ---------------------- | --------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---- |
+| 04.01 | —                      | Übersicht                                     | Alle (R-01)                                                        | Übersicht aller Objekte inkl. Status und Fortschritt                                                                                            | Alle Objekte werden gemäss Berechtigungen aufgelistet                                             | M    |
+| 04.01 | —                      | Dashboard                                     | Alle (R-01)                                                        | Darstellung von vorgefilterten Objekten für eine spezifische Aufgabe                                                                            | Einstiegsseite für spezifische Aufgaben zeigt alle zu bearbeitenden Objekte                       | S    |
+| 04.02 | 0102, 0201, 0701, 0702 | Suche & Filter                                | Alle (R-01)                                                        | Volltext- und Attributsuche; Filter nach allen Stammdaten inkl. Bedeutungsattribut, Status, Bearbeiter, Region, Substanzgrad, Alter, Objekt-Typ | Trefferliste mit Sprung zu Karte/Detail                                                           | M    |
+| 04.03 | 0703                   | Sortierung                                    | Alle (R-01)                                                        | Nach allen Spalten der Übersichtstabelle sortierbar                                                                                             | Übersicht auf- und absteigend sortiert                                                            | K    |
+| 04.04 | —                      | Gleichzeitige Bearbeitung von Attributen      | Fachl. Admin (R-03), Inventarisierende (R-05), Fachlektorat (R-06) | Mehrere Objekte selektieren, gemeinsames Attribut wählen, neuen Wert definieren; Änderung wird auf alle ausgewählten Objekte angewendet         | Ein Wert wird für mehrere gewählte Objekte gleichzeitig geändert                                  | S    |
+| 04.05 | 0704                   | Export einer gefilterten und sortierten Liste | Alle (R-01)                                                        | Gefilterte und sortierte Tabelle als Excel-File                                                                                                 | Excel enthält alle im UI sichtbaren Spalten mit den gefilterten Zeilen, gleich sortiert wie im UI | M    |
 
 ### 5.5 Kartenfunktionen
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 05.01 | — | Kartendarstellung (ESRI) | Alle (R-01) | Kartenviewer auf ESRI SDK mit swisstopo-Hintergrundkarten | Karte lädt mit korrekten Layern | M |
-| 05.02 | 0701 | Filter | Alle (R-01) | Filter analog Liste nach allen Stammdaten inkl. Status, Region, Bearbeiter, Bedeutung, Substanzgrad, Alter, Objekt-Typ | Nur dem Filter entsprechende Bundes-Objekte werden angezeigt | M |
-| 05.03 | — | Geographischer Filter | Alle (R-01) | Filtern mithilfe einer Bounding-Box | Nur Objekte innerhalb der gezeichneten Bounding-Box werden angezeigt | M |
-| 05.04 | 0103 | Zusätzliche Layer einblenden | Alle (R-01) | Inhalte aus der BGDI (IVS-Geländekarte, Dufourkarte etc.) und weitere Webservices (z. B. Inventarobjekte ASTRA) als Layer | Layer zu- oder wegschaltbar, Daten entsprechend ein-/ausgeblendet | M |
-| 05.05 | 0104 | Geometrien erstellen und editieren | Inventarisierende (R-05) | Linien- und Punkt-Geometrien: zeichnen, verschieben, löschen, verlängern und verkürzen, **verschneiden, zusammenfügen** | Änderungen gespeichert | M |
-| 05.06 | — | Validierung | System (R-08) | Erfasste und geänderte Geometrien werden automatisch gegen INTERLIS validiert | Validierungsmeldung bei Fehlschlag | M |
-| 05.07 | 0113 | Historisierung Änderungen an Geometrie | System (R-08) | Jede Änderung an der Geometrie wird protokolliert | Historie textuell einsehbar mit Zeitstempel, Bearbeiter, Bearbeitung (neu, mutiert, gelöscht) | S |
-| 05.08 | 0113, 1001 | Geometrie-Versionen vergleichen | Alle (R-01) | Frühere und aktuelle Geometrieversionen vergleichbar | Differenz-Ansicht zeigt alte und neue Geometrieversion übereinander | S |
-| 05.09 | — | Snapping / Tracing | Inventarisierende (R-05) | Beim Zeichnen und Bearbeiten optionales Snapping/Tracing auf TLM (Digitale Landschaftsmodelle) von swisstopo oder an bestehender Geometrie | Erfasste Geometrien sind konsistent | M |
-| 05.10 | — | Legende | Alle (R-01) | Legende mit allen Karten-Bestandteilen sichtbar, wenn eine Karte angezeigt wird | Legende zeigt alle verwendeten Symbole und Farben für Geometrien und Hintergrundkarten | M |
-| 05.11 | — | Räumliche Notizen | Alle (R-01) | Notizen an beliebigem Ort auf der Karte erfassbar | Notiz wird als Symbol an der gewählten Position angezeigt | S |
+| ID    | Ref.       | Anforderung                            | Rolle                    | Beschreibung                                                                                                                               | Akzeptanzkriterium                                                                            | Prio |
+| ----- | ---------- | -------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ---- |
+| 05.01 | —          | Kartendarstellung (ESRI)               | Alle (R-01)              | Kartenviewer auf ESRI SDK mit swisstopo-Hintergrundkarten                                                                                  | Karte lädt mit korrekten Layern                                                               | M    |
+| 05.02 | 0701       | Filter                                 | Alle (R-01)              | Filter analog Liste nach allen Stammdaten inkl. Status, Region, Bearbeiter, Bedeutung, Substanzgrad, Alter, Objekt-Typ                     | Nur dem Filter entsprechende Bundes-Objekte werden angezeigt                                  | M    |
+| 05.03 | —          | Geographischer Filter                  | Alle (R-01)              | Filtern mithilfe einer Bounding-Box                                                                                                        | Nur Objekte innerhalb der gezeichneten Bounding-Box werden angezeigt                          | M    |
+| 05.04 | 0103       | Zusätzliche Layer einblenden           | Alle (R-01)              | Inhalte aus der BGDI (IVS-Geländekarte, Dufourkarte etc.) und weitere Webservices (z. B. Inventarobjekte ASTRA) als Layer                  | Layer zu- oder wegschaltbar, Daten entsprechend ein-/ausgeblendet                             | M    |
+| 05.05 | 0104       | Geometrien erstellen und editieren     | Inventarisierende (R-05) | Linien- und Punkt-Geometrien: zeichnen, verschieben, löschen, verlängern und verkürzen, **verschneiden, zusammenfügen**                    | Änderungen gespeichert                                                                        | M    |
+| 05.06 | —          | Validierung                            | System (R-08)            | Erfasste und geänderte Geometrien werden automatisch gegen INTERLIS validiert                                                              | Validierungsmeldung bei Fehlschlag                                                            | M    |
+| 05.07 | 0113       | Historisierung Änderungen an Geometrie | System (R-08)            | Jede Änderung an der Geometrie wird protokolliert                                                                                          | Historie textuell einsehbar mit Zeitstempel, Bearbeiter, Bearbeitung (neu, mutiert, gelöscht) | S    |
+| 05.08 | 0113, 1001 | Geometrie-Versionen vergleichen        | Alle (R-01)              | Frühere und aktuelle Geometrieversionen vergleichbar                                                                                       | Differenz-Ansicht zeigt alte und neue Geometrieversion übereinander                           | S    |
+| 05.09 | —          | Snapping / Tracing                     | Inventarisierende (R-05) | Beim Zeichnen und Bearbeiten optionales Snapping/Tracing auf TLM (Digitale Landschaftsmodelle) von swisstopo oder an bestehender Geometrie | Erfasste Geometrien sind konsistent                                                           | M    |
+| 05.10 | —          | Legende                                | Alle (R-01)              | Legende mit allen Karten-Bestandteilen sichtbar, wenn eine Karte angezeigt wird                                                            | Legende zeigt alle verwendeten Symbole und Farben für Geometrien und Hintergrundkarten        | M    |
+| 05.11 | —          | Räumliche Notizen                      | Alle (R-01)              | Notizen an beliebigem Ort auf der Karte erfassbar                                                                                          | Notiz wird als Symbol an der gewählten Position angezeigt                                     | S    |
 
 ### 5.6 360°-Bilder
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 06.01 | — | 360°-Bilder Viewer | Alle (R-01) | Von ASTRA bereitgestellte 360°-Bilder sind im Tool verfügbar und als Preview zu öffnen | Für jedes 360°-Bild lässt sich eine Bildvorschau direkt im Tool öffnen | M |
-| 06.02 | 0101 | Lokalisierung 360°-Bilder | Alle (R-01) | Position und Blickrichtung des aktuell ausgewählten Bildes werden auf einer Karte visualisiert | Karte zeigt Standort und Blickrichtung des aktiven 360°-Bildes | M |
-| 06.03 | — | Navigation auf 360°-Bildern | Alle (R-01) | Es kann zwischen den 360°-Bildern navigiert werden | Vor- und Rückwärtsnavigation ist möglich | M |
+| ID    | Ref. | Anforderung                 | Rolle       | Beschreibung                                                                                   | Akzeptanzkriterium                                                     | Prio |
+| ----- | ---- | --------------------------- | ----------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---- |
+| 06.01 | —    | 360°-Bilder Viewer          | Alle (R-01) | Von ASTRA bereitgestellte 360°-Bilder sind im Tool verfügbar und als Preview zu öffnen         | Für jedes 360°-Bild lässt sich eine Bildvorschau direkt im Tool öffnen | M    |
+| 06.02 | 0101 | Lokalisierung 360°-Bilder   | Alle (R-01) | Position und Blickrichtung des aktuell ausgewählten Bildes werden auf einer Karte visualisiert | Karte zeigt Standort und Blickrichtung des aktiven 360°-Bildes         | M    |
+| 06.03 | —    | Navigation auf 360°-Bildern | Alle (R-01) | Es kann zwischen den 360°-Bildern navigiert werden                                             | Vor- und Rückwärtsnavigation ist möglich                               | M    |
 
 ### 5.7 Objekte bearbeiten (Fokus Bundes-Objekte)
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 07.01 | 0109 | Bilder hochladen/löschen | Inventarisierende (R-05) | Mehrere Bilder pro Objekt; Auswahl von lokalem Speicherort oder aus zentraler Medienbibliothek | Bilder zugeordnet und gespeichert; Bild und Metadaten löschbar | M |
-| 07.02 | 0109 | Metadaten zu Bildern | Inventarisierende (R-05) | Dateiname, Bildlegende, Quelle, Urheber, Aufnahmedatum, Aufnahmestandort, Lizenz | Pflichtfelder validiert | M |
-| 07.03 | — | Bildvorschau | Alle (R-01) | Bilder als Vorschau einsehbar | Hochgeladene Bilder können angeschaut werden | S |
-| 07.04 | 0101, 0105, 0111, 0303 | Attributformular | Inventarisierende (R-05) | Formularbasierte Sachdatenerfassung | Validierung gemäss Datenmodell; nicht bearbeitbare Attribute gesperrt; Hinweis auf betroffene verlinkte Objekte | M |
-| 07.05 | — | Objekt löschen | Inventarisierende (R-05) | Objekt bis zur Publikation löschbar | Objekt gelöscht; nach Publikation nicht mehr löschbar | M |
-| 07.06 | — | Einschätzung der Bedeutung | Inventarisierende (R-05) | Empfehlung für Bedeutung wird vom System berechnet | Bedeutung wird vorgeschlagen, lässt sich annehmen oder ändern | K |
-| 07.07 | — | Zusammenfassung ausfüllen | Inventarisierende (R-05) | Zusammenfassung pro Objekt erfassen/ändern | Zusammenfassung wird gespeichert | M |
-| 07.08 | 0101 | Zuweisung 360-Grad-Aufnahme | Inventarisierende (R-05) | 360-Grad-Aufnahme aus bestehender Datenbank einem Objekt zuweisen | Aufnahme wird zum Objektbeschrieb angezeigt | K |
-| 07.09 | 0108 | Verlinkung von Objekten | Inventarisierende (R-05) | Bezug zur über-/untergeordneten Strecke, Linienführung, Abschnitt oder Wegbegleiter herstellen oder ändern | Parent/Child des Objekts aufrufbar | M |
-| 07.10 | — | Darstellung verlinkte Objekte | Alle (R-01) | Zusammengehörigkeit zwischen verlinkten Objekten klar und nachvollziehbar dargestellt | Beziehung ist visuell erkennbar | M |
-| 07.11 | — | Selektion verlinkter Objekte | Inventarisierende (R-05) | Zwischen verlinkten Objekten unterschiedlichen Typs (Strecke, Linienführung, Abschnitt) einfach wechseln | Verlinkte Objekte anderen Typs können geöffnet und bearbeitet werden | M |
-| 07.12 | 0113 | Historisierung | System (R-08) | Jede Änderung wird protokolliert | Historie einsehbar mit Zeitstempel, Bearbeiter, Bearbeitung (neu, mutiert, gelöscht) | M |
-| 07.13 | 0901 | Versionen anzeigen | Alle (R-01) | Jede abgenommene Version eines Objekts ist einsehbar | Alte Versionen anzeigbar | M |
-| 07.14 | 0704 | Export | Fachl. Admin (R-03) | Objektbeschreibungen als PDF; Geodaten vollständig als INTERLIS (gemäss neuem MGDM) oder FileGeodatabase inkl. aller Attribute, verlinkter Dokumente und Fotos | PDF mit allen Attributen und Bildern; Geodaten vollständig exportierbar | M |
-| 07.15 | — | Begründung erfassen | Inventarisierende (R-05) | Textuelle Begründung der Einstufung | Pflichtfeld bei Klassifikation | M |
-| 07.16 | 0106, 0107 | Nicht-existent setzen oder aufheben | Inventarisierende (R-05) | Objekt auf nicht-existent oder wieder existent setzen, mit Begründung | Warnhinweis mit Konsequenzen beim Setzen; nicht-existente und verlinkte Objekte gekennzeichnet; verlinkte Objekte müssen überprüft werden | M |
-| 07.17 | — | Text-Formatierung | Inventarisierende (R-05) | Texte formatieren zur Kommunikation oder um eigene Todos zu markieren (einfärben, durchstreichen, fett etc.) | Formatierungsoptionen stehen für Textinhalte zur Verfügung | S |
-| 07.18 | — | Bibliografie erstellen | Inventarisierende (R-05) | Zusammenstellung aller Quellen aus dem Objektbeschrieb, Abfrage über eine oder mehrere Literaturdatenbanken | Bibliografie mit allen im Text zitierten Titeln wird angezeigt | S |
+| ID    | Ref.                   | Anforderung                         | Rolle                    | Beschreibung                                                                                                                                                   | Akzeptanzkriterium                                                                                                                        | Prio |
+| ----- | ---------------------- | ----------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| 07.01 | 0109                   | Bilder hochladen/löschen            | Inventarisierende (R-05) | Mehrere Bilder pro Objekt; Auswahl von lokalem Speicherort oder aus zentraler Medienbibliothek                                                                 | Bilder zugeordnet und gespeichert; Bild und Metadaten löschbar                                                                            | M    |
+| 07.02 | 0109                   | Metadaten zu Bildern                | Inventarisierende (R-05) | Dateiname, Bildlegende, Quelle, Urheber, Aufnahmedatum, Aufnahmestandort, Lizenz                                                                               | Pflichtfelder validiert                                                                                                                   | M    |
+| 07.03 | —                      | Bildvorschau                        | Alle (R-01)              | Bilder als Vorschau einsehbar                                                                                                                                  | Hochgeladene Bilder können angeschaut werden                                                                                              | S    |
+| 07.04 | 0101, 0105, 0111, 0303 | Attributformular                    | Inventarisierende (R-05) | Formularbasierte Sachdatenerfassung                                                                                                                            | Validierung gemäss Datenmodell; nicht bearbeitbare Attribute gesperrt; Hinweis auf betroffene verlinkte Objekte                           | M    |
+| 07.05 | —                      | Objekt löschen                      | Inventarisierende (R-05) | Objekt bis zur Publikation löschbar                                                                                                                            | Objekt gelöscht; nach Publikation nicht mehr löschbar                                                                                     | M    |
+| 07.06 | —                      | Einschätzung der Bedeutung          | Inventarisierende (R-05) | Empfehlung für Bedeutung wird vom System berechnet                                                                                                             | Bedeutung wird vorgeschlagen, lässt sich annehmen oder ändern                                                                             | K    |
+| 07.07 | —                      | Zusammenfassung ausfüllen           | Inventarisierende (R-05) | Zusammenfassung pro Objekt erfassen/ändern                                                                                                                     | Zusammenfassung wird gespeichert                                                                                                          | M    |
+| 07.08 | 0101                   | Zuweisung 360-Grad-Aufnahme         | Inventarisierende (R-05) | 360-Grad-Aufnahme aus bestehender Datenbank einem Objekt zuweisen                                                                                              | Aufnahme wird zum Objektbeschrieb angezeigt                                                                                               | K    |
+| 07.09 | 0108                   | Verlinkung von Objekten             | Inventarisierende (R-05) | Bezug zur über-/untergeordneten Strecke, Linienführung, Abschnitt oder Wegbegleiter herstellen oder ändern                                                     | Parent/Child des Objekts aufrufbar                                                                                                        | M    |
+| 07.10 | —                      | Darstellung verlinkte Objekte       | Alle (R-01)              | Zusammengehörigkeit zwischen verlinkten Objekten klar und nachvollziehbar dargestellt                                                                          | Beziehung ist visuell erkennbar                                                                                                           | M    |
+| 07.11 | —                      | Selektion verlinkter Objekte        | Inventarisierende (R-05) | Zwischen verlinkten Objekten unterschiedlichen Typs (Strecke, Linienführung, Abschnitt) einfach wechseln                                                       | Verlinkte Objekte anderen Typs können geöffnet und bearbeitet werden                                                                      | M    |
+| 07.12 | 0113                   | Historisierung                      | System (R-08)            | Jede Änderung wird protokolliert                                                                                                                               | Historie einsehbar mit Zeitstempel, Bearbeiter, Bearbeitung (neu, mutiert, gelöscht)                                                      | M    |
+| 07.13 | 0901                   | Versionen anzeigen                  | Alle (R-01)              | Jede abgenommene Version eines Objekts ist einsehbar                                                                                                           | Alte Versionen anzeigbar                                                                                                                  | M    |
+| 07.14 | 0704                   | Export                              | Fachl. Admin (R-03)      | Objektbeschreibungen als PDF; Geodaten vollständig als INTERLIS (gemäss neuem MGDM) oder FileGeodatabase inkl. aller Attribute, verlinkter Dokumente und Fotos | PDF mit allen Attributen und Bildern; Geodaten vollständig exportierbar                                                                   | M    |
+| 07.15 | —                      | Begründung erfassen                 | Inventarisierende (R-05) | Textuelle Begründung der Einstufung                                                                                                                            | Pflichtfeld bei Klassifikation                                                                                                            | M    |
+| 07.16 | 0106, 0107             | Nicht-existent setzen oder aufheben | Inventarisierende (R-05) | Objekt auf nicht-existent oder wieder existent setzen, mit Begründung                                                                                          | Warnhinweis mit Konsequenzen beim Setzen; nicht-existente und verlinkte Objekte gekennzeichnet; verlinkte Objekte müssen überprüft werden | M    |
+| 07.17 | —                      | Text-Formatierung                   | Inventarisierende (R-05) | Texte formatieren zur Kommunikation oder um eigene Todos zu markieren (einfärben, durchstreichen, fett etc.)                                                   | Formatierungsoptionen stehen für Textinhalte zur Verfügung                                                                                | S    |
+| 07.18 | —                      | Bibliografie erstellen              | Inventarisierende (R-05) | Zusammenstellung aller Quellen aus dem Objektbeschrieb, Abfrage über eine oder mehrere Literaturdatenbanken                                                    | Bibliografie mit allen im Text zitierten Titeln wird angezeigt                                                                            | S    |
 
 ### 5.8 Status und Versionierung
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 08.01 | 0203, 0301, 0401, 0402 | Status setzen | Fachl. Admin (R-03), Fachlektorat (R-06), Inventarisierende (R-05) | z. B. «in Bearbeitung» → «bereit für Prüfung» | Status sichtbar in Übersicht | M |
-| 08.02 | — | Objektstatus mitführen | System (R-08) | Voller Workflow (Review/Freigabe) abgebildet | Jedes Objekt verfügt über einen Status gemäss Workflow | M |
-| 08.03 | — | Zuweisung an Rolle | Fachl. Admin (R-03), Fachlektorat (R-06), Inventarisierende (R-05), System | Übergabe durch Inventarisierende an Fachlektorat und umgekehrt | Fachlektorat kann Objekt lesen und bearbeiten | M |
-| 08.04 | 0113 | Historie anschauen | Alle (R-01) | Log mit allen Änderungen | Log mit Mutationstyp (neu/geändert/gelöscht), Zeitstempel, Bearbeiter, Änderung | M |
-| 08.05 | 0113, 1001 | Versionen vergleichen | Alle (R-01) | Vergleich Geometrie und Sachdaten | Älterer Stand aufrufbar; Unterschiede zwischen zwei Versionen hervorgehoben | S |
+| ID    | Ref.                   | Anforderung            | Rolle                                                                      | Beschreibung                                                   | Akzeptanzkriterium                                                              | Prio |
+| ----- | ---------------------- | ---------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---- |
+| 08.01 | 0203, 0301, 0401, 0402 | Status setzen          | Fachl. Admin (R-03), Fachlektorat (R-06), Inventarisierende (R-05)         | z. B. «in Bearbeitung» → «bereit für Prüfung»                  | Status sichtbar in Übersicht                                                    | M    |
+| 08.02 | —                      | Objektstatus mitführen | System (R-08)                                                              | Voller Workflow (Review/Freigabe) abgebildet                   | Jedes Objekt verfügt über einen Status gemäss Workflow                          | M    |
+| 08.03 | —                      | Zuweisung an Rolle     | Fachl. Admin (R-03), Fachlektorat (R-06), Inventarisierende (R-05), System | Übergabe durch Inventarisierende an Fachlektorat und umgekehrt | Fachlektorat kann Objekt lesen und bearbeiten                                   | M    |
+| 08.04 | 0113                   | Historie anschauen     | Alle (R-01)                                                                | Log mit allen Änderungen                                       | Log mit Mutationstyp (neu/geändert/gelöscht), Zeitstempel, Bearbeiter, Änderung | M    |
+| 08.05 | 0113, 1001             | Versionen vergleichen  | Alle (R-01)                                                                | Vergleich Geometrie und Sachdaten                              | Älterer Stand aufrufbar; Unterschiede zwischen zwei Versionen hervorgehoben     | S    |
 
 ### 5.9 Prüfen und Kommentieren
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 09.01 | 0201 | Objekt prüfen | Fachlektorat (R-06) | Status des Objekts auf «prüfen» ändern | Status «in Prüfung» gesetzt | M |
-| 09.02 | 0203 | Objekt als geprüft kennzeichnen | Fachlektorat (R-06) | Status des Objekts auf «geprüft» ändern | Status «geprüft» gesetzt inkl. Zeitstempel | M |
-| 09.03 | 0202, 0302 | Kommentare erfassen | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Kommentare zu Attributen/Geometrien/Bildern | Kommentar referenziert Attribut | M |
-| 09.04 | 0202 | Inline-Kommentare mit Textbezug | Fachlektorat (R-06) | Kommentare in einem Text an spezifischen Stellen hinzufügen | In einem Textfeld mehrere Kommentare auf verschiedenen Textstellen | K |
-| 09.05 | — | Kommentare bearbeiten | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Eigene Kommentare anpassen | Kommentar gespeichert | S |
+| ID    | Ref.       | Anforderung                     | Rolle                                                                   | Beschreibung                                                | Akzeptanzkriterium                                                 | Prio |
+| ----- | ---------- | ------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ | ---- |
+| 09.01 | 0201       | Objekt prüfen                   | Fachlektorat (R-06)                                                     | Status des Objekts auf «prüfen» ändern                      | Status «in Prüfung» gesetzt                                        | M    |
+| 09.02 | 0203       | Objekt als geprüft kennzeichnen | Fachlektorat (R-06)                                                     | Status des Objekts auf «geprüft» ändern                     | Status «geprüft» gesetzt inkl. Zeitstempel                         | M    |
+| 09.03 | 0202, 0302 | Kommentare erfassen             | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Kommentare zu Attributen/Geometrien/Bildern                 | Kommentar referenziert Attribut                                    | M    |
+| 09.04 | 0202       | Inline-Kommentare mit Textbezug | Fachlektorat (R-06)                                                     | Kommentare in einem Text an spezifischen Stellen hinzufügen | In einem Textfeld mehrere Kommentare auf verschiedenen Textstellen | K    |
+| 09.05 | —          | Kommentare bearbeiten           | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Eigene Kommentare anpassen                                  | Kommentar gespeichert                                              | S    |
 
 ### 5.10 Rückmeldungen einarbeiten
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 10.01 | — | Kommentare einsehen | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Liste offener Kommentare | Filterbar nach Status | M |
-| 10.02 | — | Kommentar als erledigt markieren | Inventarisierende (R-05) | Als «erledigt» markieren | Status des Kommentars ändert | S |
-| 10.03 | — | Rückgabe an Fachlektorat | Inventarisierende (R-05) | Erneute Zuweisung an Fachlektorat | Iteration möglich | M |
+| ID    | Ref. | Anforderung                      | Rolle                                                                   | Beschreibung                      | Akzeptanzkriterium           | Prio |
+| ----- | ---- | -------------------------------- | ----------------------------------------------------------------------- | --------------------------------- | ---------------------------- | ---- |
+| 10.01 | —    | Kommentare einsehen              | Fachlektorat (R-06), Inventarisierende (R-05), Fachl. Prüfstelle (R-07) | Liste offener Kommentare          | Filterbar nach Status        | M    |
+| 10.02 | —    | Kommentar als erledigt markieren | Inventarisierende (R-05)                                                | Als «erledigt» markieren          | Status des Kommentars ändert | S    |
+| 10.03 | —    | Rückgabe an Fachlektorat         | Inventarisierende (R-05)                                                | Erneute Zuweisung an Fachlektorat | Iteration möglich            | M    |
 
 ### 5.11 Übersetzungen, Freigabe
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 11.01 | 0401 | Freigabe | Fachl. Admin (R-03) | Formelle Freigabe mit dokumentiertem Entscheid | Audit-Eintrag mit Nutzer und Zeitstempel, Objekt gesperrt | M |
-| 11.02 | — | Neue Version anlegen | Fachl. Admin (R-03) | Neue Version für das gesamte Inventar erfassen | Neue Version auswählbar; Daten wieder bearbeitbar in neuester Version | S |
+| ID    | Ref. | Anforderung          | Rolle               | Beschreibung                                   | Akzeptanzkriterium                                                    | Prio |
+| ----- | ---- | -------------------- | ------------------- | ---------------------------------------------- | --------------------------------------------------------------------- | ---- |
+| 11.01 | 0401 | Freigabe             | Fachl. Admin (R-03) | Formelle Freigabe mit dokumentiertem Entscheid | Audit-Eintrag mit Nutzer und Zeitstempel, Objekt gesperrt             | M    |
+| 11.02 | —    | Neue Version anlegen | Fachl. Admin (R-03) | Neue Version für das gesamte Inventar erfassen | Neue Version auswählbar; Daten wieder bearbeitbar in neuester Version | S    |
 
 ### 5.12 Reports
 
-| ID | Ref. | Anforderung | Rolle | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|---|---|
-| 12.01 | 0704 | Objekt-Report generieren | Alle (R-01) | Jeder authentifizierte Benutzer kann Reports erstellen | Funktion für alle Rollen verfügbar; muss an Externe ohne Zugriff oder Personen ohne PC zustellbar sein | M |
-| 12.03 | — | Hinterlegung als Gesetzesgrundlage | Fachl. Admin (R-03), System | Verbindlicher Report und Karteneinträge werden unveränderlich (read-only) archiviert und als Gesetzesgrundlage hinterlegt | Report und Karte nach Hinterlegung unveränderbar; abrufbar inkl. Zeitstempel und verantwortlicher Person | M |
-| 12.04 | — | Standard-Reports | Fachl. Admin (R-03), Reg. Koordination (R-04) | Vordefinierte Berichte (Bearbeitungsstand, Statistiken, Inventarliste) | Export PDF / Excel | S |
+| ID    | Ref. | Anforderung                        | Rolle                                         | Beschreibung                                                                                                              | Akzeptanzkriterium                                                                                       | Prio |
+| ----- | ---- | ---------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---- |
+| 12.01 | 0704 | Objekt-Report generieren           | Alle (R-01)                                   | Jeder authentifizierte Benutzer kann Reports erstellen                                                                    | Funktion für alle Rollen verfügbar; muss an Externe ohne Zugriff oder Personen ohne PC zustellbar sein   | M    |
+| 12.03 | —    | Hinterlegung als Gesetzesgrundlage | Fachl. Admin (R-03), System                   | Verbindlicher Report und Karteneinträge werden unveränderlich (read-only) archiviert und als Gesetzesgrundlage hinterlegt | Report und Karte nach Hinterlegung unveränderbar; abrufbar inkl. Zeitstempel und verantwortlicher Person | M    |
+| 12.04 | —    | Standard-Reports                   | Fachl. Admin (R-03), Reg. Koordination (R-04) | Vordefinierte Berichte (Bearbeitungsstand, Statistiken, Inventarliste)                                                    | Export PDF / Excel                                                                                       | S    |
 
 ---
 
 ## 6. Nicht-funktionale Anforderungen
 
-| ID | Anforderung | Beschreibung | Akzeptanzkriterium | Prio |
-|---|---|---|---|---|
-| N01 | Sicherheit | eIAM-Integration, BIT-Sicherheitsstandards | BIT-Audit bestanden | M |
-| N02 | Sicherheit | Rollenbasierte Zugriffsrechte (RBAC) | Zugriffsmatrix dokumentiert und getestet | M |
-| N03 | Verfügbarkeit | SLA gemäss BIT-Vorgaben | Verträge unterzeichnet und akzeptiert | M |
-| N04 | Performance | Kartenansicht < 3 s Initial-Load | Lasttest dokumentiert | S |
-| N05 | Mehrsprachigkeit | UI in DE/FR/IT | i18n-Verwaltung | M |
-| N06 | Browser-Support | Chrome, Edge, Firefox, Safari (aktuell) | Cross-Browser-Test | M |
-| N07 | Barrierefreiheit | WCAG 2.1 AA (Bundes-Vorgabe P028) | Audit bestanden | M |
-| N08 | Datenschutz | DSG/DSGVO | DSFA durchgeführt | M |
-| N09 | Audit / Nachvollziehbarkeit | Vollständige Änderungshistorie pro Objekt | Audit-Log abrufbar | M |
-| N10 | Skalierbarkeit | Gleichzeitige Bearbeitende | Lasttest mit Zielwert | S |
-| N11 | Hosting | Betrieb beim Bund (BIT) | Infrastruktur BIT-konform | M |
-| N12 | Geräteunterstützung | Webapplikation muss auf Tablets mit einer Bildschirmbreite von mindestens 768 Pixeln mit Touch bedienbar sein, inkl. Kartenoperationen | Manuelle Tests auf einem gängigen Android-Tablet und einem iPad | M |
-| N13 | Hilfekonzept | Webapplikation zeigt Hilfestellungen zum Prozess | Kontextuelle Hilfe aufrufbar | M |
-| N14 | Exklusive Bearbeitung | Bearbeitung eines Objekts nur für einen Benutzer zeitgleich möglich | Nur die zugewiesene Person kann Objekte bearbeiten | M |
+| ID  | Anforderung                 | Beschreibung                                                                                                                           | Akzeptanzkriterium                                              | Prio |
+| --- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---- |
+| N01 | Sicherheit                  | eIAM-Integration, BIT-Sicherheitsstandards                                                                                             | BIT-Audit bestanden                                             | M    |
+| N02 | Sicherheit                  | Rollenbasierte Zugriffsrechte (RBAC)                                                                                                   | Zugriffsmatrix dokumentiert und getestet                        | M    |
+| N03 | Verfügbarkeit               | SLA gemäss BIT-Vorgaben                                                                                                                | Verträge unterzeichnet und akzeptiert                           | M    |
+| N04 | Performance                 | Kartenansicht < 3 s Initial-Load                                                                                                       | Lasttest dokumentiert                                           | S    |
+| N05 | Mehrsprachigkeit            | UI in DE/FR/IT                                                                                                                         | i18n-Verwaltung                                                 | M    |
+| N06 | Browser-Support             | Chrome, Edge, Firefox, Safari (aktuell)                                                                                                | Cross-Browser-Test                                              | M    |
+| N07 | Barrierefreiheit            | WCAG 2.1 AA (Bundes-Vorgabe P028)                                                                                                      | Audit bestanden                                                 | M    |
+| N08 | Datenschutz                 | DSG/DSGVO                                                                                                                              | DSFA durchgeführt                                               | M    |
+| N09 | Audit / Nachvollziehbarkeit | Vollständige Änderungshistorie pro Objekt                                                                                              | Audit-Log abrufbar                                              | M    |
+| N10 | Skalierbarkeit              | Gleichzeitige Bearbeitende                                                                                                             | Lasttest mit Zielwert                                           | S    |
+| N11 | Hosting                     | Betrieb beim Bund (BIT)                                                                                                                | Infrastruktur BIT-konform                                       | M    |
+| N12 | Geräteunterstützung         | Webapplikation muss auf Tablets mit einer Bildschirmbreite von mindestens 768 Pixeln mit Touch bedienbar sein, inkl. Kartenoperationen | Manuelle Tests auf einem gängigen Android-Tablet und einem iPad | M    |
+| N13 | Hilfekonzept                | Webapplikation zeigt Hilfestellungen zum Prozess                                                                                       | Kontextuelle Hilfe aufrufbar                                    | M    |
+| N14 | Exklusive Bearbeitung       | Bearbeitung eines Objekts nur für einen Benutzer zeitgleich möglich                                                                    | Nur die zugewiesene Person kann Objekte bearbeiten              | M    |
 
 ---
 
@@ -598,15 +597,15 @@ for JavaScript, swisstopo-WMTS-Hintergrund in Graustufen), Auswertungsergebnisse
 aus `Results_ASTRA.gdb`, Testgebiet **Bern**. Die GeoJSON-Dateien liegen in
 `data/` und sind nach WGS 84 reprojiziert.
 
-| Datei | Inhalt |
-|---|---|
-| `routen_bern_korrigiert.geojson` | Routen-Linien (Basis) |
-| `routen_bern_teilsegmente.geojson` | 2753 Teilsegmente; Attribute `seg_id`, `route_nr`, `seg_nr`, `seg_anzahl`, `seg_von_m`, `seg_bis_m`, `seg_laenge_m`, `ivs_ivsfk`, `ivs_signatur` |
-| `routen_bern_segmentgrenzen.geojson` | Marken an den Segmentgrenzen |
+| Datei                                                   | Inhalt                                                                                                                                                                       |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `routen_bern_korrigiert.geojson`                        | Routen-Linien (Basis)                                                                                                                                                        |
+| `routen_bern_teilsegmente.geojson`                      | 2753 Teilsegmente; Attribute `seg_id`, `route_nr`, `seg_nr`, `seg_anzahl`, `seg_von_m`, `seg_bis_m`, `seg_laenge_m`, `ivs_ivsfk`, `ivs_signatur`                             |
+| `routen_bern_segmentgrenzen.geojson`                    | Marken an den Segmentgrenzen                                                                                                                                                 |
 | `prototyp2_ivs_punktobjekte_bern_with_text_new.geojson` | 176 Punktobjekte; Attribute `ivs_deutsc` (z. B. «Profanes Gebäude»), `ivs_franzo`, `easyocr` (erkannter Name, z. B. «Gasthaus Traube»), `weight`, `route_nr`, `route_dist_m` |
-| `wegformen_segmented_lines.geojson` | Wegformen (Lockermaterial) |
-| `wegoberflaechen_bern_segmentiert.geojson` | Wegoberflächen |
-| `detection_bruecken_raw.geojson` | Per Deep Learning erkannte Brücken |
+| `wegformen_segmented_lines.geojson`                     | Wegformen (Lockermaterial)                                                                                                                                                   |
+| `wegoberflaechen_bern_segmentiert.geojson`              | Wegoberflächen                                                                                                                                                               |
+| `detection_bruecken_raw.geojson`                        | Per Deep Learning erkannte Brücken                                                                                                                                           |
 
 Mengengerüst: **1116 Routen**, längste rund 3.3 km. Die zehn längsten
 `route_nr`: 964 (3.26 km), 916 (3.20), 968 (3.06), 917 (2.99), 966 (2.92),
@@ -655,7 +654,7 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
 9. **360°:** echt drehbares Panorama, inklusive Vor-/Zurück-Navigation und
    Karten-Marker für Position und Blickrichtung. Platzhalter-Bilder genügen.
 10. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
-   plus Geometrie-Overlay alt/neu auf der Karte.
+    plus Geometrie-Overlay alt/neu auf der Karte.
 11. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
     SBB-Referenz existiert keine Vorlage. Die überarbeitete Story Map gibt
     inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
@@ -693,14 +692,14 @@ Die **Trefferflächen** sind dagegen durchgehend zu klein. Von 143 sichtbaren
 Bedienelementen liegen **139 unter 44 px** Höhe — der üblichen Mindestgrösse für
 Touch (Apple 44 pt, Google 48 dp, WCAG 2.5.8 mindestens 24 px):
 
-| Element | Grösse | Bemerkung |
-|---|---|---|
-| Checkbox, Radio, Slider-Griff | 16 × 16 px | kritisch |
-| Switch | 32 × 18 px, klein 24 × 14 px | kritisch |
-| Button `xs` | 24 px hoch | kritisch |
-| Button `sm`, Icon-Button | 28–32 px hoch | knapp |
-| Button Standard | 36 px hoch | knapp |
-| Eingabefelder | 36 px hoch | knapp |
+| Element                       | Grösse                       | Bemerkung |
+| ----------------------------- | ---------------------------- | --------- |
+| Checkbox, Radio, Slider-Griff | 16 × 16 px                   | kritisch  |
+| Switch                        | 32 × 18 px, klein 24 × 14 px | kritisch  |
+| Button `xs`                   | 24 px hoch                   | kritisch  |
+| Button `sm`, Icon-Button      | 28–32 px hoch                | knapp     |
+| Button Standard               | 36 px hoch                   | knapp     |
+| Eingabefelder                 | 36 px hoch                   | knapp     |
 
 Teilweise entschärft: Checkbox, Radio und Switch stehen in `<label>`-Elementen,
 die sich über die volle Zeilenbreite erstrecken (rund 678 px) und den Schalter
@@ -829,6 +828,34 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
 39. **Stammdatenverwaltung** als eigener Tab, **nur für die Fachliche
     Administration (R-03)** sichtbar.
 
+**Dritte Ausbaustufe (Vorgaben aus derselben Session)**
+
+40. **Objekte auf den bestehenden Layern:** Die Mock-Objekte haben keine
+    eigenen Karten-Layer. Die `ivs-map`-Layer (Routen, Teilsegmente,
+    Punktobjekte) werden beim Laden mit den Objekt-Attributen `signatur`,
+    `lf`, `strecke`, `ebene` angereichert und tragen Selektion, Klick,
+    Hover und Polygon-Filter. Optik = unverändert `ivs-map`.
+41. **Karten-Interaktion:** Hover zeigt einen MapTip mit der Hierarchie der
+    tatsächlich getroffenen Objekte (nicht der Gesamt-Hierarchie); Klick
+    öffnet das getroffene Objekt direkt; nur bei mehreren echt
+    verschiedenen Objekten (unterschiedliche Blatt-Signaturen) wird das
+    MapTip zum Kontextmenü, in dem man das zu öffnende Objekt wählt.
+42. **Selektion** wird mit SDK-Highlight hervorgehoben, alles andere
+    abgeblendet.
+43. **Symbolik:** Punktobjekte einheitlich rot (wie in der Legende); die
+    Legende zeigt die Routengrenze als dicke durchgezogene und die
+    Segmentgrenze als dünne gestrichelte schwarze Linie.
+44. **Vollabdeckung:** Jede Geometrie der Testdaten gehört zu einem
+    Mock-Objekt und reagiert auf Hover/Klick — kein Objekt besteht aus
+    räumlich getrennten Stücken (Aufteilung nach Zusammenhangskomponenten).
+    Die fünf kuratierten Strecken bleiben führend; generierte Objekte
+    stehen auf «publiziert».
+45. **spartan-Konformität** (aus dem Skill-Review): `hlm-collapsible` statt
+    handgebauter Klapp-Trigger, Toasts (sonner) für diskrete Aktionen,
+    Status-Signalfarben als Theme-Tokens, `hlm-empty` für Leerzustände,
+    Touch-Nachrüstung app-eigener Elemente über Tailwinds
+    `pointer-coarse:`-Variante.
+
 ---
 
 ## 10. Offene Punkte und Ungereimtheiten der Spezifikation
@@ -886,16 +913,16 @@ Neu hinzugekommen mit der überarbeiteten User Story Map:
 
 ## 11. Quellen
 
-| Quelle | Pfad / URL |
-|---|---|
-| Detailspezifikation | `~/Downloads/Detailspezifikation_IVS_IT_Fachapplikation.docx` |
-| User Story Map (überarbeitete Fassung, eingelesen 28.07.2026) | `~/Downloads/IVS User Story Map.pdf` |
-| Objektbeschrieb Strecke (VS 1, 19 Seiten) | `~/Downloads/Strecke.pdf` |
-| Objektbeschrieb Linienführung (VS 1.2) | `~/Downloads/Linienführung.pdf` |
-| Objektbeschrieb Abschnitt (VS 1.2.14) | `~/Downloads/Abschnitt.pdf` |
-| Testdaten und Referenz-Kartenimplementation | `/Users/wis/claude/ivs-map` |
-| Älterer Prototyp (begrenzte Inspiration) | <https://ivs-prototyp-variant-b.vercel.app/> |
-| Repository | <https://github.com/Schnitzelbaer/ivs-prototyp-v3> (privat) |
+| Quelle                                                        | Pfad / URL                                                    |
+| ------------------------------------------------------------- | ------------------------------------------------------------- |
+| Detailspezifikation                                           | `~/Downloads/Detailspezifikation_IVS_IT_Fachapplikation.docx` |
+| User Story Map (überarbeitete Fassung, eingelesen 28.07.2026) | `~/Downloads/IVS User Story Map.pdf`                          |
+| Objektbeschrieb Strecke (VS 1, 19 Seiten)                     | `~/Downloads/Strecke.pdf`                                     |
+| Objektbeschrieb Linienführung (VS 1.2)                        | `~/Downloads/Linienführung.pdf`                               |
+| Objektbeschrieb Abschnitt (VS 1.2.14)                         | `~/Downloads/Abschnitt.pdf`                                   |
+| Testdaten und Referenz-Kartenimplementation                   | `/Users/wis/claude/ivs-map`                                   |
+| Älterer Prototyp (begrenzte Inspiration)                      | <https://ivs-prototyp-variant-b.vercel.app/>                  |
+| Repository                                                    | <https://github.com/Schnitzelbaer/ivs-prototyp-v3> (privat)   |
 
 Zur Sprachregel siehe Abschnitt 13.5.
 
@@ -908,16 +935,16 @@ verbindlich — siehe die Leitplanken in Abschnitt 13.
 
 ### 12.1 Grundgerüst
 
-| Baustein | Version | Bemerkung |
-|---|---|---|
-| Angular | 22 | standalone, **kein SSR** (der ArcGIS-SDK ist browser-only) |
-| TypeScript | 6.0 | |
-| pnpm | 11 | Paketmanager; Build-Skripte in `pnpm-workspace.yaml` unter `allowBuilds` freigegeben |
-| Tailwind CSS | 4.3 | via `@tailwindcss/postcss`, konfiguriert in `.postcssrc.json` |
-| spartan/ui | 1.1.2 | `@spartan-ng/brain` + generierter Helm-Code, CLI `@spartan-ng/cli` |
-| ArcGIS Maps SDK | 5.1 | `@arcgis/core`; für die Karte selbst kein Lizenzschlüssel nötig |
-| Icons | Lucide | `@ng-icons/lucide` |
-| Schrift | Noto Sans | `@fontsource-variable/noto-sans` |
+| Baustein        | Version   | Bemerkung                                                                            |
+| --------------- | --------- | ------------------------------------------------------------------------------------ |
+| Angular         | 22        | standalone, **kein SSR** (der ArcGIS-SDK ist browser-only)                           |
+| TypeScript      | 6.0       |                                                                                      |
+| pnpm            | 11        | Paketmanager; Build-Skripte in `pnpm-workspace.yaml` unter `allowBuilds` freigegeben |
+| Tailwind CSS    | 4.3       | via `@tailwindcss/postcss`, konfiguriert in `.postcssrc.json`                        |
+| spartan/ui      | 1.1.2     | `@spartan-ng/brain` + generierter Helm-Code, CLI `@spartan-ng/cli`                   |
+| ArcGIS Maps SDK | 5.1       | `@arcgis/core`; für die Karte selbst kein Lizenzschlüssel nötig                      |
+| Icons           | Lucide    | `@ng-icons/lucide`                                                                   |
+| Schrift         | Noto Sans | `@fontsource-variable/noto-sans`                                                     |
 
 Weitere Abhängigkeiten kommen als Peers von spartan/ui: `ngx-scrollbar`
 (Scroll Area), `embla-carousel` und `embla-carousel-angular` (Carousel),
@@ -956,24 +983,24 @@ Tailwind-Utilities mappt.
 ```
 docs/            Fachkontext (dieses Dokument) und Story-Map-PDF
 libs/ui/         57 generierte spartan/ui-Primitives
-public/data/     Geodaten (Kopien aus ivs-map) + generierte Objekt-Geometrien
-tools/           build-objekte.mjs (Signatur → Geometrie, erzeugt public/data)
-src/styles.css   Theme-Tokens, Touch-Regeln
+public/data/     Geodaten (Kopien aus ivs-map)
+src/styles.css   Theme-Tokens (inkl. --status-*), Touch-Regeln
 src/app/
   app.routes.ts        Routen inkl. Guard für /stammdaten (nur R-03)
   core/                Modell, Stati, Rollen, Seed-Daten, Stores
     model.ts           IvsObjekt, Ebene, WorkflowStatus, Bewertung, idAusSignatur
-    status.ts          Status-Labels, Gruppen-Mapping, Übergänge je Rolle
+    status.ts          Status-Labels, -Farben, Gruppen-Mapping, Übergänge je Rolle
     rollen.ts          Rollen mit dashboardStati und editStati, darfEditieren
-    seed-data.ts       46 Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
-    objekt-store.ts    Objekte, statusWechseln (Zuständigkeit + Lognotiz)
+    seed-data.ts       46 kuratierte Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
+    objekt-generierung.ts  Vollabdeckung: generierte Objekte + Feature-Zuordnung
+    objekt-store.ts    Objekte, statusWechseln, ergänzt generierte idempotent
     einstellungen-store.ts  aktive Rolle, Dark-Mode
     kommentare.ts      Kommentar-Modell, parseKommentarText, jetztLokal, Store
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
     geometrie-store.ts Arbeitsgeometrien je Signatur
     begehungen.ts      Begehungsplanung
     stammdaten.ts      Auswahllisten DE/FR/IT
-  shell/               Icon-Leiste, Rollenmenü hinter dem IVS-Logo
+  shell/               Icon-Leiste, Rollenmenü hinter dem IVS-Logo, Toaster
   dashboard/           Aufgabenliste + Kartenpanel + Kommentare
   objekte/             Kartenansicht mit dezenter Liste und Side-Panel
   objekt/              Objektbearbeitung
@@ -981,8 +1008,9 @@ src/app/
     text-editor.ts     Rich-Text-Editor (contenteditable, 07.17)
     bewertungs-punkte.ts  Punkteskala 0–4
   karte/               ArcGIS-Komponente und Umfeld
-    karte.ts           View, Layer, Selektion, Geometrie-Editing, Pins
-    karten-layer.ts    Layer-, Basemap- und Overlay-Definitionen
+    karte.ts           View, Layer, Selektion/Highlight, MapTip, Kontextmenü,
+                       Geometrie-Editing, Pins
+    karten-layer.ts    Layer-/Basemap-/Overlay-Definitionen, Objekt-Anreicherung
     karte-fenster.ts   eigenständiges Kartenfenster /karte
     karte-sync.ts      BroadcastChannel-Synchronisation
     objekt-geo.ts      Bbox und Dufour-Situierungsbild (WMS)
@@ -995,29 +1023,32 @@ src/app/
 **Zustand und Persistenz.** Alle Stores sind `providedIn: 'root'`, halten ihren
 Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 
-| Schlüssel | Inhalt | Version |
-|---|---|---|
-| `ivs-prototyp-v3.objekte` | Objekte samt Lognotizen | `SEED_VERSION` in `seed-data.ts` |
-| `ivs-prototyp-v3.kommentare` | Kommentare und Antworten | Konstante in `kommentare.ts` |
-| `ivs-prototyp-v3.geometrien` | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
-| `ivs-prototyp-v3.begehungen` | geplante Begehungen | Konstante in `begehungen.ts` |
-| `ivs-prototyp-v3.stammdaten` | Auswahllisten | Konstante in `stammdaten.ts` |
-| `ivs-prototyp-v3.einstellungen` | aktive Rolle, Dark-Mode | — |
+| Schlüssel                       | Inhalt                        | Version                           |
+| ------------------------------- | ----------------------------- | --------------------------------- |
+| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen       | `SEED_VERSION` in `seed-data.ts`  |
+| `ivs-prototyp-v3.kommentare`    | Kommentare und Antworten      | Konstante in `kommentare.ts`      |
+| `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
+| `ivs-prototyp-v3.begehungen`    | geplante Begehungen           | Konstante in `begehungen.ts`      |
+| `ivs-prototyp-v3.stammdaten`    | Auswahllisten                 | Konstante in `stammdaten.ts`      |
+| `ivs-prototyp-v3.einstellungen` | aktive Rolle, Dark-Mode       | —                                 |
 
 Passt die gespeicherte Version nicht zur Konstante, wird der Stand verworfen
 und neu geseedet. **Nach jeder Seed-Änderung die Version erhöhen**, sonst
 sehen bestehende Browser die Änderung nie. «Demodaten zurücksetzen» im
 Profil-Popover leert alle Stores auf einmal.
 
-**Geometrie-Zuordnung.** `tools/build-objekte.mjs` bildet Signaturen auf die
-Testdaten ab und schreibt `public/data/ivs-objekte.geojson` (Linien) und
-`ivs-wegbegleiter.geojson` (Punkte) — getrennt, weil ein GeoJSONLayer nur
-einen Geometrietyp trägt. Nach Änderungen an der Zuordnung:
-`node tools/build-objekte.mjs`.
+**Geometrie-Zuordnung.** Die Mock-Objekte haben keine eigenen Geodaten:
+`core/objekt-generierung.ts` leitet zur Laufzeit aus den drei Quelldateien
+(Routen, Teilsegmente, Punktobjekte) sowohl die generierten Objekte als auch
+die vollständige Zuordnung Feature → Signatur ab (Cache pro Sitzung).
+`karten-layer.ts` stempelt die Attribute beim Laden auf die Features und
+speist die Layer aus einer Blob-URL; die kuratierten Zuordnungen der fünf
+Seed-Strecken sind dort als Tabellen hinterlegt. Das Dufour-Situierungsbild
+(`objekt-geo.ts`) nutzt dieselbe Anreicherung.
 
 ### 12.5 Stand der Arbeit
 
-Gebaut ist die **erste Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
+Gebaut ist die **dritte Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
 
 - **Shell** mit verstecktem Rollenmenü (Klick aufs IVS-Logo; R-03…R-07
   wählbar, R-01/R-02/R-08 aufgeführt aber gesperrt), Dark-Mode, Profil mit
@@ -1037,17 +1068,25 @@ Gebaut ist die **erste Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
   Abschnitt, Wegbegleiter) zum Objektwechsel; Statusübergänge je Rolle mit
   automatischem Logeintrag; Bearbeitungslog als Sheet; Löschen mit
   Warndialog (07.05, gesperrt nach Publikation).
-- **Karte**: ArcGIS Maps SDK mit swisstopo-WMTS, alle Layer aus `ivs-map`
-  plus zwei Objekt-Layer (Linien/Punkte getrennt — ein GeoJSONLayer trägt
-  nur einen Geometrietyp); Selektion mit Abblendung und Zoom; separates
+- **Karte**: ArcGIS Maps SDK mit swisstopo-WMTS und den Layern aus
+  `ivs-map` — die Objekte liegen AUF diesen Layern (Anreicherung beim
+  Laden, Entscheid 40), keine eigenen Objekt-Layer. Selektion mit
+  SDK-Highlight, Abblendung und Zoom; Hover-MapTip mit der Hierarchie der
+  getroffenen Objekte; Klick öffnet direkt, Kontextmenü nur bei mehreren
+  echt verschiedenen Objekten (Entscheid 41). Punktobjekte einheitlich
+  rot, Grenzmarken-Legende als Linienformen (Entscheid 43). Separates
   Kartenfenster `/karte` mit bidirektionaler Synchronisation über
   BroadcastChannel (Selektion hin, Objekt-Klick zurück).
-- **Mock-Daten**: 46 Objekte im Testgebiet Bern — BE 7 (Murtenstrasse,
-  publiziert/freigegeben), BE 21 (Frauenkappelen–Gümmenen, in Arbeit,
-  enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse, in Prüfung),
-  BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft). Hierarchie
-  aus den echten Gruppierungen `ivs_ivsfk`/`ivs_signatur` abgeleitet;
-  Persistenz im localStorage, `SEED_VERSION` erhöhen verwirft Stände.
+- **Mock-Daten**: 46 kuratierte Objekte im Testgebiet Bern — BE 7
+  (Murtenstrasse, publiziert/freigegeben), BE 21 (Frauenkappelen–Gümmenen,
+  in Arbeit, enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse, in
+  Prüfung), BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft) —
+  plus generierte **Vollabdeckung** aller Testgeometrien (Entscheid 44):
+  insgesamt ~2565 Objekte (403 Strecken, 862 Linienführungen, 1124
+  Abschnitte, 176 Wegbegleiter), generierte im Status «publiziert» mit aus
+  `ivs_signatur` abgeleiteter Bedeutung/Substanz und Wegbegleiter-Namen aus
+  dem `easyocr`-Feld. Persistenz im localStorage (~2.6 MB), `SEED_VERSION`
+  erhöhen verwirft Stände.
 - **Objekte-Übersicht (04.01)** unter `/objekte`: Kartenansicht — Karte im
   Vordergrund, links eine dezente Objektliste mit Suche und Filtern, ein
   Klick öffnet rechts das Side-Panel mit dem Objektinhalt.
@@ -1074,6 +1113,12 @@ Gebaut ist die **erste Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
   für R-03 (eigener Navigationspunkt): Auswahllisten DE/FR/IT inline
   pflegen, deaktivieren statt löschen; die Wegbegleiter-Typen speisen das
   Feld «Objektart» im Objektformular.
+- **spartan-Konformität (Entscheid 45)**: Klapp-Abschnitte überall als
+  `hlm-collapsible` (ARIA + Touch-data-slot), Toast-Rückmeldungen (sonner)
+  bei Statuswechsel/Löschen/Umteilen/Geometrie-Übernahme/Demodaten-Reset,
+  Status-Signalfarben als `--status-*`-Tokens (hell/dunkel) konsistent in
+  Objektliste, Dashboard und Status-Badge, Leerzustände mit `hlm-empty`,
+  Touch-Trefferflächen app-eigener Elemente über `pointer-coarse:`.
 - **Kitchen Sink** unter `/kitchen-sink` als Nachschlagewerk;
   **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
   vorgesehen (`pnpm test` meldet «No tests found»).
@@ -1111,7 +1156,7 @@ Fehler, die schon einmal Zeit gekostet haben:
   Typ ist nicht inferierbar, das Feld fehlt danach in `layer.fields`, und
   jede Query mit ihm in `outFields`/`where` schlägt fehl. Im Prototyp fiel
   dadurch der ganze Polygon-Filter samt Linienführungs-Zoom aus. Fix: leerer
-  String statt `null` (siehe `kette()` in `tools/build-objekte.mjs`).
+  String statt `null` (siehe `signaturKette()` in `core/objekt-generierung.ts`).
 - **`queryExtent` taugt für Einzelpunkte nicht.** Das Ergebnis ist ein
   degenerierter Extent (Meter-Puffer in einem Grad-Extent). Punkte-Extents
   aus den Geometrien selbst bilden.
@@ -1146,8 +1191,28 @@ Fehler, die schon einmal Zeit gekostet haben:
   erstellt, meldet der Dev-Server «Could not find template file», bis die
   zugehörige `.ts` einmal berührt wird (`touch`).
 - **Verstecktes Browser-Pane drosselt WebGL.** Screenshots der Karte werden
-  weiss und `hitTest`-Promises hängen, sobald das Pane nicht im Vordergrund
-  ist — kein Anwendungsfehler, aber irreführend beim Verifizieren.
+  weiss und `hitTest`-, `goTo`- und `whenLayerView`-Promises hängen, sobald
+  das Pane nicht im Vordergrund ist — kein Anwendungsfehler, aber
+  irreführend beim Verifizieren. Der ferngesteuerte Hover des Panes erzeugt
+  zudem keine `pointer-move`-Events; Hover-Interaktionen lassen sich dort
+  nur über die Logik (Mock-Treffer) und mit echter Maus verifizieren.
+  Folgefehler im Code: Ein boolescher In-Flight-Guard um `hitTest` bleibt
+  nach einem hängenden Aufruf für immer gesperrt — deshalb ist der
+  Hover-Guard in `karte.ts` zeitbasiert.
+- **hlm-accordion-content bringt Typografie-Meinungen mit**
+  (`[&_p]:mb-4`, Link-Unterstreichung) — für Formular-Container deshalb
+  `hlm-collapsible` verwenden: ungestylt, gleiche ARIA/Touch-Vorteile,
+  Optik bleibt beim Konsumenten.
+- **GeoJSONLayer aus einer Blob-URL** ist der saubere Weg, Features zur
+  Laufzeit anzureichern: Original-Datei fetchen, Attribute stempeln,
+  `URL.createObjectURL` als Layer-Quelle. Ein Feld, das nur auf manchen
+  Features gesetzt ist, braucht auf allen übrigen leere Strings (siehe
+  null-Fallstrick oben).
+- **Vollabdeckung hat Kosten:** ~2565 Objekte bedeuten ~2.6 MB localStorage
+  (Persistenz-Effect serialisiert bei jeder Änderung) und Dashboard-Gruppen
+  mit Tausenden Zeilen (~100 ms pro Gruppen-Toggle bei R-03). Für den
+  Prototyp akzeptiert; bei spürbarer Trägheit wäre Virtualisierung oder
+  Debouncing der Persistenz der nächste Hebel.
 
 ---
 
@@ -1230,9 +1295,11 @@ Stand nach der zweiten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
 2. **Versionsvergleich (08.05, Vorgabe 10).** Text-Diff mit
    Änderungsmarkierungen plus Geometrie-Overlay alt/neu; der Einstieg
    existiert bereits als deaktivierter Eintrag im Historie-Menü.
-3. **Manuelle Prüfung der Karten-Interaktionen.** Geometrie-Zeichnen und
-   Kommentar-Pins wurden wegen des gedrosselten Browser-Panes nur
-   skriptbasiert und per Review verifiziert.
+3. **Manuelle Prüfung der Karten-Interaktionen.** Geometrie-Zeichnen,
+   Kommentar-Pins und neu der Hover-MapTip samt Kontextmenü wurden wegen
+   des gedrosselten Browser-Panes nur skriptbasiert (Logik und Rendering
+   mit Mock-Treffern) verifiziert — ein Durchgang mit echter Maus steht
+   aus.
 4. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
    Arbeitspakete (03.01–03.04), Reports (12.01–12.04).
 5. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
