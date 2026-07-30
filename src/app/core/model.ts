@@ -94,6 +94,11 @@ export interface IvsObjekt {
   aufnahmejahr: number | null;
   /** Objektart bei Wegbegleitern (Kirche, Distanzstein, …). */
   wegbegleiterTyp?: string;
+  /**
+   * Gesetzt bei Kunstbauten (Brücke, Stützmauer, …) — sie sind spezifische
+   * Abschnitte (ebene 'abschnitt') mit eigener Liniengeometrie.
+   */
+  kunstbauteTyp?: string;
 
   // Schutzbegründung / Bewertung [NHG 5.1.b]
   bewertung: Bewertung;
@@ -116,6 +121,60 @@ export interface IvsObjekt {
   pruefkommentar: string;
 
   lognotizen: Lognotiz[];
+}
+
+/**
+ * Objekttyp für Beschriftung und Legende — überall einheitlich verwendet
+ * (Hierarchie-Dropdown, MapTip, Kartenbild-Panel, Objektlisten).
+ *
+ * Abschnitte werden nach Substanz unterschieden; «wenig/ohne Substanz» läuft
+ * unter «Abschnitt mit Substanz» (die Taxonomie kennt nur zwei Stufen plus
+ * die Kunstbaute als spezifischen Abschnitt).
+ */
+export type ObjektTyp =
+  | 'strecke'
+  | 'linienfuehrung'
+  | 'abschnitt_substanz'
+  | 'abschnitt_viel_substanz'
+  | 'kunstbaute'
+  | 'wegbegleiter';
+
+export function objektTyp(
+  o: Pick<IvsObjekt, 'ebene' | 'substanzgrad' | 'kunstbauteTyp'>,
+): ObjektTyp {
+  switch (o.ebene) {
+    case 'strecke':
+      return 'strecke';
+    case 'linienfuehrung':
+      return 'linienfuehrung';
+    case 'wegbegleiter':
+      return 'wegbegleiter';
+    case 'abschnitt':
+      if (o.kunstbauteTyp) return 'kunstbaute';
+      return o.substanzgrad === 'viel_substanz' ? 'abschnitt_viel_substanz' : 'abschnitt_substanz';
+  }
+}
+
+export const OBJEKT_TYP_LABEL: Record<ObjektTyp, string> = {
+  strecke: 'Strecke',
+  linienfuehrung: 'Linienführung',
+  abschnitt_substanz: 'Abschnitt mit Substanz',
+  abschnitt_viel_substanz: 'Abschnitt mit viel Substanz',
+  kunstbaute: 'Kunstbaute',
+  wegbegleiter: 'Wegbegleiter',
+};
+
+/**
+ * Beschriftung des Typ-Tags: bei Kunstbauten und Wegbegleitern wird die
+ * konkrete Art angezeigt («Kunstbaute (Brücke)», «Kirche»).
+ */
+export function objektTypText(
+  o: Pick<IvsObjekt, 'ebene' | 'substanzgrad' | 'kunstbauteTyp' | 'wegbegleiterTyp'>,
+): string {
+  const typ = objektTyp(o);
+  if (typ === 'kunstbaute' && o.kunstbauteTyp) return `Kunstbaute (${o.kunstbauteTyp})`;
+  if (typ === 'wegbegleiter' && o.wegbegleiterTyp) return o.wegbegleiterTyp;
+  return OBJEKT_TYP_LABEL[typ];
 }
 
 /** «BE 21.1.2» → «be-21-1-2», «BE 21 W1» → «be-21-w1» */

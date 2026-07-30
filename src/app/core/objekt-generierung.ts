@@ -79,6 +79,22 @@ const KURATIERTE_WEGBEGLEITER: [string, number, string][] = [
   ['BE 35 W2', 964, 'Brunnen'],
 ];
 
+/**
+ * Kuratierte Kunstbauten (spezifische Abschnitte mit eigener Liniengeometrie):
+ * Die Objekte stehen in seed-data.ts; hier liegt nur die Geometrie-Ableitung —
+ * ein Teilstück der genannten Route zwischen zwei Längenanteilen (0–1).
+ */
+const KURATIERTE_KUNSTBAUTEN: {
+  signatur: string;
+  typ: string;
+  route: number;
+  von: number;
+  bis: number;
+}[] = [
+  { signatur: 'BE 21.2.3', typ: 'Stützmauer', route: 471, von: 0.05, bis: 0.13 },
+  { signatur: 'BE 22.1.3', typ: 'Brücke', route: 267, von: 0.01, bis: 0.06 },
+];
+
 /** ivs_ivsfk → kuratierte Strecke. */
 const KURATIERTE_STRECKE_FUER_FK: Record<number, string> = {
   32044: 'BE 7',
@@ -130,9 +146,16 @@ export interface ObjektModell {
   /** Generierte Objekte (ohne die kuratierten aus seed-data.ts). */
   generierte: IvsObjekt[];
   zuordnung: ObjektZuordnung;
+  /**
+   * Liniengeometrien der Kunstbauten (kuratierte und generierte) — sie haben
+   * als einzige Objekte keine Quell-Features und bekommen einen eigenen
+   * Karten-Layer aus einer Blob-URL (karten-layer.ts).
+   */
+  kunstbautenFeatures: GeoJsonFeature[];
 }
 
 interface GeoJsonFeature {
+  type?: string;
   properties: Record<string, unknown>;
   geometry: { type: string; coordinates: unknown };
 }
@@ -176,6 +199,32 @@ async function erzeugeModell(): Promise<ObjektModell> {
   );
   const generierte: IvsObjekt[] = [];
 
+  // Teilsegmente je Route (sortierte seg_nr) — Grundlage, um Linienführungen
+  // mit nur einer Route in Teilsegment-Abschnitte zu zerlegen.
+  const segProRoute = new Map<number, number[]>();
+  for (const f of teilsegmenteGeo.features) {
+    const nr = f.properties['route_nr'] as number;
+    const liste = segProRoute.get(nr) ?? [];
+    liste.push(f.properties['seg_nr'] as number);
+    segProRoute.set(nr, liste);
+  }
+  for (const liste of segProRoute.values()) liste.sort((a, b) => a - b);
+
+  const kontext: GenerierKontext = {
+    routeZuSignatur,
+    teilsegmentZuSignatur: new Map<string, string>(),
+    segProRoute,
+    kunstbautenFeatures: [],
+  };
+
+  // Kuratierte Kunstbauten: Geometrie aus dem Teilstück der genannten Route
+  for (const k of KURATIERTE_KUNSTBAUTEN) {
+    const route = routen.find((r) => r.nr === k.route);
+    if (route) {
+      kontext.kunstbautenFeatures.push(kunstbauteFeature(k.signatur, k.typ, route.feature, k.von, k.bis));
+    }
+  }
+
   // ---- Gruppen bilden (ohne kuratierte Routen) ----------------------------
   const gruppen = new Map<number, RoutenInfo[]>();
   for (const route of routen) {
@@ -193,9 +242,7 @@ async function erzeugeModell(): Promise<ObjektModell> {
     let lfNummer = naechsteLfNummer(strecke);
     for (const komponente of komponenten(rest)) {
       const lfSignatur = `${strecke}.${lfNummer++}`;
-      generierte.push(
-        ...linienfuehrungMitAbschnitten(lfSignatur, strecke, komponente, routeZuSignatur),
-      );
+      generierte.push(...linienfuehrungMitAbschnitten(lfSignatur, strecke, komponente, kontext));
     }
   }
 
@@ -238,18 +285,20 @@ async function erzeugeModell(): Promise<ObjektModell> {
       for (const komponente of komponenten(codeRouten)) {
         const lfSignatur = `${streckeSignatur}.${lfNummer++}`;
         generierte.push(
-          ...linienfuehrungMitAbschnitten(lfSignatur, streckeSignatur, komponente, routeZuSignatur),
+          ...linienfuehrungMitAbschnitten(lfSignatur, streckeSignatur, komponente, kontext),
         );
       }
     }
   }
 
-  // ---- Teilsegmente: kuratierte Ausnahmen, sonst Signatur der Route -------
-  const teilsegmentZuSignatur = new Map<string, string>();
+  // ---- Teilsegmente: kuratierte Ausnahmen, dann die beim Aufteilen der
+  // Ein-Routen-Linienführungen vergebenen Abschnitte, sonst Signatur der Route
+  const teilsegmentZuSignatur = kontext.teilsegmentZuSignatur;
   for (const f of teilsegmenteGeo.features) {
     const schluessel = `${f.properties['route_nr']}/${f.properties['seg_nr']}`;
     const signatur =
       KURATIERTE_TEILSEGMENTE[schluessel] ??
+      teilsegmentZuSignatur.get(schluessel) ??
       routeZuSignatur.get(f.properties['route_nr'] as number);
     if (signatur) teilsegmentZuSignatur.set(schluessel, signatur);
   }
@@ -302,15 +351,33 @@ async function erzeugeModell(): Promise<ObjektModell> {
       teilsegment: teilsegmentZuSignatur,
       punkt: punktZuSignatur,
     },
+    kunstbautenFeatures: kontext.kunstbautenFeatures,
   };
 }
 
-/** Linienführung samt Abschnitten (eine Route = ein Abschnitt) erzeugen. */
+/** Geteilter Zustand der Generierung (Zuordnungen und Kunstbauten-Geometrien). */
+interface GenerierKontext {
+  routeZuSignatur: Map<number, string>;
+  teilsegmentZuSignatur: Map<string, string>;
+  /** Sortierte seg_nr je Route. */
+  segProRoute: Map<number, number[]>;
+  kunstbautenFeatures: GeoJsonFeature[];
+}
+
+const KUNSTBAUTE_TYPEN = ['Brücke', 'Stützmauer', 'Trockenmauer', 'Durchlass'] as const;
+
+/**
+ * Linienführung samt Abschnitten erzeugen. Besteht die Linienführung aus nur
+ * einer Route, wird sie über die Teilsegmente in Abschnitte zerlegt — sonst
+ * wäre der einzige Abschnitt deckungsgleich mit der Linienführung (das soll
+ * nur selten vorkommen). Rund jede sechste Linienführung erhält zusätzlich
+ * eine Kunstbaute als spezifischen Abschnitt mit eigener Teilstück-Geometrie.
+ */
 function linienfuehrungMitAbschnitten(
   lfSignatur: string,
   strecke: string,
   komponente: RoutenInfo[],
-  routeZuSignatur: Map<number, string>,
+  kontext: GenerierKontext,
 ): IvsObjekt[] {
   const sortiert = [...komponente].sort((a, b) => a.nr - b.nr);
   const code = Math.min(...sortiert.map((r) => r.code));
@@ -323,20 +390,156 @@ function linienfuehrungMitAbschnitten(
       ...generierteFelder(code),
     }),
   ];
-  sortiert.forEach((route, i) => {
-    const signatur = `${lfSignatur}.${i + 1}`;
-    routeZuSignatur.set(route.nr, signatur);
+
+  let abschnittNummer = 0;
+  const einzelSegmente = sortiert.length === 1 ? (kontext.segProRoute.get(sortiert[0].nr) ?? []) : [];
+  if (einzelSegmente.length >= 2) {
+    // Eine Route = ganze Linienführung: Abschnitte aus den Teilsegmenten
+    const route = sortiert[0];
+    kontext.routeZuSignatur.set(route.nr, lfSignatur);
+    for (const segNr of einzelSegmente) {
+      const signatur = `${lfSignatur}.${++abschnittNummer}`;
+      kontext.teilsegmentZuSignatur.set(`${route.nr}/${segNr}`, signatur);
+      objekte.push(
+        objektAusVorlage({
+          signatur,
+          ebene: 'abschnitt',
+          name: `Route ${route.nr} – Teil ${segNr}`,
+          parent: lfSignatur,
+          ...generierteFelder(route.code),
+        }),
+      );
+    }
+  } else {
+    sortiert.forEach((route) => {
+      const signatur = `${lfSignatur}.${++abschnittNummer}`;
+      kontext.routeZuSignatur.set(route.nr, signatur);
+      objekte.push(
+        objektAusVorlage({
+          signatur,
+          ebene: 'abschnitt',
+          name: `Route ${route.nr}`,
+          parent: lfSignatur,
+          ...generierteFelder(route.code),
+        }),
+      );
+    });
+  }
+
+  // Kunstbaute bei ~jeder sechsten Linienführung (deterministisch über Hash):
+  // kurzes Teilstück (5–20 % der längsten Route), deutlich kürzer als die LF.
+  const h = hashWert(lfSignatur);
+  if (h % 6 === 0) {
+    const typ = KUNSTBAUTE_TYPEN[Math.floor(h / 6) % KUNSTBAUTE_TYPEN.length];
+    const route = sortiert.reduce((a, b) =>
+      strangLaenge(laengsterStrang(b.feature)) > strangLaenge(laengsterStrang(a.feature)) ? b : a,
+    );
+    const anteil = 0.05 + (((h >>> 3) % 100) / 100) * 0.15;
+    const start = 0.1 + (((h >>> 9) % 100) / 100) * (0.8 - anteil);
+    const signatur = `${lfSignatur}.${++abschnittNummer}`;
     objekte.push(
       objektAusVorlage({
         signatur,
         ebene: 'abschnitt',
-        name: `Route ${route.nr}`,
+        name: `${typ} an Route ${route.nr}`,
         parent: lfSignatur,
+        kunstbauteTyp: typ,
         ...generierteFelder(route.code),
       }),
     );
-  });
+    kontext.kunstbautenFeatures.push(
+      kunstbauteFeature(signatur, typ, route.feature, start, start + anteil),
+    );
+  }
   return objekte;
+}
+
+// ---------------------------------------------------------------------------
+// Kunstbauten-Geometrie: Teilstück einer Route
+// ---------------------------------------------------------------------------
+
+type Koordinate = [number, number];
+
+/** Deterministischer Hash für stabile Pseudo-Zufallsentscheide. */
+function hashWert(text: string): number {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function kunstbauteFeature(
+  signatur: string,
+  typ: string,
+  routenFeature: GeoJsonFeature,
+  von: number,
+  bis: number,
+): GeoJsonFeature {
+  const { lf, strecke } = signaturKette(signatur);
+  return {
+    type: 'Feature',
+    properties: { signatur, ebene: 'abschnitt', lf, strecke, kunstbauteTyp: typ },
+    geometry: {
+      type: 'LineString',
+      coordinates: teilstueck(laengsterStrang(routenFeature), von, bis),
+    },
+  };
+}
+
+/** Längster Einzelstrang einer (Multi-)LineString-Geometrie. */
+function laengsterStrang(feature: GeoJsonFeature): Koordinate[] {
+  const g = feature.geometry;
+  const straenge = (g.type === 'LineString' ? [g.coordinates] : g.coordinates) as Koordinate[][];
+  let bester: Koordinate[] = [];
+  let besteLaenge = -1;
+  for (const strang of straenge) {
+    const laenge = strangLaenge(strang);
+    if (laenge > besteLaenge) {
+      besteLaenge = laenge;
+      bester = strang;
+    }
+  }
+  return bester;
+}
+
+/** Näherungslänge in Metern (planar, breitengrad-korrigiert — fürs Testgebiet genau genug). */
+function strangLaenge(strang: Koordinate[]): number {
+  let laenge = 0;
+  for (let i = 1; i < strang.length; i++) laenge += abstandMeter(strang[i - 1], strang[i]);
+  return laenge;
+}
+
+function abstandMeter(a: Koordinate, b: Koordinate): number {
+  const dx = (b[0] - a[0]) * 111320 * Math.cos((((a[1] + b[1]) / 2) * Math.PI) / 180);
+  const dy = (b[1] - a[1]) * 110540;
+  return Math.hypot(dx, dy);
+}
+
+/** Teilstück eines Strangs zwischen zwei Längenanteilen (0–1), Endpunkte interpoliert. */
+function teilstueck(strang: Koordinate[], von: number, bis: number): Koordinate[] {
+  const gesamt = strangLaenge(strang);
+  const s0 = gesamt * von;
+  const s1 = gesamt * bis;
+  const punkte: Koordinate[] = [];
+  let laufend = 0;
+  for (let i = 1; i < strang.length; i++) {
+    const d = abstandMeter(strang[i - 1], strang[i]);
+    if (d === 0) continue;
+    const zwischen = (t: number): Koordinate => [
+      strang[i - 1][0] + (strang[i][0] - strang[i - 1][0]) * t,
+      strang[i - 1][1] + (strang[i][1] - strang[i - 1][1]) * t,
+    ];
+    const ende = laufend + d;
+    if (ende > s0 && laufend < s1) {
+      if (punkte.length === 0) punkte.push(zwischen(Math.max(0, (s0 - laufend) / d)));
+      if (ende >= s1) {
+        punkte.push(zwischen(Math.min(1, (s1 - laufend) / d)));
+        return punkte;
+      }
+      punkte.push([strang[i][0], strang[i][1]]);
+    }
+    laufend = ende;
+  }
+  return punkte;
 }
 
 /**

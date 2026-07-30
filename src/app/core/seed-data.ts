@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 6;
+export const SEED_VERSION = 7;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -48,6 +48,7 @@ export interface Vorlage {
   gemeinden?: string;
   aufnahmejahr?: number | null;
   wegbegleiterTyp?: string;
+  kunstbauteTyp?: string;
   bewertung?: Partial<Bewertung>;
   erhaltungsziel?: string;
   gefahrenMassnahmen?: string;
@@ -117,6 +118,7 @@ export function objektAusVorlage(v: Vorlage): IvsObjekt {
     gemeinden: v.gemeinden ?? 'Frauenkappelen',
     aufnahmejahr: v.aufnahmejahr ?? 2025,
     wegbegleiterTyp: v.wegbegleiterTyp,
+    kunstbauteTyp: v.kunstbauteTyp,
     bewertung: { ...leereBewertung(), ...v.bewertung },
     erhaltungsziel: v.erhaltungsziel ?? STANDARD_ERHALTUNGSZIEL,
     gefahrenMassnahmen: v.gefahrenMassnahmen ?? '',
@@ -528,6 +530,23 @@ const BE_21: Vorlage[] = [
     datierungGelaende20: '2025-06-11',
   },
   {
+    // Kunstbaute als spezifischer Abschnitt (eigene Liniengeometrie,
+    // erzeugt in objekt-generierung.ts / KURATIERTE_KUNSTBAUTEN).
+    signatur: 'BE 21.2.3',
+    ebene: 'abschnitt',
+    name: 'Stützmauer unter dem Bergli',
+    parent: 'BE 21.2',
+    status: 'in_bearbeitung',
+    kunstbauteTyp: 'Stützmauer',
+    substanzgrad: 'viel_substanz',
+    bauzeit: '18.–19. Jh.',
+    gelaendeText:
+      'Talseitige Trockenmauer von rund 60 m Länge, Höhe bis 1,8 m; Bruchsteine ' +
+      'lagig versetzt, oberer Abschluss mit Deckplatten. Zustand mehrheitlich gut, ' +
+      'zwei Ausbauchungen im mittleren Drittel.',
+    datierungGelaende20: '2025-06-11',
+  },
+  {
     signatur: 'BE 21 W1',
     ebene: 'wegbegleiter',
     name: 'Gasthaus Traube, Mühleberg',
@@ -628,6 +647,22 @@ const BE_22: Vorlage[] = [
     parent: 'BE 22.1',
     status: 'bereit_zur_pruefung',
     nhgWert: 'regional',
+  },
+  {
+    // Kunstbaute als spezifischer Abschnitt (Geometrie via KURATIERTE_KUNSTBAUTEN).
+    signatur: 'BE 22.1.3',
+    ebene: 'abschnitt',
+    name: 'Brücke über den Talbach',
+    parent: 'BE 22.1',
+    status: 'bereit_zur_pruefung',
+    kunstbauteTyp: 'Brücke',
+    substanzgrad: 'mit_substanz',
+    nhgWert: 'regional',
+    bauzeit: 'um 1830',
+    gelaendeText:
+      'Einbogige Steinbrücke über den Talbach, Spannweite rund 4 m; Stirnmauern ' +
+      'aus Sandsteinquadern, Brüstung später in Beton ergänzt. Fahrbahnbreite 2,6 m.',
+    datierungGelaende20: '2025-03-18',
   },
   {
     signatur: 'BE 22.2',

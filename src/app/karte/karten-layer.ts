@@ -310,7 +310,7 @@ export interface ObjektFeature {
  */
 export async function ladeObjektFeatures(): Promise<ObjektFeature[]> {
   const defs = LAYER_DEFS.filter((d) => (OBJEKT_LAYER_IDS as readonly string[]).includes(d.id));
-  const [{ zuordnung }, ...geojsons] = await Promise.all([
+  const [{ zuordnung, kunstbautenFeatures }, ...geojsons] = await Promise.all([
     ladeObjektModell(),
     ...defs.map((d) => ladeGeoJson(d.datei)),
   ]);
@@ -323,6 +323,8 @@ export async function ladeObjektFeatures(): Promise<ObjektFeature[]> {
       ),
     );
   }
+  // Kunstbauten kommen bereits gestempelt aus der Generierung
+  features.push(...(kunstbautenFeatures as unknown as ObjektFeature[]));
   return features;
 }
 
