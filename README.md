@@ -97,9 +97,10 @@ Die Konfiguration steht in `vercel.json` — Build nach
 Deep Links wie `/objekt/be-21-1-2` und das Kartenfenster `/karte` beim direkten
 Aufruf ins Leere laufen.
 
-**Auto-Deploy ist noch nicht aktiv:** Die Vercel-GitHub-App braucht einmalig
-Zugriff auf dieses private Repository (Details und Anleitung im Fachkontext,
-Abschnitt 12.7). Danach deployt jeder Push auf `main` automatisch.
+**Auto-Deploy ist aktiv:** Jeder Push auf `main` deployt automatisch in die
+Produktion — `vercel --prod` braucht es nur für Deploys ohne Commit. Welcher
+Commit live ist, zeigt `vercel ls ivs-prototyp-v3` (Details in Abschnitt 12.7
+des Fachkontexts).
 
 ## Kitchen Sink
 

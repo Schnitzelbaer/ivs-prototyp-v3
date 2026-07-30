@@ -22,8 +22,8 @@
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
 > **Stand:** 30.07.2026, dritte Ausbaustufe. Repository auf `main`, gepusht.
-> Live unter <https://ivs-prototyp-v3.vercel.app>; Auto-Deploy ist noch
-> freizuschalten (12.7, Schritt 0 in Abschnitt 14).
+> Live unter <https://ivs-prototyp-v3.vercel.app>, Auto-Deploy aus `main`
+> aktiv (12.7).
 >
 > **Ein spartan/ui-Skill liegt im Repo** (`.claude/skills/spartan/`, per
 > Symlink auf `.agents/skills/spartan/`) und wird von Claude Code automatisch
@@ -1286,17 +1286,25 @@ Der Prototyp ist öffentlich erreichbar:
 - **Cache-Header** für `/data/*.geojson` (die Geodaten aus `ivs-map` sind
   unveränderlich).
 
-**Auto-Deploy ist noch nicht aktiv.** `vercel git connect` scheitert, weil
-die Vercel-GitHub-App auf dieses private Repository keinen Zugriff hat
-(«Failed to connect … to project»). Zum Aktivieren muss die App einmalig
-für `Schnitzelbaer/ivs-prototyp-v3` freigegeben werden — entweder unter
-<https://github.com/settings/installations> → Vercel → _Repository access_,
-oder im Vercel-Dashboard über _Project Settings → Git → Connect_. Danach
-löst jeder Push auf `main` einen Produktions-Deploy aus; bis dahin gilt:
+**Auto-Deploy ist aktiv.** Das Repository ist mit dem Vercel-Projekt
+verbunden, Produktions-Branch `main`: Jeder Push auf `main` löst einen
+Produktions-Deploy aus. Ein Push während eines laufenden Builds bricht diesen
+mit `CANCELED` ab und ersetzt ihn — erwartetes Verhalten, kein Fehler. Ein
+manueller Deploy bleibt jederzeit möglich:
 
 ```bash
 vercel --prod
 ```
+
+Welcher Commit gerade live ist, zeigt `vercel ls ivs-prototyp-v3`.
+
+Sollte die Verbindung je verloren gehen, scheitert `vercel git connect` mit
+«Failed to connect … to project» — dann fehlt der Vercel-GitHub-App der
+Zugriff auf dieses private Repository. Sie muss einmalig für
+`Schnitzelbaer/ivs-prototyp-v3` freigegeben werden, unter
+<https://github.com/settings/installations> → Vercel → _Repository access_
+oder im Vercel-Dashboard über _Project Settings → Git_. Das ist eine
+Berechtigung, die nur der Repository-Eigentümer erteilen kann.
 
 Zum Verifizieren eines Deployments taugt ein reiner Statuscode-Check nicht —
 der SPA-Rewrite liefert für **jeden** Pfad 200. Die App selbst muss im
@@ -1369,9 +1377,6 @@ Abschnitt 12.6.
 
 Stand nach der dritten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
 
-0. **Auto-Deploy freischalten** (eine Minute Handarbeit, siehe 12.7): Die
-   Vercel-GitHub-App braucht Zugriff auf das private Repository, danach
-   deployt jeder Push auf `main` automatisch. Bis dahin `vercel --prod`.
 1. **Prüfprotokoll / Checkliste 1 (Abschnitt 4.6/4.7).** Der grösste noch
    offene Fachblock: neun binäre Prüffragen mit Kommentarfeld bei «nicht
    erfüllt», freie Befunde für Kartenkorrekturen, Umsetzungsvermerk der
