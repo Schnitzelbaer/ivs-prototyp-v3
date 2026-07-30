@@ -40,7 +40,6 @@
                 { wert: 'alle', label: 'Alle' },
                 { wert: 'offen', label: 'Offene' },
                 { wert: 'erledigt', label: 'Erledigte' },
-                { wert: 'meine', label: 'Eigene' },
               ];
               track eintrag.wert
             ) {
@@ -129,12 +128,7 @@
           </button>
           <ng-template #kommentarMenu>
             <hlm-dropdown-menu class="w-44">
-              <button hlmDropdownMenuItem [disabled]="!istEigener(k)" (triggered)="loeschen(k)">
-                Löschen
-                @if (!istEigener(k)) {
-                  <span class="ml-auto text-xs text-muted-foreground">nur eigene</span>
-                }
-              </button>
+              <button hlmDropdownMenuItem (triggered)="loeschen(k)">Löschen</button>
             </hlm-dropdown-menu>
           </ng-template>
         </header>

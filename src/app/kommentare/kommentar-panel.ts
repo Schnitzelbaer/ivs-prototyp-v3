@@ -33,6 +33,7 @@ import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { OBJEKT_ATTRIBUTE, attributVonLabel } from '../core/attribute';
 import { EinstellungenStore } from '../core/einstellungen-store';
+import { HinweisStore } from '../core/hinweis-store';
 import {
   Kommentar,
   KommentarSegment,
@@ -40,10 +41,11 @@ import {
   jetztLokal,
   parseKommentarText,
 } from '../core/kommentare';
+import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN } from '../core/rollen';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
 
-type KommentarFilter = 'alle' | 'offen' | 'erledigt' | 'meine';
+type KommentarFilter = 'alle' | 'offen' | 'erledigt';
 
 const WOCHENTAGE = [
   'Sonntag',
@@ -94,6 +96,8 @@ const WOCHENTAGE = [
 })
 export class KommentarPanel {
   private readonly store = inject(KommentarStore);
+  private readonly objektStore = inject(ObjektStore);
+  private readonly hinweis = inject(HinweisStore);
   protected readonly einstellungen = inject(EinstellungenStore);
 
   private readonly textfeld = viewChild<ElementRef<HTMLTextAreaElement>>('textfeld');
@@ -118,7 +122,8 @@ export class KommentarPanel {
   }));
 
   protected readonly suche = signal('');
-  protected readonly filter = signal<KommentarFilter>('alle');
+  /** Standard-Filter «Offene» (Review-Vorgabe). */
+  protected readonly filter = signal<KommentarFilter>('offen');
   protected readonly neuesteZuerst = signal(true);
   protected readonly offeneAntworten = signal<ReadonlySet<string>>(new Set());
   protected readonly antwortEntwuerfe = signal<Readonly<Record<string, string>>>({});
@@ -139,7 +144,6 @@ export class KommentarPanel {
     const signatur = this.objektSignatur();
     const begriff = this.suche().trim().toLowerCase();
     const filter = this.filter();
-    const ich = this.persona().name;
     const richtung = this.neuesteZuerst() ? -1 : 1;
 
     const zusatz = this.zusatzKommentarId();
@@ -147,9 +151,11 @@ export class KommentarPanel {
       .alle()
       .filter((k) => {
         if (signatur !== null && k.objektSignatur !== signatur && k.id !== zusatz) return false;
+        // Objektübergreifende Listen zeigen nur die «eigenen» Kommentare;
+        // im geöffneten Objekt bleiben alle sichtbar (Prüf-Workflow).
+        if (signatur === null && !this.betrifftMich(k)) return false;
         if (filter === 'offen' && k.erledigt) return false;
         if (filter === 'erledigt' && !k.erledigt) return false;
-        if (filter === 'meine' && k.autor !== ich) return false;
         if (begriff) {
           const text =
             `${k.titel} ${k.text} ${k.autor} ${k.antworten.map((a) => a.text).join(' ')}`.toLowerCase();
@@ -162,8 +168,36 @@ export class KommentarPanel {
 
   protected readonly gesamt = computed(() => {
     const signatur = this.objektSignatur();
-    return signatur === null ? this.store.alle().length : this.store.fuerObjekt(signatur).length;
+    return signatur === null
+      ? this.store.alle().filter((k) => this.betrifftMich(k)).length
+      : this.store.fuerObjekt(signatur).length;
   });
+
+  /**
+   * «Eigene» Kommentare der aktiven Person: auf Objekten, die ihr zugewiesen
+   * sind oder laut Lognotizen einmal zugewiesen waren, selbst verfasste
+   * sowie solche, in denen sie per `@[Name]` erwähnt wird.
+   */
+  private betrifftMich(kommentar: Kommentar): boolean {
+    const ich = this.persona().name;
+    if (kommentar.autor === ich) return true;
+    if (kommentar.antworten.some((a) => a.autor === ich)) return true;
+    const erwaehnung = `@[${ich}]`;
+    if (
+      kommentar.text.includes(erwaehnung) ||
+      kommentar.antworten.some((a) => a.text.includes(erwaehnung))
+    ) {
+      return true;
+    }
+    if (kommentar.objektSignatur) {
+      const objekt = this.objektStore.bySignatur(kommentar.objektSignatur);
+      if (objekt) {
+        if (objekt.zustaendigName === ich) return true;
+        if (objekt.lognotizen.some((notiz) => notiz.autor === ich)) return true;
+      }
+    }
+    return false;
+  }
 
   protected segmente(text: string): KommentarSegment[] {
     return parseKommentarText(text);
@@ -188,6 +222,14 @@ export class KommentarPanel {
   }
 
   protected loeschen(kommentar: Kommentar): void {
+    if (!this.istEigener(kommentar)) {
+      // Nie-disabled-Regel: der Klick erklärt, warum das Löschen gesperrt ist
+      this.hinweis.zeige(
+        'Löschen nicht möglich',
+        `Nur eigene Kommentare können gelöscht werden — dieser stammt von ${kommentar.autor}.`,
+      );
+      return;
+    }
     this.store.loeschen(kommentar.id);
   }
 
