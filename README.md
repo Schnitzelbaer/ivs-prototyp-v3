@@ -112,45 +112,63 @@ Themengruppe.
 
 ## Stand
 
-Der Kern-Workflow steht in dritter Ausbaustufe (30.07.2026). Der vollständige
-Projektstand — abgestimmte Entscheide, Architektur, Fallstricke und nächste
-Schritte — liegt in [docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md),
+Der Kern-Workflow steht in vierter Ausbaustufe (30.07.2026, Review-Paket
+«Changes IVS» umgesetzt). Der vollständige Projektstand — abgestimmte
+Entscheide, Architektur, Fallstricke und nächste Schritte — liegt in
+[docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md),
 Abschnitte 9.8, 12.4–12.6 und 14. Dieses Dokument allein genügt, um in einer
 neuen Session weiterzuarbeiten.
 
 - **Shell** (`src/app/shell/`): Icon-Leiste mit verstecktem **Rollenmenü**
-  hinter dem IVS-Logo (R-03…R-07 wählbar, übrige aufgeführt aber gesperrt),
-  Dark-Mode, Profil mit «Demodaten zurücksetzen», Sprachwechsler (Attrappe).
-- **Dashboard** (`/dashboard`): rollenspezifisch vorgefilterte Aufgabenliste,
-  gruppiert nach Backlog / In Arbeit / Done (Mapping der acht Workflow-Stati),
-  Volltextsuche, Schnellfilter, Inline-Statuswechsel gemäss Rollenrechten,
-  Polygon-Selektion auf der Karte als geographischer Filter.
+  hinter dem IVS-Logo (R-03…R-07 wählbar), Dark-Mode, Profil mit
+  «Demodaten zurücksetzen», Sprachwechsler (Attrappe). Es gibt keine
+  ausgegrauten Bedienelemente: Gesperrte Aktionen bleiben aktiv und
+  erklären sich beim Klick in einem Modal (**nie-disabled-Regel**).
+- **Objekt-Taxonomie und Legende**: Strecke → Linienführung → Abschnitt mit
+  Substanz / mit viel Substanz / **Kunstbaute als spezifischer Abschnitt**.
+  Überall dieselben Symbole (Karte, Kartenbild-Panel, Hierarchie-Menü,
+  MapTip, Side-Panel): Strecke/Linienführung orange gleich dick, Abschnitte
+  blau durchgezogen in drei Dicken, Wegbegleiter rot.
+- **Dashboard** (`/dashboard`): Aufgabenliste in den rollenrelevanten
+  Stati, gruppiert nach Backlog / In Arbeit / Done (Mapping der acht
+  Workflow-Stati), Volltextsuche, Schnellfilter, Zeilen-Dropdown mit
+  direktem Statuswechsel, Polygon-Selektion auf der Karte als
+  geographischer Filter.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
   via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte
   & Gelände, Anhang, Prüfen/Freigabe, Inexistent mit Pflichtbegründung,
-  Lognotizen), Hierarchie-Dropdown zum Wechsel zwischen Parent-/Child-Objekten,
-  Statusübergänge je Rolle mit automatischem Logeintrag, Bearbeitungslog-Sheet.
+  Lognotizen), **Hierarchie-Menü** mit Legenden-Symbolen, Typ-Tags und
+  Umteilen je Child-Zeile («…»-Kontextmenü), **Status-Dropdown** mit dem
+  nächsten und vorherigen Status der Workflow-Kette, Bearbeitungslog-Sheet.
 - **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS und den
-  `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Layer — die
-  bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden mit
-  den Objekt-Attributen angereichert (`karten-layer.ts`). Selektion mit
-  SDK-Highlight, Abblendung und Zoom; Hover zeigt einen MapTip mit der
-  Hierarchie der getroffenen Objekte, Klick öffnet das Objekt direkt — nur
-  bei mehreren echt verschiedenen getroffenen Objekten erscheint ein
-  Kontextmenü zur Auswahl. `/karte` öffnet ein eigenständiges Kartenfenster,
-  das per BroadcastChannel bidirektional mit dem Hauptfenster synchronisiert.
+  `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Quelldaten — die
+  bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden
+  mit den Objekt-Attributen angereichert (`karten-layer.ts`); die
+  Teilsegmente sind nach Abschnitt-Typ symbolisiert, die Kunstbauten haben
+  einen generierten Teilstück-Layer. Selektion mit SDK-Highlight, Abblendung
+  und Zoom; Hover zeigt einen MapTip mit der Hierarchie und den
+  Legenden-Symbolen, Klick öffnet das Objekt direkt — nur bei mehreren echt
+  verschiedenen Objekten erscheint ein Kontextmenü. Das
+  **Kartenbild-Panel** steuert Hintergründe additiv (Auge plus Deckkraft je
+  Eintrag) und die Objekt-Layer. `/karte` öffnet ein eigenständiges
+  Kartenfenster **mit Panel-Kopf** (Tabs Karte/360°/Kommentare, Zeichnen
+  und Kommentieren inklusive), synchronisiert über BroadcastChannel und
+  storage-Ereignisse.
 - **Objekte** (`/objekte`): Kartenansicht mit dezenter Objektliste, Suche,
-  Filtern und Side-Panel mit dem Objektinhalt (04.01–04.03), Export-Attrappe.
+  Filtern und Side-Panel mit dem **vollständigen** Objektinhalt samt
+  Hierarchie-Menü (04.01–04.03), Export-Attrappe.
 - **360°-Aufnahmen** (`/panorama`): Galerie der Befahrung mit echt drehbarem
   Platzhalter-Panorama (generierte, nahtlose SVGs), Vor-/Zurück-Navigation,
   Karte mit Standort und live mitdrehendem Blickrichtungskegel — plus
   **Begehungsplanung** (Reihenfolge, Verkehrsmittel, Unterkunft, Zeitbedarf),
   auch aus der Objektbearbeitung heraus.
 - **Kommentare** (09/10): Panel mit Threads, Erledigt-Kennzeichnung, Suche,
-  Filtern, `@`-Erwähnungen und `#`-Attribut-Referenzen (springen im Formular
-  zum Feld); Kommentare an Objekten jeder Ebene oder frei auf der Karte
-  (Sprechblasen-Pins, Platzier-Werkzeug, optionale Objektzuweisung).
+  Filtern (Standard «Offene»; objektübergreifende Listen zeigen nur die
+  eigenen — zugewiesen, mal zugewiesen oder erwähnt), `@`-Erwähnungen und
+  `#`-Attribut-Referenzen (springen im Formular zum Feld); Kommentare an
+  Objekten jeder Ebene oder frei auf der Karte (Sprechblasen-Pins,
+  Platzier-Werkzeug, optionale Objektzuweisung).
 - **Detail-Werkzeuge**: Rich-Text-Editor (07.17) für Geschichte/Gelände,
   Geometrie-Editing (05.05/05.09: zeichnen, verschieben, Stützpunkte,
   verschneiden, zusammenfügen, Snapping), Hintergrundkarten und Overlays
@@ -159,17 +177,21 @@ neuen Session weiterzuarbeiten.
 - **Stammdatenverwaltung** (`/stammdaten`, nur R-03): Auswahllisten mit
   DE/FR/IT, deaktivieren statt löschen (02.01/02.02); die Wegbegleiter-Typen
   speisen das Objektformular.
-- **Mock-Daten**: 46 kuratierte Objekte (`src/app/core/seed-data.ts`, fünf
-  Strecken mit ausformulierten Beschrieben) plus eine generierte
-  **Vollabdeckung** aller Testgeometrien (`src/app/core/objekt-generierung.ts`):
-  Jede Route, jedes Teilsegment und jedes Punktobjekt gehört zu einem
-  Mock-Objekt (insgesamt ~2565, generierte im Status «publiziert») und
-  reagiert auf der Karte auf Hover und Klick. Die Ableitung folgt den echten
-  Gruppierungen (`ivs_ivsfk` → Strecke, `ivs_signatur` → Linienführung,
-  Route → Abschnitt), räumlich getrennte Gruppen werden über
+- **Mock-Daten**: 48 kuratierte Objekte (`src/app/core/seed-data.ts`, fünf
+  Strecken mit ausformulierten Beschrieben, inkl. zweier Kunstbauten) plus
+  eine generierte **Vollabdeckung** aller Testgeometrien
+  (`src/app/core/objekt-generierung.ts`): Jede Route, jedes Teilsegment und
+  jedes Punktobjekt gehört zu einem Mock-Objekt (insgesamt ~3742 inkl. 148
+  Kunstbauten, generierte im Status «publiziert») und reagiert auf der
+  Karte auf Hover und Klick. Die Ableitung folgt den echten Gruppierungen
+  (`ivs_ivsfk` → Strecke, `ivs_signatur` → Linienführung, Route →
+  Abschnitt; Ein-Routen-Linienführungen werden über die Teilsegmente in
+  Abschnitte zerlegt, damit Abschnittslängen nur selten der Linienführung
+  entsprechen), räumlich getrennte Gruppen werden über
   Zusammenhangskomponenten aufgeteilt — kein Objekt besteht aus
-  unverbundenen Stücken. Änderungen überleben im localStorage
-  (`SEED_VERSION` erhöhen verwirft sie).
+  unverbundenen Stücken. Rund jede sechste Linienführung erhält eine
+  generierte Kunstbaute mit eigener Teilstück-Geometrie. Änderungen
+  überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
 
 Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Versionsvergleich,
 Nebenblöcke (Accounts, Arbeitspakete, Reports).

@@ -17,13 +17,13 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 47), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 58), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
-> **Stand:** 30.07.2026, dritte Ausbaustufe. Repository auf `main`, gepusht.
-> Live unter <https://ivs-prototyp-v3.vercel.app>, Auto-Deploy aus `main`
-> aktiv (12.7).
+> **Stand:** 30.07.2026, vierte Ausbaustufe (Review-Paket «Changes IVS»).
+> Repository auf `main`. Live unter <https://ivs-prototyp-v3.vercel.app>,
+> Auto-Deploy aus `main` aktiv (12.7).
 >
 > **Ein spartan/ui-Skill liegt im Repo** (`.claude/skills/spartan/`, per
 > Symlink auf `.agents/skills/spartan/`) und wird von Claude Code automatisch
@@ -872,6 +872,75 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
 47. **Deployment:** Der Prototyp läuft öffentlich auf Vercel
     (<https://ivs-prototyp-v3.vercel.app>), Details in 12.7.
 
+**Vierte Ausbaustufe — Review-Paket «Changes IVS» (PDF vom 30.07.2026,
+Rückfragen in derselben Session geklärt)**
+
+48. **Objekt-Taxonomie:** Unter einer Linienführung leben «Abschnitt mit
+    Substanz», «Abschnitt mit viel Substanz» und die **Kunstbaute als
+    spezifischer Abschnitt** (Typen Brücke, Stützmauer, Trockenmauer,
+    Durchlass; Feld `kunstbauteTyp`, Ebene bleibt `abschnitt`). Kunstbauten
+    werden bei rund **jeder sechsten Linienführung** generiert (kurzes
+    Teilstück der Route, 5–20 % der Länge) plus zwei kuratierte Beispiele
+    (BE 21.2.3, BE 22.1.3). Abschnittslängen sind **nur selten identisch**
+    mit der Linienführung: Ein-Routen-Linienführungen werden über die
+    Teilsegmente in Abschnitte zerlegt (noch 131 von 862 LFs mit einem
+    deckungsgleichen Einzelabschnitt). Gesamthaft ~3742 Objekte.
+49. **Einheitliche Legende** überall (Karte, Kartenbild-Panel,
+    Hierarchie-Menü, MapTip, Side-Panel; `OBJEKT_TYP_SYMBOL` in
+    karten-layer.ts, UI-Komponente `ivs-typ-symbol`): Strecke und
+    Linienführung **orange, beide gleich dick** (auf der Karte
+    unterscheiden die Grenzmarken); Abschnitte **blau durchgezogen, durch
+    die Dicke unterschieden** — dünn = mit Substanz, mittel = mit viel
+    Substanz, dick = Kunstbaute; Wegbegleiter roter Punkt. «Wenig/ohne
+    Substanz» läuft unter der dünnen Linie «Abschnitt mit Substanz» (die
+    Taxonomie kennt zwei Stufen); das Formularfeld Substanzgrad bleibt
+    unverändert.
+50. **Kartenbild-Panel** (vorher «Objekte»): Hintergründe (vier Basemaps
+    und zwei Raster-Overlays) sind **additiv** über Augen kombinierbar,
+    die Deckkraft je Hintergrund liegt hinter einem Blend-Icon mit initial
+    verstecktem Slider. Der Abschnitt «Layer» heisst **«Objekte»**, die
+    Objekt-Deckkraft gibt es nur global (gleiches Icon-Muster, initial
+    versteckt). Technisch: sechs WebTileLayer zuunterst statt exklusiver
+    Basemap.
+51. **Status-Dropdown** in der Kopfzeile des Objekt-Details: der jeweils
+    **nächste und vorherige Status** der Workflow-Kette; nicht erlaubte
+    Übergänge erscheinen ebenfalls und erklären beim Klick im Modal, wem
+    der Schritt vorbehalten ist.
+52. **Nie-disabled-Regel:** Der Prototyp zeigt keine ausgegrauten
+    Bedienelemente; gesperrte Aktionen bleiben aktiv und begründen sich im
+    zentralen Hinweis-Dialog (`HinweisStore`, Shell und Kartenfenster).
+    Bewusste Abgrenzung: Pflichtfeld-Validierung von Submit-Buttons,
+    Listen-Navigation (erste/letzte Position) und gemäss 07.04 gesperrte
+    Attributfelder (Signatur, Kanton) bleiben klassisch.
+53. **Karten-Tab-Werkzeuge:** Geometrie-Editing und Karten-Kommentar
+    erscheinen nur auf dem Karten-Tab, das Geometrie-Werkzeug zusätzlich
+    nur im Edit-Modus; der Umschalter für die Layer-Auswahl entfällt —
+    das Kartenbild-Panel ist eigenständig einklappbar.
+54. **Hierarchie-Menü** als gemeinsame Komponente (`ivs-hierarchie-menu`):
+    Legenden-Symbol und Typ-Tag je Eintrag («Abschnitt mit viel Substanz»,
+    «Kunstbaute (Brücke)», Objektart der Wegbegleiter); **Umteilen (07.09)
+    je Child-Zeile** über ein «…»-Kontextmenü mit Rechteprüfung — der
+    Sammel-Eintrag am Menüende ist entfallen.
+55. **Objekte-Side-Panel** zeigt **alle** Objektinformationen ungekürzt
+    (inkl. NHG-Einzelbewertungen, Empfehlungen, Datierungsvermerken,
+    Bibliografie, Prüfkommentar, Lognotizen, Inexistenz) und neben dem
+    Titel dasselbe Hierarchie-Menü wie die Detailseite.
+56. **Kommentare:** Standard-Filter «Offene», der Filter «Eigene»
+    entfällt. Objektübergreifende Listen (Dashboard) zeigen nur noch die
+    **eigenen** Kommentare: selbst verfasste oder beantwortete, per `@`
+    erwähnte sowie Kommentare auf Objekten, die der Person zugewiesen sind
+    oder laut Lognotizen einmal zugewiesen waren. Im geöffneten Objekt
+    bleiben alle sichtbar (Prüf-Workflow).
+57. **Dashboard:** Liste und Zeilen-Dropdown arbeiten mit den
+    **rollenrelevanten Stati** (`relevanteStati` in rollen.ts — die Stati,
+    in denen die Rolle arbeitet, plus jene, die sie über ihre Übergänge
+    setzt); das Dropdown erlaubt den direkten Wechsel.
+58. **Kartenfenster `/karte` mit Panel-Kopf:** Tabs (Karte, 360° Bilder
+    mit Begehungsplanung, Kommentare) und Werkzeuge inklusive Zeichnen;
+    Arbeitsgeometrien, Kommentare und Rollenwechsel synchronisieren über
+    `storage`-Ereignisse live mit dem Hauptfenster, die Selektion weiter
+    über den BroadcastChannel.
+
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
 
@@ -1083,50 +1152,58 @@ Seed-Strecken sind dort als Tabellen hinterlegt. Das Dufour-Situierungsbild
 
 ### 12.5 Stand der Arbeit
 
-Gebaut ist die **dritte Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
+Gebaut ist die **vierte Ausbaustufe des Kern-Workflows** (Stand 30.07.2026;
+die Review-Anpassungen «Changes IVS» sind als Entscheide 48–58 in 9.8
+dokumentiert):
 
 - **Shell** mit verstecktem Rollenmenü (Klick aufs IVS-Logo; R-03…R-07
   wählbar, R-01/R-02/R-08 aufgeführt aber gesperrt), Dark-Mode, Profil mit
   «Demodaten zurücksetzen», Sprachwechsler als Attrappe.
-- **Dashboard (04)**: je Rolle vorgefilterte Aufgaben, gruppiert
-  Backlog / In Arbeit / Done (Mapping der acht Stati: zugewiesen → Backlog ·
-  in Bearbeitung, Korrektur, bereit zur Prüfung, in Prüfung → In Arbeit ·
-  geprüft, freigegeben, publiziert → Done), Suche, Schnellfilter,
-  Inline-Statuswechsel gemäss Rollenrechten, Polygon-Selektion als
-  geographischer Filter (05.03).
+- **Dashboard (04)**: Aufgaben in den **rollenrelevanten Stati**
+  (Entscheid 57), gruppiert Backlog / In Arbeit / Done (Mapping der acht
+  Stati: zugewiesen → Backlog · in Bearbeitung, Korrektur, bereit zur
+  Prüfung, in Prüfung → In Arbeit · geprüft, freigegeben, publiziert →
+  Done), Suche, Schnellfilter, Zeilen-Dropdown mit direktem Wechsel unter
+  den relevanten Stati, Polygon-Selektion als geographischer Filter (05.03).
 - **Objektbearbeitung (07)**: View-/Edit-Modus mit automatischem Speichern
   und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
   Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
   Punkteskalen 0–4, Ø angezeigt), Empfehlungen, Geschichte & Gelände
   (3000-Zeichen-Limite), Anhang, Prüfen/Freigabe, Inexistent (07.16, mit
-  Pflichtbegründung), Lognotizen; Hierarchie-Dropdown (Strecke → LF →
-  Abschnitt, Wegbegleiter) zum Objektwechsel; Statusübergänge je Rolle mit
-  automatischem Logeintrag; Bearbeitungslog als Sheet; Löschen mit
-  Warndialog (07.05, gesperrt nach Publikation).
+  Pflichtbegründung), Lognotizen; **Hierarchie-Menü** (Entscheid 54) mit
+  Legenden-Symbolen, Typ-Tags und Umteilen je Child-Zeile;
+  **Status-Dropdown** in der Kopfzeile (Entscheid 51); Bearbeitungslog als
+  Sheet; Löschen immer aktiv mit Warn- bzw. Erklär-Modal (07.05,
+  nie-disabled-Regel, Entscheid 52).
 - **Karte**: ArcGIS Maps SDK mit swisstopo-WMTS und den Layern aus
   `ivs-map` — die Objekte liegen AUF diesen Layern (Anreicherung beim
-  Laden, Entscheid 40), keine eigenen Objekt-Layer. Selektion mit
-  SDK-Highlight, Abblendung und Zoom; Hover-MapTip mit der Hierarchie der
-  getroffenen Objekte; Klick öffnet direkt, Kontextmenü nur bei mehreren
-  echt verschiedenen Objekten (Entscheid 41). Treffer werden über einen
-  **Umkreis** gesucht (8 px Maus, 14 px Touch — Entscheid 46), nicht per
-  `hitTest`. Punktobjekte einheitlich rot, Grenzmarken-Legende als
-  Linienformen (Entscheid 43). Separates Kartenfenster `/karte` mit
-  bidirektionaler Synchronisation über BroadcastChannel (Selektion hin,
-  Objekt-Klick zurück).
-- **Mock-Daten**: 46 kuratierte Objekte im Testgebiet Bern — BE 7
+  Laden, Entscheid 40); die **Symbolik folgt der einheitlichen Legende**
+  (Entscheid 49: Abschnitte blau nach Typ, Strecken/LF orange, Kunstbauten
+  als eigener generierter Layer). Selektion mit SDK-Highlight, Abblendung
+  und Zoom; Hover-MapTip mit Hierarchie und Legenden-Symbolen; Klick öffnet
+  direkt, Kontextmenü nur bei mehreren echt verschiedenen Objekten
+  (Entscheid 41). Treffer werden über einen **Umkreis** gesucht (8 px Maus,
+  14 px Touch — Entscheid 46), nicht per `hitTest`. Das
+  **Kartenbild-Panel** steuert Hintergründe additiv samt Deckkraft je
+  Eintrag (Entscheid 50). Separates Kartenfenster `/karte` mit Panel-Kopf
+  (Tabs und Werkzeuge, Entscheid 58) und bidirektionaler Synchronisation
+  (BroadcastChannel für die Selektion, storage-Ereignisse für Geometrien,
+  Kommentare und Rolle).
+- **Mock-Daten**: 48 kuratierte Objekte im Testgebiet Bern — BE 7
   (Murtenstrasse, publiziert/freigegeben), BE 21 (Frauenkappelen–Gümmenen,
   in Arbeit, enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse, in
-  Prüfung), BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft) —
-  plus generierte **Vollabdeckung** aller Testgeometrien (Entscheid 44):
-  insgesamt ~2565 Objekte (403 Strecken, 862 Linienführungen, 1124
-  Abschnitte, 176 Wegbegleiter), generierte im Status «publiziert» mit aus
+  Prüfung), BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft),
+  inkl. zwei kuratierter Kunstbauten — plus generierte **Vollabdeckung**
+  aller Testgeometrien (Entscheide 44/48): insgesamt ~3742 Objekte
+  (403 Strecken, 862 Linienführungen, 2301 Abschnitte inkl. 148
+  Kunstbauten, 176 Wegbegleiter), generierte im Status «publiziert» mit aus
   `ivs_signatur` abgeleiteter Bedeutung/Substanz und Wegbegleiter-Namen aus
-  dem `easyocr`-Feld. Persistenz im localStorage (~2.6 MB), `SEED_VERSION`
+  dem `easyocr`-Feld. Persistenz im localStorage (~3.9 MB), `SEED_VERSION`
   erhöhen verwirft Stände.
 - **Objekte-Übersicht (04.01)** unter `/objekte`: Kartenansicht — Karte im
   Vordergrund, links eine dezente Objektliste mit Suche und Filtern, ein
-  Klick öffnet rechts das Side-Panel mit dem Objektinhalt.
+  Klick öffnet rechts das Side-Panel mit dem **vollständigen** Objektinhalt
+  und dem Hierarchie-Menü (Entscheid 55).
 - **360°-Aufnahmen (06, Vorgabe 9)** unter `/panorama`: Galerie der
   Befahrung mit drehbarem Platzhalter-Panorama (generierte, nahtlose SVGs),
   Vor-/Zurück-Navigation, Karte mit Standortpunkt und live mitdrehendem
@@ -1134,7 +1211,8 @@ Gebaut ist die **dritte Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
   der Objekte, Verkehrsmittel, Unterkunft, Zeitbedarf — auch direkt aus der
   Objektbearbeitung.
 - **Kommentare (09/10)**: Panel mit Threads, Antworten, Erledigt-
-  Kennzeichnung (10.02), Suche, Sortierung, Filtern; `@`-Erwähnungen
+  Kennzeichnung (10.02), Suche, Sortierung, Filtern (Standard «Offene»,
+  objektübergreifend nur eigene — Entscheid 56); `@`-Erwähnungen
   (Benutzer mit Rolle) und `#`-Attribut-Referenzen, die im Objektformular
   zum Feld springen (09.03); Kommentare an Objekten jeder Ebene oder frei
   auf der Karte platzierbar (05.11), Objektzuweisung optional.
@@ -1255,14 +1333,33 @@ Fehler, die schon einmal Zeit gekostet haben:
   `URL.createObjectURL` als Layer-Quelle. Ein Feld, das nur auf manchen
   Features gesetzt ist, braucht auf allen übrigen leere Strings (siehe
   null-Fallstrick oben).
-- **Vollabdeckung hat Kosten:** ~2565 Objekte bedeuten ~2.6 MB localStorage
-  (Persistenz-Effect serialisiert bei jeder Änderung) und Dashboard-Gruppen
-  mit Tausenden Zeilen (~100 ms pro Gruppen-Toggle bei R-03). Für den
-  Prototyp akzeptiert; bei spürbarer Trägheit wäre Virtualisierung oder
-  Debouncing der Persistenz der nächste Hebel.
+- **Vollabdeckung hat Kosten:** ~3742 Objekte bedeuten ~3.9 MB localStorage
+  (Persistenz-Effect serialisiert bei jeder Änderung; die 5-MB-Limite rückt
+  näher) und Dashboard-Gruppen mit Tausenden Zeilen (~100 ms pro
+  Gruppen-Toggle bei R-03). Für den Prototyp akzeptiert; bei spürbarer
+  Trägheit wäre Virtualisierung oder Debouncing der Persistenz der nächste
+  Hebel.
 - **`vercel.json` erlaubt keine Kommentare** — auch kein `comment`-Feld
   innerhalb von `rewrites`/`headers`. Das Schema lehnt zusätzliche
   Properties ab und der Deploy bricht mit «Schema verification failed» ab.
+- **Zwei GeoJSONLayer auf derselben Blob-URL stören sich** beim parallelen
+  Erstaufbau (sporadische «Failed to load layer/tile»-Fehler im Worker).
+  Die beiden Abschnitts-Layer teilen sich deshalb den gestempelten Blob,
+  bekommen aber **je eine eigene Objekt-URL** (`objektQuellUrl` in
+  karten-layer.ts). Ein sehr seltener, kosmetischer Tile-Fehler beim
+  allerersten Aufbau kann bleiben — die Kacheln werden nachgefordert,
+  Feature-Zahlen und Rendering stimmen.
+- **Das `storage`-Ereignis feuert nur in fremden Fenstern** — ideal für die
+  Live-Synchronisation des separaten Kartenfensters (Geometrien, Kommentare,
+  Rolle) ohne Ping-Pong: Das schreibende Fenster löst bei sich selbst kein
+  Ereignis aus.
+- **Overlay-Scrollbalken überlagern die letzte Spalte** eines scrollenden
+  Dropdown-Menüs (macOS) — Zeilen mit rechtsbündigen Aktions-Buttons wie im
+  Hierarchie-Menü brauchen ein rechtes Padding (`pr-2`).
+- **Verschachtelte `hlmDropdownMenuTrigger` funktionieren:** Ein Trigger
+  innerhalb eines offenen Menüs (das «…»-Kontextmenü im Hierarchie-Menü)
+  öffnet ein zweites Overlay, ohne das erste zu schliessen; der Klick-Handler
+  am selben Button kann vorher den Zeilen-Kontext in ein Signal legen.
 
 ### 12.7 Deployment (Vercel)
 
@@ -1375,7 +1472,8 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach der dritten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
+Stand nach der vierten Ausbaustufe (30.07.2026, Review-Paket «Changes IVS»
+umgesetzt — Entscheide 48–58); Reihenfolge als Vorschlag.
 
 1. **Prüfprotokoll / Checkliste 1 (Abschnitt 4.6/4.7).** Der grösste noch
    offene Fachblock: neun binäre Prüffragen mit Kommentarfeld bei «nicht
