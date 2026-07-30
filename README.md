@@ -77,6 +77,30 @@ pnpm ng g @spartan-ng/cli:ui <name>
 `pnpm test` schlägt derzeit mit «No tests found» fehl — für die Prototypen sind
 keine Unit-Tests vorgesehen.
 
+Das spartan/ui-Regelwerk liegt als Skill im Repo (`.claude/skills/spartan/`).
+Nach grösseren Änderungen lohnt sich:
+
+```bash
+pnpm ng g @spartan-ng/cli:healthcheck
+```
+
+## Deployment
+
+Live: **<https://ivs-prototyp-v3.vercel.app>**
+
+```bash
+vercel --prod
+```
+
+Die Konfiguration steht in `vercel.json` — Build nach
+`dist/ivs-prototyp-v3/browser` und ein SPA-Rewrite auf `index.html`, ohne den
+Deep Links wie `/objekt/be-21-1-2` und das Kartenfenster `/karte` beim direkten
+Aufruf ins Leere laufen.
+
+**Auto-Deploy ist noch nicht aktiv:** Die Vercel-GitHub-App braucht einmalig
+Zugriff auf dieses private Repository (Details und Anleitung im Fachkontext,
+Abschnitt 12.7). Danach deployt jeder Push auf `main` automatisch.
+
 ## Kitchen Sink
 
 Unter `/kitchen-sink` liegt eine Referenzseite mit **allen** spartan/ui-Primitives

@@ -17,10 +17,20 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide), 12.4 (Projektstruktur und Persistenz),
-> 12.5 (was gebaut ist), 12.6 (Fallstricke) und 14 (nächste Schritte).
+> (abgestimmte Detailentscheide, aktuell bis Nr. 47), 12.4 (Projektstruktur
+> und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
+> lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
-> **Stand:** 30.07.2026, dritte Ausbaustufe. Repository auf `main`.
+> **Stand:** 30.07.2026, dritte Ausbaustufe. Repository auf `main`, gepusht.
+> Live unter <https://ivs-prototyp-v3.vercel.app>; Auto-Deploy ist noch
+> freizuschalten (12.7, Schritt 0 in Abschnitt 14).
+>
+> **Ein spartan/ui-Skill liegt im Repo** (`.claude/skills/spartan/`, per
+> Symlink auf `.agents/skills/spartan/`) und wird von Claude Code automatisch
+> geladen. Er enthält das verbindliche Regelwerk der Bibliothek — semantische
+> Farbtokens, Komposition, Formulare, Icons — plus die CLI-Generatoren
+> (`ng g @spartan-ng/cli:info --json`, `:healthcheck`, `:ui <name>`). Der
+> `healthcheck` läuft aktuell mit 29 von 29 grünen Prüfungen durch.
 
 ---
 
@@ -855,6 +865,12 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
     Status-Signalfarben als Theme-Tokens, `hlm-empty` für Leerzustände,
     Touch-Nachrüstung app-eigener Elemente über Tailwinds
     `pointer-coarse:`-Variante.
+46. **Trefferradius statt Pixelgenauigkeit:** Hover und Klick auf der Karte
+    treffen Objekte in einem Umkreis um den Zeiger — 8 px mit Maus, 14 px
+    auf Touch-Geräten. Pixelgenaues Treffen einer 3-px-Linie ist unzumutbar
+    (technische Begründung in 12.6, Stichwort `hitTest`).
+47. **Deployment:** Der Prototyp läuft öffentlich auf Vercel
+    (<https://ivs-prototyp-v3.vercel.app>), Details in 12.7.
 
 ---
 
@@ -923,6 +939,8 @@ Neu hinzugekommen mit der überarbeiteten User Story Map:
 | Testdaten und Referenz-Kartenimplementation                   | `/Users/wis/claude/ivs-map`                                   |
 | Älterer Prototyp (begrenzte Inspiration)                      | <https://ivs-prototyp-variant-b.vercel.app/>                  |
 | Repository                                                    | <https://github.com/Schnitzelbaer/ivs-prototyp-v3> (privat)   |
+| **Dieser Prototyp, live**                                     | <https://ivs-prototyp-v3.vercel.app> (siehe 12.7)             |
+| spartan/ui-Skill (Regelwerk im Repo)                          | `.claude/skills/spartan/` → `.agents/skills/spartan/`         |
 
 Zur Sprachregel siehe Abschnitt 13.5.
 
@@ -1073,10 +1091,12 @@ Gebaut ist die **dritte Ausbaustufe des Kern-Workflows** (Stand 30.07.2026):
   Laden, Entscheid 40), keine eigenen Objekt-Layer. Selektion mit
   SDK-Highlight, Abblendung und Zoom; Hover-MapTip mit der Hierarchie der
   getroffenen Objekte; Klick öffnet direkt, Kontextmenü nur bei mehreren
-  echt verschiedenen Objekten (Entscheid 41). Punktobjekte einheitlich
-  rot, Grenzmarken-Legende als Linienformen (Entscheid 43). Separates
-  Kartenfenster `/karte` mit bidirektionaler Synchronisation über
-  BroadcastChannel (Selektion hin, Objekt-Klick zurück).
+  echt verschiedenen Objekten (Entscheid 41). Treffer werden über einen
+  **Umkreis** gesucht (8 px Maus, 14 px Touch — Entscheid 46), nicht per
+  `hitTest`. Punktobjekte einheitlich rot, Grenzmarken-Legende als
+  Linienformen (Entscheid 43). Separates Kartenfenster `/karte` mit
+  bidirektionaler Synchronisation über BroadcastChannel (Selektion hin,
+  Objekt-Klick zurück).
 - **Mock-Daten**: 46 kuratierte Objekte im Testgebiet Bern — BE 7
   (Murtenstrasse, publiziert/freigegeben), BE 21 (Frauenkappelen–Gümmenen,
   in Arbeit, enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse, in
@@ -1223,10 +1243,47 @@ Fehler, die schon einmal Zeit gekostet haben:
   mit Tausenden Zeilen (~100 ms pro Gruppen-Toggle bei R-03). Für den
   Prototyp akzeptiert; bei spürbarer Trägheit wäre Virtualisierung oder
   Debouncing der Persistenz der nächste Hebel.
+- **`vercel.json` erlaubt keine Kommentare** — auch kein `comment`-Feld
+  innerhalb von `rewrites`/`headers`. Das Schema lehnt zusätzliche
+  Properties ab und der Deploy bricht mit «Schema verification failed» ab.
 
----
+### 12.7 Deployment (Vercel)
 
-## 13. Arbeitsweise und Leitplanken
+Der Prototyp ist öffentlich erreichbar:
+
+|                 |                                                             |
+| --------------- | ----------------------------------------------------------- |
+| Produktion      | <https://ivs-prototyp-v3.vercel.app>                        |
+| Vercel-Projekt  | `simonjulianwirth-gmailcoms-projects/ivs-prototyp-v3`       |
+| Repository      | <https://github.com/Schnitzelbaer/ivs-prototyp-v3> (privat) |
+| Node auf Vercel | 24.x                                                        |
+
+**Konfiguration** liegt in `vercel.json`:
+
+- `buildCommand: pnpm build` (entspricht `ng build`, Default-Konfiguration
+  ist `production`), `outputDirectory: dist/ivs-prototyp-v3/browser`.
+- **SPA-Rewrite** `/(.*)` → `/index.html`. Ohne diesen laufen Deep Links
+  wie `/objekt/be-21-1-2` und das separate Kartenfenster `/karte` beim
+  direkten Aufruf in einen 404. Vercel prüft zuerst das Dateisystem,
+  statische Assets bleiben davon unberührt.
+- **Cache-Header** für `/data/*.geojson` (die Geodaten aus `ivs-map` sind
+  unveränderlich).
+
+**Auto-Deploy ist noch nicht aktiv.** `vercel git connect` scheitert, weil
+die Vercel-GitHub-App auf dieses private Repository keinen Zugriff hat
+(«Failed to connect … to project»). Zum Aktivieren muss die App einmalig
+für `Schnitzelbaer/ivs-prototyp-v3` freigegeben werden — entweder unter
+<https://github.com/settings/installations> → Vercel → _Repository access_,
+oder im Vercel-Dashboard über _Project Settings → Git → Connect_. Danach
+löst jeder Push auf `main` einen Produktions-Deploy aus; bis dahin gilt:
+
+```bash
+vercel --prod
+```
+
+Zum Verifizieren eines Deployments taugt ein reiner Statuscode-Check nicht —
+der SPA-Rewrite liefert für **jeden** Pfad 200. Die App selbst muss im
+Browser geprüft werden (Objektzahl im Store, Layer-Zuordnung, Konsole).
 
 Verbindlich für die Zusammenarbeit an diesem Projekt.
 
@@ -1293,15 +1350,20 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach der zweiten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
+Stand nach der dritten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
 
+0. **Auto-Deploy freischalten** (eine Minute Handarbeit, siehe 12.7): Die
+   Vercel-GitHub-App braucht Zugriff auf das private Repository, danach
+   deployt jeder Push auf `main` automatisch. Bis dahin `vercel --prod`.
 1. **Prüfprotokoll / Checkliste 1 (Abschnitt 4.6/4.7).** Der grösste noch
    offene Fachblock: neun binäre Prüffragen mit Kommentarfeld bei «nicht
    erfüllt», freie Befunde für Kartenkorrekturen, Umsetzungsvermerk der
    Inventarisierenden und begründete Abweichungen — integriert im
    Objektbeschrieb, nicht als separates Dokument. Abschnitt «Prüfen /
    Freigabe» im Formular ist der vorgesehene Ort; das Verhältnis zum
-   «Prüfregister QS» (Abschnitt 10) bleibt zu klären.
+   «Prüfregister QS» (Abschnitt 10) bleibt zu klären. **Empfehlung:** vorher
+   oder dabei `hlmField` einführen (siehe Punkt 6) — die neun Fragen mit
+   bedingtem Kommentarfeld sind der natürliche Anlass.
 2. **Versionsvergleich (08.05, Vorgabe 10).** Text-Diff mit
    Änderungsmarkierungen plus Geometrie-Overlay alt/neu; der Einstieg
    existiert bereits als deaktivierter Eintrag im Historie-Menü.
@@ -1309,14 +1371,25 @@ Stand nach der zweiten Ausbaustufe (30.07.2026); Reihenfolge als Vorschlag.
    Kontextmenü und Pin-Klick sind inzwischen end-to-end mit synthetischen
    Pointer-Events verifiziert (identischer Event-Pfad wie echte Eingabe);
    Geometrie-Zeichnen bleibt nur skriptbasiert geprüft — ein Durchgang mit
-   echter Maus schadet weiterhin nicht.
+   echter Maus schadet weiterhin nicht. Dabei auch prüfen, ob der
+   Trefferradius von 8 px (Entscheid 46) in der Praxis passt.
 4. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
    Arbeitspakete (03.01–03.04), Reports (12.01–12.04).
 5. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
    Geometrie-Werkzeuge, Stammdaten-Tabelle) — die Touch-Vergrösserung aus
    Abschnitt 9.6 greift automatisch, das Layout ist aber ungeprüft.
+6. **`hlmField` im Formular** (offener Punkt aus dem spartan-Review):
+   37 handgebaute `grid gap-1.5`-Feldgruppen und 57 Beschreibungsabsätze
+   liessen sich auf `hlmField` / `hlmFieldLabel` / `hlmFieldDescription`
+   umstellen; die Pflichtbegründung bei «inexistent» hat bis heute kein
+   `hlm-field-error`, nur ein handgeschriebenes `*`. Grosser Diff, geringe
+   optische Wirkung — deshalb bewusst an Punkt 1 gekoppelt.
+7. **Performance der Vollabdeckung**, falls sie störend wird: Virtualisierung
+   der langen Listen oder Debouncing der localStorage-Persistenz (12.6).
 
-**Wo es weitergeht.** `pnpm start`, dann `/dashboard`. Die Rolle wechselt man
-über einen Klick auf das **IVS-Logo** oben links; als R-03 erscheint zusätzlich
-die Stammdatenverwaltung. «Demodaten zurücksetzen» liegt im Profil-Popover
-unten links.
+**Wo es weitergeht.** `pnpm start`, dann `/dashboard` — oder direkt
+<https://ivs-prototyp-v3.vercel.app>. Die Rolle wechselt man über einen Klick
+auf das **IVS-Logo** oben links; als R-03 erscheint zusätzlich die
+Stammdatenverwaltung. «Demodaten zurücksetzen» liegt im Profil-Popover unten
+links — nötig nach jeder Änderung an den Seed-Daten, sonst zeigt der Browser
+den alten Stand (oder `SEED_VERSION` erhöhen).
