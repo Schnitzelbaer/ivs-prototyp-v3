@@ -2,13 +2,19 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideDownload, lucideRotateCw, lucideSearch } from '@ng-icons/lucide';
+import {
+  lucideChevronRight,
+  lucideDownload,
+  lucideRotateCw,
+  lucideSearch,
+  lucideX,
+} from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
-import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { KommentarStore } from '../core/kommentare';
 import {
   EBENE_LABEL,
   Ebene,
@@ -23,22 +29,26 @@ import {
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { ALLE_STATI, STATUS_LABEL } from '../core/status';
+import { Karte, KartenSelektion } from '../karte/karte';
 
-type SortSpalte = 'signatur' | 'name' | 'ebene' | 'gemeinden' | 'nhg' | 'substanz' | 'bewertung' | 'status' | 'zustaendig';
+type SortSpalte = 'signatur' | 'name' | 'status' | 'bewertung';
 
-const EBENEN_REIHENFOLGE: Ebene[] = ['strecke', 'linienfuehrung', 'abschnitt', 'wegbegleiter'];
-const SUBSTANZ_REIHENFOLGE: (Substanzgrad | null)[] = [
-  'viel_substanz',
-  'mit_substanz',
-  'wenig_substanz',
-  'ohne_substanz',
-  null,
-];
+/** Farbpunkt je Workflow-Status für die kompakte Liste. */
+const STATUS_FARBE: Record<WorkflowStatus, string> = {
+  zugewiesen: 'bg-slate-400',
+  in_bearbeitung: 'bg-blue-500',
+  bereit_zur_pruefung: 'bg-amber-500',
+  in_pruefung: 'bg-orange-500',
+  korrektur: 'bg-red-500',
+  geprueft: 'bg-teal-500',
+  freigegeben: 'bg-green-500',
+  publiziert: 'bg-green-700',
+};
 
 /**
- * Objekte (04.01): vollständige Übersicht aller Objekte — im Unterschied zum
- * rollenspezifisch vorgefilterten Dashboard. Volltextsuche, Attributfilter,
- * Sortierung über alle Spalten (04.03), Export als Attrappe (04.05).
+ * Objekte (04.01) — Kartenansicht: Die Karte steht im Vordergrund, links
+ * eine dezente, kompakte Objektliste. Ein Klick (Liste oder Karte) öffnet
+ * rechts ein Side-Panel mit dem Objektinhalt und dem Sprung zur Bearbeitung.
  */
 @Component({
   selector: 'ivs-objekte',
@@ -50,17 +60,19 @@ const SUBSTANZ_REIHENFOLGE: (Substanzgrad | null)[] = [
     HlmButtonImports,
     HlmInputGroupImports,
     HlmNativeSelectImports,
-    HlmTableImports,
     HlmTooltipImports,
+    Karte,
   ],
-  providers: [provideIcons({ lucideChevronDown, lucideDownload, lucideRotateCw, lucideSearch })],
+  providers: [provideIcons({ lucideChevronRight, lucideDownload, lucideRotateCw, lucideSearch, lucideX })],
   templateUrl: './objekte.html',
 })
 export class Objekte {
   private readonly store = inject(ObjektStore);
+  private readonly kommentarStore = inject(KommentarStore);
   private readonly router = inject(Router);
 
   protected readonly statusLabel = STATUS_LABEL;
+  protected readonly statusFarbe = STATUS_FARBE;
   protected readonly ebeneLabel = EBENE_LABEL;
   protected readonly nhgLabel = NHG_LABEL;
   protected readonly substanzLabel = SUBSTANZGRAD_LABEL;
@@ -72,26 +84,32 @@ export class Objekte {
   protected readonly ebeneFilter = signal<'alle' | Ebene>('alle');
   protected readonly bedeutungFilter = signal<'alle' | NhgWert>('alle');
   protected readonly substanzFilter = signal<'alle' | Substanzgrad>('alle');
+  protected readonly sortierung = signal<SortSpalte>('signatur');
 
-  protected readonly sortSpalte = signal<SortSpalte>('signatur');
-  protected readonly sortAufsteigend = signal(true);
+  /** Signatur des im Side-Panel geöffneten Objekts. */
+  protected readonly auswahlSignatur = signal<string | null>(null);
 
-  protected readonly spalten: { id: SortSpalte; label: string }[] = [
-    { id: 'signatur', label: 'Signatur' },
-    { id: 'name', label: 'Bezeichnung' },
-    { id: 'ebene', label: 'Ebene' },
-    { id: 'gemeinden', label: 'Gemeinden' },
-    { id: 'nhg', label: 'Bedeutung' },
-    { id: 'substanz', label: 'Substanzgrad' },
-    { id: 'bewertung', label: 'Bewertung' },
-    { id: 'status', label: 'Workflow-Status' },
-    { id: 'zustaendig', label: 'Zuständig' },
-  ];
+  protected readonly auswahl = computed(() => {
+    const signatur = this.auswahlSignatur();
+    return signatur ? (this.store.bySignatur(signatur) ?? null) : null;
+  });
+
+  protected readonly kartenSelektion = computed<KartenSelektion | null>(
+    () => {
+      const o = this.auswahl();
+      return o ? { ebene: o.ebene, signatur: o.signatur } : null;
+    },
+    { equal: (a, b) => a?.signatur === b?.signatur && a?.ebene === b?.ebene },
+  );
+
+  protected readonly kommentarAnzahl = computed(() => {
+    const o = this.auswahl();
+    return o ? this.kommentarStore.fuerObjekt(o.signatur).length : 0;
+  });
 
   protected readonly gefiltert = computed(() => {
     const begriff = this.suche().trim().toLowerCase();
-    const spalte = this.sortSpalte();
-    const richtung = this.sortAufsteigend() ? 1 : -1;
+    const sortierung = this.sortierung();
 
     return this.store
       .alle()
@@ -106,24 +124,26 @@ export class Objekte {
         }
         return true;
       })
-      .sort((a, b) => {
-        // Objekte ohne Wert bleiben unabhängig von der Richtung am Ende
-        const leerA = istLeer(a, spalte);
-        const leerB = istLeer(b, spalte);
-        if (leerA !== leerB) return leerA ? 1 : -1;
-        return richtung * vergleiche(a, b, spalte);
-      });
+      .sort((a, b) => vergleiche(a, b, sortierung));
   });
 
   protected readonly gesamt = computed(() => this.store.alle().length);
 
-  protected sortiere(spalte: SortSpalte): void {
-    if (this.sortSpalte() === spalte) {
-      this.sortAufsteigend.set(!this.sortAufsteigend());
-    } else {
-      this.sortSpalte.set(spalte);
-      this.sortAufsteigend.set(true);
-    }
+  protected waehle(objekt: IvsObjekt): void {
+    this.auswahlSignatur.set(objekt.signatur);
+  }
+
+  protected waehleSignatur(signatur: string): void {
+    if (this.store.bySignatur(signatur)) this.auswahlSignatur.set(signatur);
+  }
+
+  protected schliessePanel(): void {
+    this.auswahlSignatur.set(null);
+  }
+
+  protected oeffneAuswahl(): void {
+    const o = this.auswahl();
+    if (o) void this.router.navigate(['/objekt', o.id]);
   }
 
   protected filterZuruecksetzen(): void {
@@ -133,21 +153,6 @@ export class Objekte {
     this.bedeutungFilter.set('alle');
     this.substanzFilter.set('alle');
   }
-
-  protected oeffne(objekt: IvsObjekt): void {
-    void this.router.navigate(['/objekt', objekt.id]);
-  }
-}
-
-function istLeer(objekt: IvsObjekt, spalte: SortSpalte): boolean {
-  switch (spalte) {
-    case 'bewertung':
-      return bewertungMittel(objekt.bewertung) === null;
-    case 'substanz':
-      return objekt.substanzgrad === null;
-    default:
-      return false;
-  }
 }
 
 function vergleiche(a: IvsObjekt, b: IvsObjekt, spalte: SortSpalte): number {
@@ -156,26 +161,15 @@ function vergleiche(a: IvsObjekt, b: IvsObjekt, spalte: SortSpalte): number {
       return a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true });
     case 'name':
       return a.name.localeCompare(b.name, 'de-CH');
-    case 'ebene':
-      return EBENEN_REIHENFOLGE.indexOf(a.ebene) - EBENEN_REIHENFOLGE.indexOf(b.ebene);
-    case 'gemeinden':
-      return a.gemeinden.localeCompare(b.gemeinden, 'de-CH');
-    case 'nhg':
-      return a.nhgWert.localeCompare(b.nhgWert, 'de-CH');
-    case 'substanz':
-      return SUBSTANZ_REIHENFOLGE.indexOf(a.substanzgrad) - SUBSTANZ_REIHENFOLGE.indexOf(b.substanzgrad);
+    case 'status':
+      return ALLE_STATI.indexOf(a.status) - ALLE_STATI.indexOf(b.status);
     case 'bewertung': {
-      // ohne Wertung ans Ende, sonst absteigend aussagekräftig — hier neutral aufsteigend
       const wa = bewertungMittel(a.bewertung);
       const wb = bewertungMittel(b.bewertung);
       if (wa === null && wb === null) return 0;
       if (wa === null) return 1;
       if (wb === null) return -1;
-      return wa - wb;
+      return wb - wa; // beste zuerst
     }
-    case 'status':
-      return ALLE_STATI.indexOf(a.status) - ALLE_STATI.indexOf(b.status);
-    case 'zustaendig':
-      return a.zustaendigName.localeCompare(b.zustaendigName, 'de-CH');
   }
 }

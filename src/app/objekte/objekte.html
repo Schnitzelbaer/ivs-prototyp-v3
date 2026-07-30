@@ -12,7 +12,7 @@
       variant="outline"
       size="icon"
       type="button"
-      hlmTooltip="Gefilterte und sortierte Liste als Excel exportieren (im Prototyp ohne Funktion)"
+      hlmTooltip="Gefilterte Liste als Excel exportieren (im Prototyp ohne Funktion)"
       position="left"
       aria-label="Exportieren"
     >
@@ -22,27 +22,27 @@
 
   <!-- Filterleiste -->
   <div class="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
-    <div hlmInputGroup class="w-72 max-w-full">
+    <div hlmInputGroup class="w-64 max-w-full">
       <div hlmInputGroupAddon>
         <ng-icon name="lucideSearch" />
       </div>
       <input
         hlmInputGroupInput
         type="search"
-        placeholder="Signatur, Bezeichnung, Gemeinde, Person …"
+        placeholder="Objekt suchen"
         [ngModel]="suche()"
         (ngModelChange)="suche.set($event)"
       />
     </div>
 
-    <hlm-native-select class="w-44" size="sm" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+    <hlm-native-select class="w-40" size="sm" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
       <option hlmNativeSelectOption value="alle">Workflow-Status</option>
       @for (status of alleStati; track status) {
         <option hlmNativeSelectOption [value]="status">{{ statusLabel[status] }}</option>
       }
     </hlm-native-select>
 
-    <hlm-native-select class="w-40" size="sm" [ngModel]="ebeneFilter()" (ngModelChange)="ebeneFilter.set($event)">
+    <hlm-native-select class="w-36" size="sm" [ngModel]="ebeneFilter()" (ngModelChange)="ebeneFilter.set($event)">
       <option hlmNativeSelectOption value="alle">Ebene</option>
       <option hlmNativeSelectOption value="strecke">Strecke</option>
       <option hlmNativeSelectOption value="linienfuehrung">Linienführung</option>
@@ -50,19 +50,26 @@
       <option hlmNativeSelectOption value="wegbegleiter">Wegbegleiter</option>
     </hlm-native-select>
 
-    <hlm-native-select class="w-36" size="sm" [ngModel]="bedeutungFilter()" (ngModelChange)="bedeutungFilter.set($event)">
+    <hlm-native-select class="w-32" size="sm" [ngModel]="bedeutungFilter()" (ngModelChange)="bedeutungFilter.set($event)">
       <option hlmNativeSelectOption value="alle">Bedeutung</option>
       <option hlmNativeSelectOption value="national">national</option>
       <option hlmNativeSelectOption value="regional">regional</option>
       <option hlmNativeSelectOption value="lokal">lokal</option>
     </hlm-native-select>
 
-    <hlm-native-select class="w-40" size="sm" [ngModel]="substanzFilter()" (ngModelChange)="substanzFilter.set($event)">
+    <hlm-native-select class="w-36" size="sm" [ngModel]="substanzFilter()" (ngModelChange)="substanzFilter.set($event)">
       <option hlmNativeSelectOption value="alle">Substanzgrad</option>
       <option hlmNativeSelectOption value="viel_substanz">Viel Substanz</option>
       <option hlmNativeSelectOption value="mit_substanz">Mit Substanz</option>
       <option hlmNativeSelectOption value="wenig_substanz">Wenig Substanz</option>
       <option hlmNativeSelectOption value="ohne_substanz">Ohne Substanz</option>
+    </hlm-native-select>
+
+    <hlm-native-select class="w-40" size="sm" [ngModel]="sortierung()" (ngModelChange)="sortierung.set($event)">
+      <option hlmNativeSelectOption value="signatur">Nach Signatur</option>
+      <option hlmNativeSelectOption value="name">Nach Bezeichnung</option>
+      <option hlmNativeSelectOption value="status">Nach Status</option>
+      <option hlmNativeSelectOption value="bewertung">Nach Bewertung</option>
     </hlm-native-select>
 
     <button
@@ -78,55 +85,130 @@
     </button>
   </div>
 
-  <!-- Tabelle -->
-  <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-    <div hlmTableContainer class="rounded-md border border-border">
-      <table hlmTable>
-        <thead hlmTHead>
-          <tr hlmTr>
-            @for (spalte of spalten; track spalte.id) {
-              <th hlmTh>
-                <button type="button" class="flex items-center gap-1 whitespace-nowrap" (click)="sortiere(spalte.id)">
-                  {{ spalte.label }}
-                  @if (sortSpalte() === spalte.id) {
-                    <ng-icon
-                      name="lucideChevronDown"
-                      class="text-xs transition-transform"
-                      [class.rotate-180]="!sortAufsteigend()"
-                    />
-                  }
-                </button>
-              </th>
+  <div class="flex min-h-0 flex-1">
+    <!-- Dezente Objektliste -->
+    <nav class="w-72 shrink-0 overflow-y-auto border-r border-border" aria-label="Objektliste">
+      <ul>
+        @for (o of gefiltert(); track o.id) {
+          <li>
+            <button
+              type="button"
+              class="flex w-full items-start gap-2 border-b border-border/60 px-3 py-2 text-left transition-colors hover:bg-accent"
+              [class.bg-accent]="auswahlSignatur() === o.signatur"
+              (click)="waehle(o)"
+            >
+              <span
+                class="mt-1.5 size-2 shrink-0 rounded-full {{ statusFarbe[o.status] }}"
+                [hlmTooltip]="statusLabel[o.status]"
+              ></span>
+              <span class="min-w-0 flex-1">
+                <span class="block font-mono text-[11px] text-muted-foreground">{{ o.signatur }}</span>
+                <span class="block truncate text-sm" [class.font-medium]="auswahlSignatur() === o.signatur">
+                  {{ o.name }}
+                </span>
+              </span>
+              @if (o.inexistent) {
+                <span hlmBadge variant="destructive" class="mt-1 text-[10px]">inexistent</span>
+              }
+            </button>
+          </li>
+        } @empty {
+          <li class="px-3 py-6 text-center text-sm text-muted-foreground">Keine Objekte entsprechen den Filtern.</li>
+        }
+      </ul>
+    </nav>
+
+    <!-- Karte im Vordergrund -->
+    <section class="min-w-0 flex-1">
+      <ivs-karte class="block h-full" [selektion]="kartenSelektion()" (objektKlick)="waehleSignatur($event)" />
+    </section>
+
+    <!-- Side-Panel mit dem Objektinhalt -->
+    @if (auswahl(); as o) {
+      <aside class="flex w-96 shrink-0 flex-col border-l border-border">
+        <header class="flex items-start gap-2 border-b border-border px-4 py-3">
+          <div class="min-w-0 flex-1">
+            <p class="font-mono text-xs text-muted-foreground">{{ o.signatur }}</p>
+            <h2 class="text-sm leading-snug font-semibold">{{ o.name }}</h2>
+            <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span hlmBadge variant="secondary">{{ statusLabel[o.status] }}</span>
+              <span hlmBadge variant="outline">{{ ebeneLabel[o.ebene] }}</span>
+              @if (o.inexistent) {
+                <span hlmBadge variant="destructive">inexistent</span>
+              }
+            </div>
+          </div>
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            type="button"
+            (click)="schliessePanel()"
+            aria-label="Panel schliessen"
+          >
+            <ng-icon name="lucideX" />
+          </button>
+        </header>
+
+        <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3">
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+            <div>
+              <dt class="text-xs text-muted-foreground">Zuständig</dt>
+              <dd>{{ o.zustaendigName }} ({{ o.zustaendigRolle }})</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Bewertung</dt>
+              <dd>{{ bewertungText(o.bewertung) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">NHG-Wert</dt>
+              <dd>{{ nhgLabel[o.nhgWert] }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Substanzgrad</dt>
+              <dd>{{ o.substanzgrad ? substanzLabel[o.substanzgrad] : '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Bauzeit</dt>
+              <dd>{{ o.bauzeit || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted-foreground">Gemeinden</dt>
+              <dd class="truncate">{{ o.gemeinden || '—' }}</dd>
+            </div>
+            @if (o.wegbegleiterTyp) {
+              <div>
+                <dt class="text-xs text-muted-foreground">Objektart</dt>
+                <dd>{{ o.wegbegleiterTyp }}</dd>
+              </div>
             }
-          </tr>
-        </thead>
-        <tbody hlmTBody>
-          @for (o of gefiltert(); track o.id) {
-            <tr hlmTr class="cursor-pointer" (click)="oeffne(o)">
-              <td hlmTd class="font-mono text-xs whitespace-nowrap">{{ o.signatur }}</td>
-              <td hlmTd class="max-w-56 truncate font-medium">
-                {{ o.name }}
-                @if (o.inexistent) {
-                  <span hlmBadge variant="destructive" class="ml-1">inexistent</span>
-                }
-              </td>
-              <td hlmTd>{{ ebeneLabel[o.ebene] }}</td>
-              <td hlmTd class="max-w-40 truncate">{{ o.gemeinden }}</td>
-              <td hlmTd>{{ nhgLabel[o.nhgWert] }}</td>
-              <td hlmTd>{{ o.substanzgrad ? substanzLabel[o.substanzgrad] : '—' }}</td>
-              <td hlmTd class="text-muted-foreground">{{ bewertungText(o.bewertung) }}</td>
-              <td hlmTd><span hlmBadge variant="secondary">{{ statusLabel[o.status] }}</span></td>
-              <td hlmTd class="whitespace-nowrap">{{ o.zustaendigName }}</td>
-            </tr>
-          } @empty {
-            <tr hlmTr>
-              <td hlmTd colspan="9" class="py-6 text-center text-muted-foreground">
-                Keine Objekte entsprechen den Filtern.
-              </td>
-            </tr>
+            <div>
+              <dt class="text-xs text-muted-foreground">Kommentare</dt>
+              <dd>{{ kommentarAnzahl() }}</dd>
+            </div>
+          </dl>
+
+          @if (o.geschichteText) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">Geschichte</h3>
+              <p class="mt-1 line-clamp-6 text-sm whitespace-pre-line">{{ o.geschichteText }}</p>
+            </div>
           }
-        </tbody>
-      </table>
-    </div>
+          @if (o.gelaendeText) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">Gelände</h3>
+              <p class="mt-1 line-clamp-4 text-sm whitespace-pre-line">{{ o.gelaendeText }}</p>
+            </div>
+          }
+        </div>
+
+        <footer class="border-t border-border px-4 py-3">
+          <button hlmBtn class="w-full" type="button" (click)="oeffneAuswahl()">
+            Objekt öffnen
+            <ng-icon name="lucideChevronRight" />
+          </button>
+        </footer>
+      </aside>
+    }
   </div>
 </div>
