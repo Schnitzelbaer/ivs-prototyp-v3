@@ -65,10 +65,11 @@ type HitTestErgebnis = Awaited<ReturnType<MapView['hitTest']>>;
 type BildschirmPunkt = Parameters<MapView['hitTest']>[0];
 
 /**
- * Wiederverwendbare ArcGIS-Karte: swisstopo-WMTS-Hintergrund, die Layer aus
- * `ivs-map` plus der Objekt-Layer des Prototyps. Das Layer-Panel («Objekte»)
- * liegt als Overlay unten rechts; Polygon-Selektion und Panel-Umschaltung
- * werden von der einbettenden Seite über die öffentlichen Methoden gesteuert.
+ * Wiederverwendbare ArcGIS-Karte: swisstopo-WMTS-Hintergrund und die Layer
+ * aus `ivs-map` — die Objekt-Zuordnung ist in die bestehenden Layer
+ * eingerechnet (siehe karten-layer.ts). Das Layer-Panel («Objekte») liegt
+ * als Overlay unten rechts; Polygon-Selektion und Panel-Umschaltung werden
+ * von der einbettenden Seite über die öffentlichen Methoden gesteuert.
  */
 @Component({
   selector: 'ivs-karte',
