@@ -1,0 +1,117 @@
+<hlm-dialog [state]="offen() ? 'open' : 'closed'" (stateChanged)="offen.set($event === 'open')">
+  <hlm-dialog-content *hlmDialogPortal class="max-w-lg">
+    <hlm-dialog-header>
+      <h3 hlmDialogTitle>Begehung planen</h3>
+      <p hlmDialogDescription>
+        Reihenfolge der Objekte und Logistik für den Feldeinsatz festlegen.
+      </p>
+    </hlm-dialog-header>
+
+    <div class="grid gap-3 py-2">
+      <div class="grid gap-1.5">
+        <label hlmLabel for="bg-titel">Titel <span class="text-destructive">*</span></label>
+        <input hlmInput id="bg-titel" [ngModel]="titel()" (ngModelChange)="titel.set($event)" />
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-1.5">
+          <label hlmLabel for="bg-datum">Datum</label>
+          <input hlmInput id="bg-datum" type="date" [ngModel]="datum()" (ngModelChange)="datum.set($event)" />
+        </div>
+        <div class="grid gap-1.5">
+          <label hlmLabel for="bg-verkehr">Verkehrsmittel</label>
+          <hlm-native-select id="bg-verkehr" [ngModel]="verkehrsmittel()" (ngModelChange)="verkehrsmittel.set($event)">
+            <option hlmNativeSelectOption value="zu_fuss">Zu Fuss</option>
+            <option hlmNativeSelectOption value="velo">Velo</option>
+            <option hlmNativeSelectOption value="oev">öV</option>
+            <option hlmNativeSelectOption value="auto">Auto</option>
+          </hlm-native-select>
+        </div>
+        <div class="grid gap-1.5">
+          <label hlmLabel for="bg-unterkunft">Unterkunft</label>
+          <input hlmInput id="bg-unterkunft" placeholder="z. B. Gasthof, keine" [ngModel]="unterkunft()" (ngModelChange)="unterkunft.set($event)" />
+        </div>
+        <div class="grid gap-1.5">
+          <label hlmLabel for="bg-zeit">Zeitbedarf (Stunden)</label>
+          <input hlmInput id="bg-zeit" type="number" min="0" step="0.5" [ngModel]="zeitbedarf()" (ngModelChange)="zeitbedarf.set($event)" />
+        </div>
+      </div>
+
+      <div class="grid gap-1.5">
+        <span class="text-sm font-medium">Objekte in Begehungs-Reihenfolge <span class="text-destructive">*</span></span>
+        @if (objekte().length === 0) {
+          <p class="text-sm text-muted-foreground">Noch keine Objekte auf der Liste.</p>
+        }
+        <ul class="space-y-1">
+          @for (signatur of objekte(); track signatur) {
+            <li class="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-sm">
+              <span class="w-5 text-xs text-muted-foreground">{{ $index + 1 }}.</span>
+              <span class="min-w-0 flex-1 truncate">{{ objektName(signatur) }}</span>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                class="size-6"
+                type="button"
+                [disabled]="$index === 0"
+                (click)="verschieben($index, -1)"
+                aria-label="Nach oben"
+              >
+                <ng-icon name="lucideArrowUp" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                class="size-6"
+                type="button"
+                [disabled]="$index === objekte().length - 1"
+                (click)="verschieben($index, 1)"
+                aria-label="Nach unten"
+              >
+                <ng-icon name="lucideArrowDown" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                class="size-6"
+                type="button"
+                (click)="objektEntfernen($index)"
+                aria-label="Entfernen"
+              >
+                <ng-icon name="lucideX" />
+              </button>
+            </li>
+          }
+        </ul>
+        <div class="flex items-center gap-1.5">
+          <hlm-native-select class="min-w-0 flex-1" size="sm" [ngModel]="neuesObjekt()" (ngModelChange)="neuesObjekt.set($event)">
+            <option hlmNativeSelectOption value="">Objekt wählen …</option>
+            @for (objekt of alleObjekte(); track objekt.id) {
+              <option hlmNativeSelectOption [value]="objekt.signatur">{{ objekt.signatur }} – {{ objekt.name }}</option>
+            }
+          </hlm-native-select>
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            type="button"
+            [disabled]="!neuesObjekt()"
+            (click)="objektHinzufuegen()"
+          >
+            <ng-icon name="lucidePlus" />
+            Hinzufügen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <hlm-dialog-footer>
+      <button hlmBtn variant="outline" type="button" (click)="offen.set(false)">Abbrechen</button>
+      <button hlmBtn type="button" [disabled]="!titel().trim() || objekte().length === 0" (click)="speichern()">
+        Begehung speichern
+      </button>
+    </hlm-dialog-footer>
+  </hlm-dialog-content>
+</hlm-dialog>

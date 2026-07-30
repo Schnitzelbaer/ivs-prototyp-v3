@@ -1,72 +1,182 @@
 <div class="flex h-full flex-col">
-  <!-- Kopfzeile -->
-  <header class="flex items-center justify-between gap-4 border-b border-border px-4 py-2.5">
-    <h1 class="text-base font-semibold">
-      360°-Aufnahmen
-      <span class="ml-1 text-sm font-normal text-muted-foreground">
-        Murtenstrasse (BE 7.2), Riedbach – Bümpliz (Platzhalter-Bilder)
-      </span>
-    </h1>
-  </header>
-
-  <div class="flex min-h-0 flex-1">
-    <!-- Panorama -->
-    <section class="flex min-w-0 flex-1 flex-col">
-      <div class="min-h-0 flex-1">
-        <ivs-panorama-viewer class="block h-full" [bild]="aufnahme().bild" [(azimut)]="azimut" />
+  <hlm-tabs [tab]="hauptTab()" (tabActivated)="hauptTab.set($event)" class="flex min-h-0 flex-1 flex-col">
+    <!-- Kopfzeile -->
+    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2">
+      <h1 class="text-base font-semibold">
+        360°-Aufnahmen
+        <span class="ml-1 text-sm font-normal text-muted-foreground">
+          Murtenstrasse (BE 7.2), Riedbach – Bümpliz (Platzhalter-Bilder)
+        </span>
+      </h1>
+      <div class="flex items-center gap-2">
+        <hlm-tabs-list aria-label="360°-Bereiche">
+          <button hlmTabsTrigger="aufnahmen">Aufnahmen</button>
+          <button hlmTabsTrigger="begehungen">Begehungen</button>
+        </hlm-tabs-list>
+        <button hlmBtn size="sm" type="button" (click)="begehungPlanen()">
+          <ng-icon name="lucideCalendarPlus" />
+          Begehung planen
+        </button>
       </div>
+    </header>
 
-      <!-- Navigation und Metadaten (06.03: Vor- und Rückwärtsnavigation) -->
-      <div class="flex flex-wrap items-center gap-3 border-t border-border px-4 py-2.5">
-        <button
-          hlmBtn
-          variant="outline"
-          size="icon"
-          type="button"
-          [disabled]="index() === 0"
-          (click)="wechsle(-1)"
-          hlmTooltip="Vorherige Aufnahme (Richtung Riedbach)"
-          aria-label="Vorherige Aufnahme"
-        >
-          <ng-icon name="lucideChevronLeft" />
-        </button>
-        <button
-          hlmBtn
-          variant="outline"
-          size="icon"
-          type="button"
-          [disabled]="index() === aufnahmen.length - 1"
-          (click)="wechsle(1)"
-          hlmTooltip="Nächste Aufnahme (Richtung Bümpliz)"
-          aria-label="Nächste Aufnahme"
-        >
-          <ng-icon name="lucideChevronRight" />
-        </button>
+    <!-- ================================================== Tab: Aufnahmen -->
+    <div hlmTabsContent="aufnahmen" class="min-h-0 flex-1">
+      <div class="flex h-full min-h-0">
+        <section class="flex min-w-0 flex-1 flex-col">
+          <div class="min-h-0 flex-1">
+            <ivs-panorama-viewer class="block h-full" [bild]="aufnahme().bild" [(azimut)]="azimut" />
+          </div>
 
-        <div class="min-w-0">
-          <p class="text-sm font-semibold">{{ aufnahme().titel }}</p>
-          <p class="text-xs text-muted-foreground">
-            Aufnahme {{ index() + 1 }} von {{ aufnahmen.length }} · {{ formatDatum(aufnahme().datum) }} · © ASTRA
+          <!-- Navigation und Metadaten (06.03) -->
+          <div class="flex flex-wrap items-center gap-3 border-t border-border px-4 py-2.5">
+            <button
+              hlmBtn
+              variant="outline"
+              size="icon"
+              type="button"
+              [disabled]="index() === 0"
+              (click)="wechsle(-1)"
+              hlmTooltip="Vorherige Aufnahme (Richtung Riedbach)"
+              aria-label="Vorherige Aufnahme"
+            >
+              <ng-icon name="lucideChevronLeft" />
+            </button>
+            <button
+              hlmBtn
+              variant="outline"
+              size="icon"
+              type="button"
+              [disabled]="index() === aufnahmen.length - 1"
+              (click)="wechsle(1)"
+              hlmTooltip="Nächste Aufnahme (Richtung Bümpliz)"
+              aria-label="Nächste Aufnahme"
+            >
+              <ng-icon name="lucideChevronRight" />
+            </button>
+
+            <div class="min-w-0">
+              <p class="text-sm font-semibold">{{ aufnahme().titel }}</p>
+              <p class="text-xs text-muted-foreground">
+                Aufnahme {{ index() + 1 }} von {{ aufnahmen.length }} · {{ formatDatum(aufnahme().datum) }} · © ASTRA
+              </p>
+            </div>
+
+            @if (objekt(); as o) {
+              <button hlmBtn variant="outline" size="sm" class="ml-auto" type="button" (click)="oeffneObjekt(o.signatur)">
+                <ng-icon name="lucideRoute" />
+                Zum Objekt {{ o.signatur }} – {{ o.name }}
+              </button>
+            }
+          </div>
+
+          <!-- Galerie aller Aufnahmen der Begehung -->
+          <div class="flex gap-2 overflow-x-auto border-t border-border px-4 py-2.5" role="list" aria-label="Alle Aufnahmen">
+            @for (bild of aufnahmen; track bild.titel) {
+              <button
+                type="button"
+                class="shrink-0 overflow-hidden rounded-md border text-left transition-colors"
+                [class.border-primary]="index() === $index"
+                [class.border-border]="index() !== $index"
+                (click)="waehleAufnahme($index)"
+              >
+                <span
+                  class="block h-14 w-40 bg-cover bg-center"
+                  [style.background-image]="'url(&quot;' + bild.bild + '&quot;)'"
+                ></span>
+                <span class="block px-2 py-1 text-xs" [class.font-semibold]="index() === $index">
+                  {{ bild.titel }}
+                </span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- Karte mit Standort und Blickrichtung (06.02) -->
+        <aside class="w-[38%] min-w-96 shrink-0 border-l border-border">
+          <ivs-karte
+            class="block h-full"
+            [panoramaStandort]="standort()"
+            [panoramaAzimut]="azimut()"
+            (objektKlick)="oeffneObjekt($event)"
+          />
+        </aside>
+      </div>
+    </div>
+
+    <!-- ================================================= Tab: Begehungen -->
+    <div hlmTabsContent="begehungen" class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+      <div class="mx-auto flex max-w-3xl flex-col gap-4">
+        @for (begehung of begehungsStore.alle(); track begehung.id) {
+          <article class="rounded-md border border-border">
+            <header class="flex items-start gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
+              <div class="min-w-0 flex-1">
+                <h2 class="text-sm font-semibold">{{ begehung.titel }}</h2>
+                <p class="text-xs text-muted-foreground">
+                  {{ formatDatum(begehung.datum) }} · {{ verkehrsmittelLabel[begehung.verkehrsmittel] }}
+                  · Unterkunft: {{ begehung.unterkunft }}
+                  @if (begehung.zeitbedarfStunden !== null) {
+                    · Zeitbedarf {{ begehung.zeitbedarfStunden }} h
+                  }
+                </p>
+              </div>
+              <span hlmBadge variant="secondary">{{ begehung.objekte.length }} Objekte</span>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                class="size-7"
+                type="button"
+                (click)="begehungsStore.loeschen(begehung.id)"
+                hlmTooltip="Begehung löschen"
+                aria-label="Begehung löschen"
+              >
+                <ng-icon name="lucideTrash2" />
+              </button>
+            </header>
+            <ol class="px-4 py-2">
+              @for (signatur of begehung.objekte; track signatur) {
+                <li class="flex items-center gap-1.5 border-b border-border/60 py-1.5 text-sm last:border-b-0">
+                  <span class="w-5 text-xs text-muted-foreground">{{ $index + 1 }}.</span>
+                  <button type="button" class="min-w-0 flex-1 truncate text-left hover:underline" (click)="oeffneObjekt(signatur)">
+                    {{ objektName(signatur) }}
+                  </button>
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    class="size-6"
+                    type="button"
+                    [disabled]="$index === 0"
+                    (click)="begehungsStore.verschieben(begehung.id, $index, -1)"
+                    aria-label="Nach oben"
+                  >
+                    <ng-icon name="lucideArrowUp" />
+                  </button>
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    class="size-6"
+                    type="button"
+                    [disabled]="$index === begehung.objekte.length - 1"
+                    (click)="begehungsStore.verschieben(begehung.id, $index, 1)"
+                    aria-label="Nach unten"
+                  >
+                    <ng-icon name="lucideArrowDown" />
+                  </button>
+                </li>
+              }
+            </ol>
+          </article>
+        } @empty {
+          <p class="py-8 text-center text-sm text-muted-foreground">
+            Noch keine Begehungen geplant — «Begehung planen» startet die erste.
           </p>
-        </div>
-
-        @if (objekt(); as o) {
-          <button hlmBtn variant="outline" size="sm" class="ml-auto" type="button" (click)="oeffneObjekt(o.signatur)">
-            <ng-icon name="lucideRoute" />
-            Zum Objekt {{ o.signatur }} – {{ o.name }}
-          </button>
         }
       </div>
-    </section>
-
-    <!-- Karte mit Standort und Blickrichtung (06.02) -->
-    <aside class="w-[40%] min-w-96 shrink-0 border-l border-border">
-      <ivs-karte
-        class="block h-full"
-        [panoramaStandort]="standort()"
-        [panoramaAzimut]="azimut()"
-        (objektKlick)="oeffneObjekt($event)"
-      />
-    </aside>
-  </div>
+    </div>
+  </hlm-tabs>
 </div>
+
+<ivs-begehung-dialog [(offen)]="begehungOffen" [vorauswahl]="begehungVorauswahl()" />

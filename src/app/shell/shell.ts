@@ -16,6 +16,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { BegehungsStore } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
 import { GeometrieStore } from '../core/geometrie-store';
 import { KommentarStore } from '../core/kommentare';
@@ -65,6 +66,7 @@ export class Shell {
   private readonly objektStore = inject(ObjektStore);
   private readonly kommentarStore = inject(KommentarStore);
   private readonly geometrieStore = inject(GeometrieStore);
+  private readonly begehungsStore = inject(BegehungsStore);
   private readonly sync = inject(KarteSync);
   private readonly router = inject(Router);
 
@@ -89,5 +91,6 @@ export class Shell {
     this.objektStore.zuruecksetzen();
     this.kommentarStore.zuruecksetzen();
     this.geometrieStore.zuruecksetzen();
+    this.begehungsStore.zuruecksetzen();
   }
 }

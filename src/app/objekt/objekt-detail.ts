@@ -17,6 +17,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideAlignJustify,
   lucideBookOpen,
+  lucideCalendarPlus,
   lucideCamera,
   lucideCheck,
   lucideChevronDown,
@@ -72,6 +73,7 @@ import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
+import { BegehungDialog } from '../panorama/begehung-dialog';
 import { BewertungsPunkte } from './bewertungs-punkte';
 import { TextEditor } from './text-editor';
 
@@ -103,6 +105,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     HlmTabsImports,
     HlmTextareaImports,
     HlmTooltipImports,
+    BegehungDialog,
     BewertungsPunkte,
     Karte,
     KommentarPanel,
@@ -112,6 +115,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     provideIcons({
       lucideAlignJustify,
       lucideBookOpen,
+      lucideCalendarPlus,
       lucideCamera,
       lucideCheck,
       lucideChevronDown,
@@ -254,6 +258,9 @@ export class ObjektDetail implements OnDestroy {
   // Quellen (07.18)
   protected readonly quellenOffen = signal(false);
   protected readonly quellen = signal<QuellenTreffer[]>([]);
+
+  // Begehung planen (aus der Detailansicht, Objekt vorausgewählt)
+  protected readonly begehungOffen = signal(false);
 
   // Dialog «Kommentar auf Karte» (05.11)
   protected readonly kartenKommentarOffen = signal(false);

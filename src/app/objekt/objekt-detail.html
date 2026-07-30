@@ -939,6 +939,15 @@
                 Für dieses Objekt sind keine 360°-Aufnahmen verknüpft.
               </p>
             }
+            <div class="mt-4 border-t border-border pt-4">
+              <p class="text-sm text-muted-foreground">
+                Eine Begehung lässt sich direkt von hier planen — das Objekt steht bereits auf der Liste.
+              </p>
+              <button hlmBtn variant="outline" size="sm" class="mt-2" type="button" (click)="begehungOffen.set(true)">
+                <ng-icon name="lucideCalendarPlus" />
+                Begehung planen
+              </button>
+            </div>
           </div>
           <div hlmTabsContent="kommentare" class="min-h-0 flex-1">
             <ivs-kommentar-panel
@@ -1001,6 +1010,9 @@
       </hlm-dialog-footer>
     </hlm-dialog-content>
   </hlm-dialog>
+
+  <!-- Begehung planen (Objekt vorausgewählt) -->
+  <ivs-begehung-dialog [(offen)]="begehungOffen" [vorauswahl]="o.signatur" />
 
   <!-- Objekt umteilen (07.09) -->
   <hlm-dialog [state]="umteilenOffen() ? 'open' : 'closed'" (stateChanged)="umteilenOffen.set($event === 'open')">
