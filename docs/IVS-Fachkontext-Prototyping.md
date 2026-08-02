@@ -645,8 +645,11 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
 ### 9.2 Rollen und Berechtigungen
 
 4. **Rollen-Umschalter** ist gewünscht (Wechsel der Perspektive im Prototyp).
+   Er liegt seit Entscheid 61 im **Account-Menü** unten links.
 5. Wählbar sind die **fünf fachlich relevanten Rollen** R-03 bis R-07. R-01,
-   R-02 und R-08 werden aufgelistet, aber **disabled**.
+   R-02 und R-08 werden aufgelistet, aber nicht gewählt — seit der
+   nie-disabled-Regel (Entscheid 52) sind sie nicht mehr ausgegraut,
+   sondern erklären beim Klick im Modal, warum sie gesperrt sind.
 
 ### 9.3 Karte und Geometrie
 
@@ -664,7 +667,9 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
 9. **360°:** echt drehbares Panorama, inklusive Vor-/Zurück-Navigation und
    Karten-Marker für Position und Blickrichtung. Platzhalter-Bilder genügen.
 10. **Versionsvergleich:** Text-Diff mit Änderungsmarkierungen im Objektbeschrieb
-    plus Geometrie-Overlay alt/neu auf der Karte.
+    plus Geometrie-Overlay alt/neu auf der Karte. **Gebaut** — Ausgestaltung
+    siehe Entscheid 66 (Wort-Diff, Overlay in normaler Darstellung mit je
+    eigenem Deckkraft-Regler).
 11. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
     SBB-Referenz existiert keine Vorlage. Die überarbeitete Story Map gibt
     inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
@@ -1055,9 +1060,25 @@ Neu hinzugekommen mit der überarbeiteten User Story Map:
 - **Persona für 360-Grad-Bilder und Reports weiterhin offen** (`?` auf dem
   Board), bei Reports zusätzlich das Ziel.
 - **«Karte und Beschriebe in separaten Fenstern»** aus der Arbeitshilfe steht
-  quer zu einer Single-Page-Werkbank. Für das Prototyping ist zu entscheiden, ob
-  das als zweites Browserfenster, als abkoppelbares Panel oder als
-  Split-View umgesetzt wird.
+  quer zu einer Single-Page-Werkbank. **Entschieden und gebaut:** zweites
+  Browserfenster `/karte` mit vollem Panel-Kopf und Live-Synchronisation
+  (Entscheide 26 und 58).
+
+Aus dem Review-Paket «Neue ToDos» offen geblieben (bewusst so umgesetzt,
+bei Bedarf nachschärfen):
+
+- **Wer weist ToDos zu?** Das Dashboard listet nur noch Strecken
+  (Entscheid 60), weil ToDos auf Strecken-Ebene zugewiesen werden. Wie eine
+  Zuweisung fachlich entsteht (Arbeitspaket, Regionale Koordination) ist
+  noch nicht gebaut — der Nebenblock «Arbeitspakete» steht aus (Abschnitt 14).
+- **Substanzstufen der Legende:** Die abgestimmte Taxonomie kennt «Abschnitt
+  mit Substanz» und «mit viel Substanz» (Entscheid 48). Die Testdaten führen
+  zusätzlich «wenig Substanz» (64 Features); diese laufen unter der dünnen
+  Linie «Abschnitt mit Substanz», das Formularfeld Substanzgrad zeigt
+  weiterhin den echten Wert.
+- **IVS-1.0-Datenlage:** Der Erstbeschrieb-Stand ist im Prototyp
+  deterministisch generiert (Entscheid 66). Ob und in welcher Form echte
+  1.0-Daten für die Umsetzung vorliegen, ist nicht geklärt.
 
 ---
 
@@ -1196,7 +1217,14 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 Passt die gespeicherte Version nicht zur Konstante, wird der Stand verworfen
 und neu geseedet. **Nach jeder Seed-Änderung die Version erhöhen**, sonst
 sehen bestehende Browser die Änderung nie. «Demodaten zurücksetzen» im
-Profil-Popover leert alle Stores auf einmal.
+Account-Menü leert alle Stores auf einmal.
+
+Drei Stores (`kommentare`, `geometrien`, `einstellungen`) hören zusätzlich
+auf das `storage`-Ereignis und übernehmen Änderungen aus anderen Fenstern —
+so bleibt das separate Kartenfenster `/karte` live synchron (Entscheid 58).
+Nicht persistiert sind `HerkunftStore` und `HinweisStore` (reiner
+Sitzungszustand) sowie der IVS-1.0-Stand des Versionsvergleichs, der
+deterministisch aus dem aktuellen Objekt abgeleitet wird.
 
 **Geometrie-Zuordnung.** Die Mock-Objekte haben keine eigenen Geodaten:
 `core/objekt-generierung.ts` leitet zur Laufzeit aus den drei Quelldateien
@@ -1423,6 +1451,14 @@ Fehler, die schon einmal Zeit gekostet haben:
 - **Overlay-Scrollbalken überlagern die letzte Spalte** eines scrollenden
   Dropdown-Menüs (macOS) — Zeilen mit rechtsbündigen Aktions-Buttons wie im
   Hierarchie-Menü brauchen ein rechtes Padding (`pr-2`).
+- **Die nie-disabled-Regel bricht `hlmAlertDialogTrigger`.** Ein Trigger
+  öffnet den Dialog unbedingt — soll der Klick erst eine Bedingung prüfen
+  (löschen erlaubt? bearbeiten erlaubt?), muss der Dialog stattdessen über
+  `[state]="offen() ? 'open' : 'closed'"` gesteuert und der Button ein
+  gewöhnlicher Button mit Handler sein. Gleiches gilt für Dialoge, die aus
+  einem Kontextmenü heraus geöffnet werden. `hlmAlertDialogCancel` schliesst
+  das Overlay, setzt aber das eigene Signal nicht zurück — dort ein
+  `(click)` ergänzen.
 - **Verschachtelte `hlmDropdownMenuTrigger` sind eine Falle.** Das CDK
   behandelt einen Trigger innerhalb eines offenen Menüs als **Submenü**:
   Es öffnet bereits auf Hover. Zudem wird das Menü-Template im
