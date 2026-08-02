@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEllipsisVertical, lucideFolderInput } from '@ng-icons/lucide';
+import { lucideFolderInput } from '@ng-icons/lucide';
 import { toast } from '@spartan-ng/brain/sonner';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -52,7 +52,7 @@ import { TypSymbol } from '../karte/typ-symbol';
     HlmNativeSelectImports,
     TypSymbol,
   ],
-  providers: [provideIcons({ lucideEllipsisVertical, lucideFolderInput })],
+  providers: [provideIcons({ lucideFolderInput })],
   template: `
     <ng-template #menuTpl>
       <hlm-dropdown-menu class="w-[27rem]">
@@ -98,15 +98,21 @@ import { TypSymbol } from '../karte/typ-symbol';
               </span>
             </button>
             @if (eintrag.ebene !== 'strecke') {
+              <!-- Eigenes Klick-Kontextmenü: ein hlmDropdownMenuTrigger im
+                   Menü würde vom CDK als Submenü behandelt (öffnet auf Hover)
+                   und im Injector des äusseren Triggers instanziert (Icons
+                   fehlen) — deshalb Inline-SVG und ein fixed-Overlay. -->
               <button
                 type="button"
                 class="relative shrink-0 rounded-sm p-1 text-muted-foreground hover:bg-accent hover:text-foreground pointer-coarse:after:absolute pointer-coarse:after:-inset-1.5 pointer-coarse:after:content-['']"
-                [hlmDropdownMenuTrigger]="kontextTpl"
-                align="end"
-                (click)="kontextObjekt.set(eintrag)"
+                (click)="kontextOeffnen($event, eintrag)"
                 [attr.aria-label]="'Aktionen für ' + eintrag.signatur"
               >
-                <ng-icon name="lucideEllipsisVertical" size="15" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <circle cx="12" cy="5" r="1.8" />
+                  <circle cx="12" cy="12" r="1.8" />
+                  <circle cx="12" cy="19" r="1.8" />
+                </svg>
               </button>
             }
           </div>
@@ -114,15 +120,25 @@ import { TypSymbol } from '../karte/typ-symbol';
       </hlm-dropdown-menu>
     </ng-template>
 
-    <!-- Kontextmenü der Zeile -->
-    <ng-template #kontextTpl>
-      <hlm-dropdown-menu class="w-56">
-        <button hlmDropdownMenuItem (triggered)="umteilenStarten()">
-          <ng-icon name="lucideFolderInput" />
-          Objekt umteilen …
-        </button>
-      </hlm-dropdown-menu>
-    </ng-template>
+    <!-- Kontextmenü der Zeile (fixed über dem Menü-Overlay, öffnet nur per Klick) -->
+    @if (kontext(); as k) {
+      <div class="fixed inset-0 z-[1200]" (click)="kontext.set(null)">
+        <div
+          class="absolute w-56 rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+          [style.left.px]="k.x"
+          [style.top.px]="k.y"
+        >
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+            (click)="umteilenStarten()"
+          >
+            <ng-icon name="lucideFolderInput" />
+            Objekt umteilen …
+          </button>
+        </div>
+      </div>
+    }
 
     <!-- Objekt umteilen (07.09) -->
     <hlm-dialog
@@ -184,8 +200,8 @@ export class HierarchieMenu {
   protected readonly typ = objektTyp;
   protected readonly typText = objektTypText;
 
-  /** Zeile, deren «…»-Kontextmenü gerade offen ist. */
-  protected readonly kontextObjekt = signal<IvsObjekt | null>(null);
+  /** Offenes «…»-Kontextmenü: Position (fixed) und betroffene Zeile. */
+  protected readonly kontext = signal<{ x: number; y: number; objekt: IvsObjekt } | null>(null);
   protected readonly umteilenObjekt = signal<IvsObjekt | null>(null);
   protected readonly umteilenOffen = signal(false);
   protected readonly umteilenZiel = signal('');
@@ -218,8 +234,16 @@ export class HierarchieMenu {
       .sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
   });
 
+  /** «…»-Klick: Kontextmenü an der Klickposition öffnen (nur per Klick). */
+  protected kontextOeffnen(ereignis: MouseEvent, objekt: IvsObjekt): void {
+    const x = Math.min(ereignis.clientX, window.innerWidth - 240);
+    const y = Math.min(ereignis.clientY, window.innerHeight - 60);
+    this.kontext.set({ x, y, objekt });
+  }
+
   protected umteilenStarten(): void {
-    const u = this.kontextObjekt();
+    const u = this.kontext()?.objekt;
+    this.kontext.set(null);
     if (!u) return;
     const rolle = this.einstellungen.aktiveRolleId();
     if (!darfEditieren(rolle, u.status)) {
