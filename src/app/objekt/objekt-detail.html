@@ -95,8 +95,7 @@
           </hlm-dropdown-menu>
         </ng-template>
 
-        <!-- Status-Dropdown: nächster und vorheriger Status der Workflow-Kette;
-             nicht erlaubte Übergänge erklären sich beim Klick im Modal -->
+        <!-- Status-Dropdown: rollenrelevante Stati, frei wählbar -->
         <button
           hlmBtn
           variant="outline"
@@ -110,14 +109,16 @@
         </button>
         <ng-template #statusMenu>
           <hlm-dropdown-menu class="w-64">
-            @for (eintrag of statusWahl(); track eintrag.status) {
-              <button hlmDropdownMenuItem (triggered)="statusWaehlen(eintrag)">
-                <ng-icon
-                  [name]="eintrag.richtung === 'weiter' ? 'lucideArrowRight' : 'lucideArrowLeft'"
-                  class="text-muted-foreground"
-                />
-                <span class="size-2 rounded-full {{ statusFarbe[eintrag.status] }}"></span>
-                {{ statusLabel[eintrag.status] }}
+            @for (status of statusWahl(); track status) {
+              <button
+                hlmDropdownMenuRadio
+                [checked]="status === o.status"
+                [keepOpen]="false"
+                (triggered)="statusSetzen(status)"
+              >
+                <hlm-dropdown-menu-radio-indicator />
+                <span class="size-2 rounded-full {{ statusFarbe[status] }}"></span>
+                {{ statusLabel[status] }}
               </button>
             }
           </hlm-dropdown-menu>

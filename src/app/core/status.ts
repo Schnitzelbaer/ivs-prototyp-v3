@@ -96,35 +96,3 @@ export function uebergaengeFuer(rolle: RolleId, status: WorkflowStatus): StatusU
   return (UEBERGAENGE[rolle] ?? []).filter((u) => u.von === status);
 }
 
-/**
- * Fachlicher Workflow-Graph (Abschnitt 7), unabhängig von Rollen — Grundlage
- * für das Status-Dropdown mit dem jeweils nächsten und vorherigen Status.
- */
-const WORKFLOW_KANTEN: readonly { von: WorkflowStatus; nach: WorkflowStatus }[] = [
-  { von: 'zugewiesen', nach: 'in_bearbeitung' },
-  { von: 'in_bearbeitung', nach: 'bereit_zur_pruefung' },
-  { von: 'bereit_zur_pruefung', nach: 'in_pruefung' },
-  { von: 'in_pruefung', nach: 'geprueft' },
-  { von: 'in_pruefung', nach: 'korrektur' },
-  { von: 'korrektur', nach: 'in_bearbeitung' },
-  { von: 'geprueft', nach: 'freigegeben' },
-  { von: 'freigegeben', nach: 'publiziert' },
-];
-
-/** Nächstmögliche und vorherige Stati im Workflow-Graphen. */
-export function nachbarStati(status: WorkflowStatus): {
-  weiter: WorkflowStatus[];
-  zurueck: WorkflowStatus[];
-} {
-  return {
-    weiter: WORKFLOW_KANTEN.filter((k) => k.von === status).map((k) => k.nach),
-    zurueck: WORKFLOW_KANTEN.filter((k) => k.nach === status).map((k) => k.von),
-  };
-}
-
-/** Rollen, die einen bestimmten Übergang ausführen dürfen. */
-export function rollenFuerUebergang(von: WorkflowStatus, nach: WorkflowStatus): RolleId[] {
-  return (Object.entries(UEBERGAENGE) as [RolleId, StatusUebergang[]][])
-    .filter(([, liste]) => liste.some((u) => u.von === von && u.nach === nach))
-    .map(([rolle]) => rolle);
-}

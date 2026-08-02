@@ -15,8 +15,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideArrowLeft,
-  lucideArrowRight,
   lucideBookOpen,
   lucideCalendarPlus,
   lucideCamera,
@@ -70,14 +68,7 @@ import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN, darfEditieren } from '../core/rollen';
 import { NAME_FUER_ROLLE, rolleFuerStatus } from '../core/seed-data';
 import { StammdatenStore } from '../core/stammdaten';
-import {
-  STATUS_FARBE,
-  STATUS_LABEL,
-  StatusUebergang,
-  nachbarStati,
-  rollenFuerUebergang,
-  uebergaengeFuer,
-} from '../core/status';
+import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
@@ -126,8 +117,6 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
   ],
   providers: [
     provideIcons({
-      lucideArrowLeft,
-      lucideArrowRight,
       lucideBookOpen,
       lucideCalendarPlus,
       lucideCamera,
@@ -227,45 +216,22 @@ export class ObjektDetail implements OnDestroy {
     return aktuell && !werte.includes(aktuell) ? [aktuell, ...werte] : werte;
   });
 
-  protected readonly uebergaenge = computed<StatusUebergang[]>(() => {
-    const o = this.objekt();
-    if (!o) return [];
-    return uebergaengeFuer(this.einstellungen.aktiveRolleId(), o.status);
-  });
-
   /**
-   * Einträge des Status-Dropdowns in der Kopfzeile: der jeweils nächste und
-   * vorherige Status der Workflow-Kette. Nicht erlaubte Übergänge erscheinen
-   * ebenfalls — der Klick erklärt dann im Modal, wem der Schritt vorbehalten
-   * ist (nie-disabled-Regel).
+   * Einträge des Status-Dropdowns in der Kopfzeile: alle rollenrelevanten
+   * Stati (plus der aktuelle), frei wählbar — dieselbe Semantik wie das
+   * Zeilen-Dropdown im Dashboard.
    */
-  protected readonly statusWahl = computed(() => {
+  protected readonly statusWahl = computed<WorkflowStatus[]>(() => {
     const o = this.objekt();
     if (!o) return [];
-    const erlaubteZiele = new Set(this.uebergaenge().map((u) => u.nach));
-    const { weiter, zurueck } = nachbarStati(o.status);
-    return [
-      ...weiter.map((status) => ({
-        status,
-        richtung: 'weiter' as const,
-        erlaubt: erlaubteZiele.has(status),
-      })),
-      ...zurueck.map((status) => ({
-        status,
-        richtung: 'zurueck' as const,
-        erlaubt: erlaubteZiele.has(status),
-      })),
-    ];
+    const relevante = this.einstellungen.aktiveRolle().relevanteStati;
+    return ALLE_STATI.filter((s) => s === o.status || relevante.includes(s));
   });
 
-  protected readonly statusOptionen = computed(() => {
-    const o = this.objekt();
-    if (!o) return [];
-    return [
-      { wert: o.status, label: STATUS_LABEL[o.status] },
-      ...this.uebergaenge().map((u) => ({ wert: u.nach, label: STATUS_LABEL[u.nach] })),
-    ];
-  });
+  /** Optionen des Workflow-Status-Selects im Formular — gleiche Liste. */
+  protected readonly statusOptionen = computed(() =>
+    this.statusWahl().map((s) => ({ wert: s, label: STATUS_LABEL[s] })),
+  );
 
   protected readonly situierungsUrl = signal<string | null>(null);
   protected readonly inexistentBegruendung = signal('');
@@ -402,25 +368,6 @@ export class ObjektDetail implements OnDestroy {
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
       description: `${o.signatur} — Übergang protokolliert.`,
     });
-  }
-
-  /** Auswahl im Status-Dropdown: ausführen oder im Modal erklären. */
-  protected statusWaehlen(eintrag: { status: WorkflowStatus; erlaubt: boolean }): void {
-    const o = this.objekt();
-    if (!o) return;
-    if (eintrag.erlaubt) {
-      this.statusSetzen(eintrag.status);
-      return;
-    }
-    const berechtigt = rollenFuerUebergang(o.status, eintrag.status);
-    this.hinweis.zeige(
-      'Statuswechsel nicht möglich',
-      `Der Wechsel von «${STATUS_LABEL[o.status]}» zu «${STATUS_LABEL[eintrag.status]}» ist mit der ` +
-        `Rolle «${this.einstellungen.aktiveRolle().name}» nicht möglich. ` +
-        (berechtigt.length
-          ? `Vorgesehen ist dieser Schritt für: ${berechtigt.map(rollenName).join(', ')}.`
-          : 'Dieser Rückschritt ist im Workflow nicht vorgesehen — zurück führt der Weg über die Korrektur.'),
-    );
   }
 
   // ------------------------------------------------------------- Aktionen
