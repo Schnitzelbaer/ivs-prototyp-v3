@@ -17,11 +17,11 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 58), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 66), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
-> **Stand:** 30.07.2026, vierte Ausbaustufe (Review-Paket «Changes IVS»).
+> **Stand:** 02.08.2026, fünfte Ausbaustufe (Review-Paket «Neue ToDos»).
 > Repository auf `main`. Live unter <https://ivs-prototyp-v3.vercel.app>,
 > Auto-Deploy aus `main` aktiv (12.7).
 >
@@ -941,6 +941,54 @@ Rückfragen in derselben Session geklärt)**
     `storage`-Ereignisse live mit dem Hauptfenster, die Selektion weiter
     über den BroadcastChannel.
 
+**Fünfte Ausbaustufe — Review-Paket «Neue ToDos» (PDF vom 02.08.2026,
+Rückfragen in derselben Session geklärt)**
+
+59. **Status-Dropdown frei wählbar:** Das «Status ändern»-Dropdown in der
+    Kopfzeile und das Workflow-Select im Formular bieten die
+    **rollenrelevanten Stati zur freien Wahl** (aktueller markiert) —
+    dieselbe Semantik wie das Dashboard-Zeilen-Dropdown. Ersetzt die
+    Weiter/Zurück-Logik samt Berechtigungs-Modal aus Entscheid 51.
+60. **Dashboard nur Strecken:** ToDos werden auf Strecken-Ebene zugewiesen;
+    die Aufgabenliste filtert auf die Ebene Strecke. Gruppen, Suche,
+    Schnellfilter und Polygon-Selektion bleiben.
+61. **Rollen-Umschalter im Account-Menü:** «Perspektive wechseln» liegt im
+    Account-Menü unten links (Rollen zuoberst, dann Name und «Demodaten
+    zurücksetzen»); der Klick aufs IVS-Logo führt zum Dashboard. Ersetzt
+    das versteckte Rollenmenü hinter dem Logo (Vorgabe 4 bleibt erfüllt).
+62. **Back-Button mit Herkunft:** Links vom Titel im Objekt-Detail; der
+    `HerkunftStore` merkt sich beim Öffnen, ob das Objekt aus dem Dashboard
+    oder der Objekte-Übersicht kam — der Button führt dorthin zurück,
+    unabhängig von zwischenzeitlichen Hierarchie-Wechseln (Standard bei
+    Deep Links: Dashboard).
+63. **Zeilen-Kontextmenü nur per Klick:** Das «…»-Menü im Hierarchie-Menü
+    öffnet ausschliesslich per Klick und mit sichtbarem Symbol — als
+    eigenes fixed-Overlay statt als verschachtelter Menü-Trigger (der vom
+    CDK als Hover-Submenü behandelt würde, siehe 12.6).
+64. **Objekte-Tab als Strecken-Baum:** Erste Ebene nur Strecken,
+    Nachkommen mit Legenden-Symbol und Einrückung beim Aufklappen; bei
+    aktiver Suche sind Treffer-Äste offen, Filter reduzieren die
+    Kinderlisten; der Ebene-Filter entfällt. Ein **Karten-Klick öffnet in
+    jedem Fall zuerst die Preview im Side-Panel**, nie direkt die
+    Detail-Ansicht.
+65. **Begehungen als eigener Tab** (`/begehungen`, losgelöst von den
+    360°-Aufnahmen): Planen, Umstellen und Löschen nur für **R-03, R-04,
+    R-06 und R-07** — andere Rollen sehen alles, der Klick erklärt die
+    Sperre. Im Objekt-Detail ist die Einplanung sichtbar: Badge mit Datum
+    in der Kopfzeile, Details (Begehung, Position) im 360°-Bereich des
+    Kartenpanels.
+66. **Versionsvergleich (08.05, Vorgabe 10) gebaut:** Einstieg im
+    Historie-Menü; wortweiser Diff (LCS) der Beschriebe — Gestrichenes rot
+    durchgestrichen, Neues markiert — plus Eckdaten-Änderungen und die
+    **Vergleichskarte**, auf welcher der IVS-1.0-Verlauf in normaler
+    Darstellung (nicht gestrichelt) über der heutigen Geometrie liegt;
+    die **Deckkraft beider Stände ist separat regelbar**. Der 1.0-Stand
+    wird für alle Objekte deterministisch abgeleitet (gestrichene
+    Hinweise, fehlender Nachführungssatz, ältere Formulierungen,
+    abweichende Eckdaten, versetzter und vereinfachter Verlauf);
+    Schlüsselobjekte der Seed-Strecken haben kuratierte Erstbeschriebe
+    (`core/version-vergleich.ts`).
+
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
 
@@ -1092,34 +1140,43 @@ src/styles.css   Theme-Tokens (inkl. --status-*), Touch-Regeln
 src/app/
   app.routes.ts        Routen inkl. Guard für /stammdaten (nur R-03)
   core/                Modell, Stati, Rollen, Seed-Daten, Stores
-    model.ts           IvsObjekt, Ebene, WorkflowStatus, Bewertung, idAusSignatur
+    model.ts           IvsObjekt, ObjektTyp/objektTypText, WorkflowStatus, …
     status.ts          Status-Labels, -Farben, Gruppen-Mapping, Übergänge je Rolle
-    rollen.ts          Rollen mit dashboardStati und editStati, darfEditieren
-    seed-data.ts       46 kuratierte Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
-    objekt-generierung.ts  Vollabdeckung: generierte Objekte + Feature-Zuordnung
+    rollen.ts          Rollen mit relevanteStati und editStati, darfEditieren
+    seed-data.ts       48 kuratierte Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
+    objekt-generierung.ts  Vollabdeckung: Objekte, Kunstbauten, Feature-Zuordnung
     objekt-store.ts    Objekte, statusWechseln, ergänzt generierte idempotent
-    einstellungen-store.ts  aktive Rolle, Dark-Mode
+    einstellungen-store.ts  aktive Rolle, Dark-Mode (storage-Sync für Fenster)
     kommentare.ts      Kommentar-Modell, parseKommentarText, jetztLokal, Store
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
-    geometrie-store.ts Arbeitsgeometrien je Signatur
-    begehungen.ts      Begehungsplanung
+    geometrie-store.ts Arbeitsgeometrien je Signatur (storage-Sync)
+    begehungen.ts      Begehungsplanung, darfBegehungPlanen (R-03/04/06/07)
+    herkunft-store.ts  Herkunft des Objekt-Details (Back-Button)
+    hinweis-store.ts   zentraler «Warum nicht?»-Hinweis (nie-disabled-Regel)
+    version-vergleich.ts  IVS-1.0-Ableitung, kuratierte Alttexte, Wort-Diff
     stammdaten.ts      Auswahllisten DE/FR/IT
-  shell/               Icon-Leiste, Rollenmenü hinter dem IVS-Logo, Toaster
-  dashboard/           Aufgabenliste + Kartenpanel + Kommentare
-  objekte/             Kartenansicht mit dezenter Liste und Side-Panel
+  shell/               Icon-Leiste, Account-Menü (Perspektive + Profil),
+                       Hinweis-Dialog, Toaster
+  dashboard/           Aufgabenliste (nur Strecken) + Kartenpanel + Kommentare
+  objekte/             Strecken-Baum, Karte und Side-Panel
   objekt/              Objektbearbeitung
-    objekt-detail.*    Formular, Hierarchie, Statusfluss, Dialoge
+    objekt-detail.*    Formular, Statusfluss, Dialoge, Versionsvergleich
+    hierarchie-menu.ts Hierarchie-Menü mit Typ-Tags und Umteilen je Zeile
+    versions-karte.ts  Vergleichskarte IVS 1.0/2.0 (zwei Deckkraft-Layer)
     text-editor.ts     Rich-Text-Editor (contenteditable, 07.17)
     bewertungs-punkte.ts  Punkteskala 0–4
   karte/               ArcGIS-Komponente und Umfeld
     karte.ts           View, Layer, Selektion/Highlight, MapTip, Kontextmenü,
-                       Geometrie-Editing, Pins
-    karten-layer.ts    Layer-/Basemap-/Overlay-Definitionen, Objekt-Anreicherung
-    karte-fenster.ts   eigenständiges Kartenfenster /karte
+                       Geometrie-Editing, Pins, Kartenbild-Panel
+    karten-layer.ts    Layer-/Hintergrund-Definitionen, OBJEKT_TYP_SYMBOL,
+                       Objekt-Anreicherung
+    karte-fenster.ts   eigenständiges Kartenfenster /karte mit Panel-Kopf
     karte-sync.ts      BroadcastChannel-Synchronisation
-    objekt-geo.ts      Bbox und Dufour-Situierungsbild (WMS)
+    objekt-geo.ts      Objekt-Features, Bbox, Dufour-Situierungsbild (WMS)
+    typ-symbol.ts      Legenden-Symbol eines Objekttyps (überall gleich)
   kommentare/          Kommentar-Panel (Threads, @/#, Filter)
-  panorama/            360°-Galerie, Viewer, Begehungsplanung
+  panorama/            360°-Galerie und Viewer
+  begehungen/          Begehungsplanung (eigener Tab)
   stammdaten/          Auswahllisten-Verwaltung (R-03)
   kitchen-sink/        Referenzseite, ein Abschnitt je Themengruppe
 ```
@@ -1152,29 +1209,35 @@ Seed-Strecken sind dort als Tabellen hinterlegt. Das Dufour-Situierungsbild
 
 ### 12.5 Stand der Arbeit
 
-Gebaut ist die **vierte Ausbaustufe des Kern-Workflows** (Stand 30.07.2026;
-die Review-Anpassungen «Changes IVS» sind als Entscheide 48–58 in 9.8
-dokumentiert):
+Gebaut ist die **fünfte Ausbaustufe des Kern-Workflows** (Stand 02.08.2026;
+die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
+48–66 in 9.8 dokumentiert):
 
-- **Shell** mit verstecktem Rollenmenü (Klick aufs IVS-Logo; R-03…R-07
-  wählbar, R-01/R-02/R-08 aufgeführt aber gesperrt), Dark-Mode, Profil mit
-  «Demodaten zurücksetzen», Sprachwechsler als Attrappe.
-- **Dashboard (04)**: Aufgaben in den **rollenrelevanten Stati**
-  (Entscheid 57), gruppiert Backlog / In Arbeit / Done (Mapping der acht
-  Stati: zugewiesen → Backlog · in Bearbeitung, Korrektur, bereit zur
-  Prüfung, in Prüfung → In Arbeit · geprüft, freigegeben, publiziert →
-  Done), Suche, Schnellfilter, Zeilen-Dropdown mit direktem Wechsel unter
-  den relevanten Stati, Polygon-Selektion als geographischer Filter (05.03).
+- **Shell**: Das IVS-Logo führt zum Dashboard; «Perspektive wechseln» liegt
+  im Account-Menü unten links (R-03…R-07 wählbar, übrige erklären sich per
+  Modal), zusammen mit Profil und «Demodaten zurücksetzen». Dark-Mode,
+  Sprachwechsler als Attrappe, zentraler Hinweis-Dialog (nie-disabled).
+- **Dashboard (04)**: **nur Strecken** (ToDos auf Strecken-Ebene,
+  Entscheid 60) in den **rollenrelevanten Stati** (Entscheid 57),
+  gruppiert Backlog / In Arbeit / Done (Mapping der acht Stati:
+  zugewiesen → Backlog · in Bearbeitung, Korrektur, bereit zur Prüfung,
+  in Prüfung → In Arbeit · geprüft, freigegeben, publiziert → Done),
+  Suche, Schnellfilter, Zeilen-Dropdown mit direktem Wechsel unter den
+  relevanten Stati, Polygon-Selektion als geographischer Filter (05.03).
 - **Objektbearbeitung (07)**: View-/Edit-Modus mit automatischem Speichern
   und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
   Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
   Punkteskalen 0–4, Ø angezeigt), Empfehlungen, Geschichte & Gelände
   (3000-Zeichen-Limite), Anhang, Prüfen/Freigabe, Inexistent (07.16, mit
   Pflichtbegründung), Lognotizen; **Hierarchie-Menü** (Entscheid 54) mit
-  Legenden-Symbolen, Typ-Tags und Umteilen je Child-Zeile;
-  **Status-Dropdown** in der Kopfzeile (Entscheid 51); Bearbeitungslog als
-  Sheet; Löschen immer aktiv mit Warn- bzw. Erklär-Modal (07.05,
-  nie-disabled-Regel, Entscheid 52).
+  Legenden-Symbolen, Typ-Tags und Umteilen je Child-Zeile (Kontextmenü
+  nur per Klick, Entscheid 63); **Status-Dropdown** mit den
+  rollenrelevanten Stati zur freien Wahl (Entscheid 59); **Back-Button**
+  zur gemerkten Herkunftsseite (Entscheid 62); **Versionsvergleich** im
+  Historie-Menü (Entscheid 66); Begehungs-Einplanung sichtbar (Badge und
+  360°-Bereich, Entscheid 65); Bearbeitungslog als Sheet; Löschen immer
+  aktiv mit Warn- bzw. Erklär-Modal (07.05, nie-disabled-Regel,
+  Entscheid 52).
 - **Karte**: ArcGIS Maps SDK mit swisstopo-WMTS und den Layern aus
   `ivs-map` — die Objekte liegen AUF diesen Layern (Anreicherung beim
   Laden, Entscheid 40); die **Symbolik folgt der einheitlichen Legende**
@@ -1201,15 +1264,19 @@ dokumentiert):
   dem `easyocr`-Feld. Persistenz im localStorage (~3.9 MB), `SEED_VERSION`
   erhöhen verwirft Stände.
 - **Objekte-Übersicht (04.01)** unter `/objekte`: Kartenansicht — Karte im
-  Vordergrund, links eine dezente Objektliste mit Suche und Filtern, ein
-  Klick öffnet rechts das Side-Panel mit dem **vollständigen** Objektinhalt
-  und dem Hierarchie-Menü (Entscheid 55).
+  Vordergrund, links der **aufklappbare Strecken-Baum** (Entscheid 64), ein
+  Klick (Liste oder Karte) öffnet rechts das Side-Panel mit dem
+  **vollständigen** Objektinhalt und dem Hierarchie-Menü (Entscheid 55).
 - **360°-Aufnahmen (06, Vorgabe 9)** unter `/panorama`: Galerie der
   Befahrung mit drehbarem Platzhalter-Panorama (generierte, nahtlose SVGs),
   Vor-/Zurück-Navigation, Karte mit Standortpunkt und live mitdrehendem
-  Blickrichtungskegel (07.08); dazu die **Begehungsplanung** — Reihenfolge
-  der Objekte, Verkehrsmittel, Unterkunft, Zeitbedarf — auch direkt aus der
-  Objektbearbeitung.
+  Blickrichtungskegel (07.08).
+- **Begehungen** unter `/begehungen` (eigener Tab, Entscheid 65):
+  Reihenfolge der Objekte, Verkehrsmittel, Unterkunft, Zeitbedarf; planbar
+  nur für R-03/04/06/07, auch direkt aus der Objektbearbeitung.
+- **Versionsvergleich (08.05, Vorgabe 10)**: Wort-Diff der Beschriebe und
+  Eckdaten-Änderungen IVS 1.0 → 2.0 plus Vergleichskarte mit separat
+  regelbarer Deckkraft beider Stände (Entscheid 66).
 - **Kommentare (09/10)**: Panel mit Threads, Antworten, Erledigt-
   Kennzeichnung (10.02), Suche, Sortierung, Filtern (Standard «Offene»,
   objektübergreifend nur eigene — Entscheid 56); `@`-Erwähnungen
@@ -1239,7 +1306,7 @@ dokumentiert):
   vorgesehen (`pnpm test` meldet «No tests found»).
 
 Noch nicht gebaut: Prüfprotokoll/Checkliste 1 (Etappe folgt),
-Versionsvergleich, Nebenblöcke (Accounts, Arbeitspakete, Reports).
+Nebenblöcke (Accounts, Arbeitspakete, Reports).
 
 ### 12.6 Fallstricke aus der bisherigen Arbeit
 
@@ -1356,10 +1423,14 @@ Fehler, die schon einmal Zeit gekostet haben:
 - **Overlay-Scrollbalken überlagern die letzte Spalte** eines scrollenden
   Dropdown-Menüs (macOS) — Zeilen mit rechtsbündigen Aktions-Buttons wie im
   Hierarchie-Menü brauchen ein rechtes Padding (`pr-2`).
-- **Verschachtelte `hlmDropdownMenuTrigger` funktionieren:** Ein Trigger
-  innerhalb eines offenen Menüs (das «…»-Kontextmenü im Hierarchie-Menü)
-  öffnet ein zweites Overlay, ohne das erste zu schliessen; der Klick-Handler
-  am selben Button kann vorher den Zeilen-Kontext in ein Signal legen.
+- **Verschachtelte `hlmDropdownMenuTrigger` sind eine Falle.** Das CDK
+  behandelt einen Trigger innerhalb eines offenen Menüs als **Submenü**:
+  Es öffnet bereits auf Hover. Zudem wird das Menü-Template im
+  **Injector des äusseren Triggers** instanziert — `provideIcons` der
+  Komponente, die das Template definiert, greifen dort nicht, und die
+  `ng-icon`s bleiben stumm/leer (das «…»-Symbol fehlte deshalb). Lösung im
+  Hierarchie-Menü: eigenes fixed-Overlay an der Klickposition (Muster des
+  Karten-Kontextmenüs) mit Inline-SVG statt `ng-icon` im Menü-Template.
 
 ### 12.7 Deployment (Vercel)
 
@@ -1472,8 +1543,8 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach der vierten Ausbaustufe (30.07.2026, Review-Paket «Changes IVS»
-umgesetzt — Entscheide 48–58); Reihenfolge als Vorschlag.
+Stand nach der fünften Ausbaustufe (02.08.2026, Review-Pakete «Changes IVS»
+und «Neue ToDos» umgesetzt — Entscheide 48–66); Reihenfolge als Vorschlag.
 
 1. **Prüfprotokoll / Checkliste 1 (Abschnitt 4.6/4.7).** Der grösste noch
    offene Fachblock: neun binäre Prüffragen mit Kommentarfeld bei «nicht
@@ -1482,34 +1553,31 @@ umgesetzt — Entscheide 48–58); Reihenfolge als Vorschlag.
    Objektbeschrieb, nicht als separates Dokument. Abschnitt «Prüfen /
    Freigabe» im Formular ist der vorgesehene Ort; das Verhältnis zum
    «Prüfregister QS» (Abschnitt 10) bleibt zu klären. **Empfehlung:** vorher
-   oder dabei `hlmField` einführen (siehe Punkt 6) — die neun Fragen mit
+   oder dabei `hlmField` einführen (siehe Punkt 5) — die neun Fragen mit
    bedingtem Kommentarfeld sind der natürliche Anlass.
-2. **Versionsvergleich (08.05, Vorgabe 10).** Text-Diff mit
-   Änderungsmarkierungen plus Geometrie-Overlay alt/neu; der Einstieg
-   existiert bereits als deaktivierter Eintrag im Historie-Menü.
-3. **Manuelle Prüfung der Karten-Interaktionen.** Hover-MapTip, Direktklick,
+2. **Manuelle Prüfung der Karten-Interaktionen.** Hover-MapTip, Direktklick,
    Kontextmenü und Pin-Klick sind inzwischen end-to-end mit synthetischen
    Pointer-Events verifiziert (identischer Event-Pfad wie echte Eingabe);
    Geometrie-Zeichnen bleibt nur skriptbasiert geprüft — ein Durchgang mit
    echter Maus schadet weiterhin nicht. Dabei auch prüfen, ob der
    Trefferradius von 8 px (Entscheid 46) in der Praxis passt.
-4. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
+3. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
    Arbeitspakete (03.01–03.04), Reports (12.01–12.04).
-5. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
+4. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
    Geometrie-Werkzeuge, Stammdaten-Tabelle) — die Touch-Vergrösserung aus
    Abschnitt 9.6 greift automatisch, das Layout ist aber ungeprüft.
-6. **`hlmField` im Formular** (offener Punkt aus dem spartan-Review):
+5. **`hlmField` im Formular** (offener Punkt aus dem spartan-Review):
    37 handgebaute `grid gap-1.5`-Feldgruppen und 57 Beschreibungsabsätze
    liessen sich auf `hlmField` / `hlmFieldLabel` / `hlmFieldDescription`
    umstellen; die Pflichtbegründung bei «inexistent» hat bis heute kein
    `hlm-field-error`, nur ein handgeschriebenes `*`. Grosser Diff, geringe
    optische Wirkung — deshalb bewusst an Punkt 1 gekoppelt.
-7. **Performance der Vollabdeckung**, falls sie störend wird: Virtualisierung
+6. **Performance der Vollabdeckung**, falls sie störend wird: Virtualisierung
    der langen Listen oder Debouncing der localStorage-Persistenz (12.6).
 
 **Wo es weitergeht.** `pnpm start`, dann `/dashboard` — oder direkt
-<https://ivs-prototyp-v3.vercel.app>. Die Rolle wechselt man über einen Klick
-auf das **IVS-Logo** oben links; als R-03 erscheint zusätzlich die
-Stammdatenverwaltung. «Demodaten zurücksetzen» liegt im Profil-Popover unten
-links — nötig nach jeder Änderung an den Seed-Daten, sonst zeigt der Browser
-den alten Stand (oder `SEED_VERSION` erhöhen).
+<https://ivs-prototyp-v3.vercel.app>. Die Rolle wechselt man im
+**Account-Menü unten links** (Personen-Icon); als R-03 erscheint zusätzlich
+die Stammdatenverwaltung. «Demodaten zurücksetzen» liegt im selben Menü —
+nötig nach jeder Änderung an den Seed-Daten, sonst zeigt der Browser den
+alten Stand (oder `SEED_VERSION` erhöhen).

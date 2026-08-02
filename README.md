@@ -112,25 +112,27 @@ Themengruppe.
 
 ## Stand
 
-Der Kern-Workflow steht in vierter Ausbaustufe (30.07.2026, Review-Paket
-«Changes IVS» umgesetzt). Der vollständige Projektstand — abgestimmte
+Der Kern-Workflow steht in fünfter Ausbaustufe (02.08.2026, Review-Pakete
+«Changes IVS» und «Neue ToDos» umgesetzt). Der vollständige Projektstand — abgestimmte
 Entscheide, Architektur, Fallstricke und nächste Schritte — liegt in
 [docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md),
 Abschnitte 9.8, 12.4–12.6 und 14. Dieses Dokument allein genügt, um in einer
 neuen Session weiterzuarbeiten.
 
-- **Shell** (`src/app/shell/`): Icon-Leiste mit verstecktem **Rollenmenü**
-  hinter dem IVS-Logo (R-03…R-07 wählbar), Dark-Mode, Profil mit
-  «Demodaten zurücksetzen», Sprachwechsler (Attrappe). Es gibt keine
-  ausgegrauten Bedienelemente: Gesperrte Aktionen bleiben aktiv und
-  erklären sich beim Klick in einem Modal (**nie-disabled-Regel**).
+- **Shell** (`src/app/shell/`): Icon-Leiste; das IVS-Logo führt zum
+  Dashboard, «Perspektive wechseln» liegt im **Account-Menü** unten links
+  (R-03…R-07 wählbar) zusammen mit Profil und «Demodaten zurücksetzen»;
+  Dark-Mode, Sprachwechsler (Attrappe). Es gibt keine ausgegrauten
+  Bedienelemente: Gesperrte Aktionen bleiben aktiv und erklären sich beim
+  Klick in einem Modal (**nie-disabled-Regel**).
 - **Objekt-Taxonomie und Legende**: Strecke → Linienführung → Abschnitt mit
   Substanz / mit viel Substanz / **Kunstbaute als spezifischer Abschnitt**.
   Überall dieselben Symbole (Karte, Kartenbild-Panel, Hierarchie-Menü,
   MapTip, Side-Panel): Strecke/Linienführung orange gleich dick, Abschnitte
   blau durchgezogen in drei Dicken, Wegbegleiter rot.
-- **Dashboard** (`/dashboard`): Aufgabenliste in den rollenrelevanten
-  Stati, gruppiert nach Backlog / In Arbeit / Done (Mapping der acht
+- **Dashboard** (`/dashboard`): Aufgabenliste **nur mit Strecken** (ToDos
+  werden auf Strecken-Ebene zugewiesen) in den rollenrelevanten Stati,
+  gruppiert nach Backlog / In Arbeit / Done (Mapping der acht
   Workflow-Stati), Volltextsuche, Schnellfilter, Zeilen-Dropdown mit
   direktem Statuswechsel, Polygon-Selektion auf der Karte als
   geographischer Filter.
@@ -139,8 +141,13 @@ neuen Session weiterzuarbeiten.
   via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte
   & Gelände, Anhang, Prüfen/Freigabe, Inexistent mit Pflichtbegründung,
   Lognotizen), **Hierarchie-Menü** mit Legenden-Symbolen, Typ-Tags und
-  Umteilen je Child-Zeile («…»-Kontextmenü), **Status-Dropdown** mit dem
-  nächsten und vorherigen Status der Workflow-Kette, Bearbeitungslog-Sheet.
+  Umteilen je Child-Zeile («…»-Kontextmenü, öffnet nur per Klick),
+  **Status-Dropdown** mit den rollenrelevanten Stati zur freien Wahl,
+  **Back-Button** zur gemerkten Herkunftsseite, **Versionsvergleich**
+  IVS 1.0 → 2.0 im Historie-Menü (Wort-Diff mit Änderungsmarkierungen plus
+  Vergleichskarte, Deckkraft beider Stände separat regelbar),
+  Begehungs-Einplanung sichtbar (Badge und 360°-Bereich),
+  Bearbeitungslog-Sheet.
 - **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS und den
   `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Quelldaten — die
   bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden
@@ -155,14 +162,17 @@ neuen Session weiterzuarbeiten.
   Kartenfenster **mit Panel-Kopf** (Tabs Karte/360°/Kommentare, Zeichnen
   und Kommentieren inklusive), synchronisiert über BroadcastChannel und
   storage-Ereignisse.
-- **Objekte** (`/objekte`): Kartenansicht mit dezenter Objektliste, Suche,
-  Filtern und Side-Panel mit dem **vollständigen** Objektinhalt samt
-  Hierarchie-Menü (04.01–04.03), Export-Attrappe.
+- **Objekte** (`/objekte`): Kartenansicht mit **aufklappbarem
+  Strecken-Baum** (nur Strecken auf erster Ebene), Suche und Filtern;
+  ein Klick — auch auf der Karte — öffnet zuerst das Side-Panel mit dem
+  **vollständigen** Objektinhalt samt Hierarchie-Menü (04.01–04.03),
+  Export-Attrappe.
 - **360°-Aufnahmen** (`/panorama`): Galerie der Befahrung mit echt drehbarem
   Platzhalter-Panorama (generierte, nahtlose SVGs), Vor-/Zurück-Navigation,
-  Karte mit Standort und live mitdrehendem Blickrichtungskegel — plus
-  **Begehungsplanung** (Reihenfolge, Verkehrsmittel, Unterkunft, Zeitbedarf),
-  auch aus der Objektbearbeitung heraus.
+  Karte mit Standort und live mitdrehendem Blickrichtungskegel.
+- **Begehungen** (`/begehungen`, eigener Tab): Reihenfolge, Verkehrsmittel,
+  Unterkunft und Zeitbedarf der Feldeinsätze; planen dürfen R-03/04/06/07
+  (auch aus der Objektbearbeitung heraus), andere Rollen sehen alles.
 - **Kommentare** (09/10): Panel mit Threads, Erledigt-Kennzeichnung, Suche,
   Filtern (Standard «Offene»; objektübergreifende Listen zeigen nur die
   eigenen — zugewiesen, mal zugewiesen oder erwähnt), `@`-Erwähnungen und
@@ -193,8 +203,8 @@ neuen Session weiterzuarbeiten.
   generierte Kunstbaute mit eigener Teilstück-Geometrie. Änderungen
   überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
 
-Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Versionsvergleich,
-Nebenblöcke (Accounts, Arbeitspakete, Reports).
+Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Nebenblöcke
+(Accounts, Arbeitspakete, Reports).
 
 Die Zuordnung Signatur → Testdaten-Feature liegt in
 `src/app/karte/karten-layer.ts` und wird zur Laufzeit auf die geladenen
