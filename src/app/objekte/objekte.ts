@@ -23,7 +23,6 @@ import { HerkunftStore } from '../core/herkunft-store';
 import { KommentarStore } from '../core/kommentare';
 import {
   EBENE_LABEL,
-  Ebene,
   IvsObjekt,
   NHG_LABEL,
   NhgWert,
@@ -35,6 +34,7 @@ import {
   objektTyp,
   objektTypText,
 } from '../core/model';
+import { signaturKette } from '../core/objekt-generierung';
 import { ObjektStore } from '../core/objekt-store';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte, KartenSelektion } from '../karte/karte';
@@ -42,6 +42,12 @@ import { TypSymbol } from '../karte/typ-symbol';
 import { HierarchieMenu } from '../objekt/hierarchie-menu';
 
 type SortSpalte = 'signatur' | 'name' | 'status' | 'bewertung';
+
+/** Eine Strecke der Baumliste samt ihrer (gefilterten) Nachkommen. */
+interface StreckenAst {
+  strecke: IvsObjekt;
+  kinder: IvsObjekt[];
+}
 
 /**
  * Objekte (04.01) — Kartenansicht: Die Karte steht im Vordergrund, links
@@ -107,10 +113,12 @@ export class Objekte {
 
   protected readonly suche = signal('');
   protected readonly statusFilter = signal<'alle' | WorkflowStatus>('alle');
-  protected readonly ebeneFilter = signal<'alle' | Ebene>('alle');
   protected readonly bedeutungFilter = signal<'alle' | NhgWert>('alle');
   protected readonly substanzFilter = signal<'alle' | Substanzgrad>('alle');
   protected readonly sortierung = signal<SortSpalte>('signatur');
+
+  /** Manuell aufgeklappte Strecken (bei aktiver Suche sind alle offen). */
+  protected readonly aufgeklappt = signal<ReadonlySet<string>>(new Set());
 
   /** Signatur des im Side-Panel geöffneten Objekts. */
   protected readonly auswahlSignatur = signal<string | null>(null);
@@ -133,37 +141,101 @@ export class Objekte {
     return o ? this.kommentarStore.fuerObjekt(o.signatur).length : 0;
   });
 
-  protected readonly gefiltert = computed(() => {
+  /** Filterprädikat ohne Ebenen-Bezug (wirkt auf alle Ebenen gleich). */
+  private passtFilter(o: IvsObjekt, begriff: string): boolean {
+    if (this.statusFilter() !== 'alle' && o.status !== this.statusFilter()) return false;
+    if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
+    if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter()) return false;
+    if (begriff) {
+      const text = `${o.signatur} ${o.name} ${o.gemeinden} ${o.zustaendigName}`.toLowerCase();
+      if (!text.includes(begriff)) return false;
+    }
+    return true;
+  }
+
+  private filterAktiv(begriff: string): boolean {
+    return (
+      !!begriff ||
+      this.statusFilter() !== 'alle' ||
+      this.bedeutungFilter() !== 'alle' ||
+      this.substanzFilter() !== 'alle'
+    );
+  }
+
+  /**
+   * Baumliste: nur Strecken auf erster Ebene, die Nachkommen (Linienführungen
+   * mit ihren Abschnitten, dann Wegbegleiter) erscheinen beim Aufklappen.
+   * Bei aktiven Filtern bleiben Strecken stehen, wenn sie selbst oder ein
+   * Nachkomme passt — die Kinderliste ist dann auf die Treffer reduziert.
+   */
+  protected readonly baum = computed<StreckenAst[]>(() => {
     const begriff = this.suche().trim().toLowerCase();
+    const aktiv = this.filterAktiv(begriff);
     const sortierung = this.sortierung();
 
-    return this.store
-      .alle()
-      .filter((o) => {
-        if (this.statusFilter() !== 'alle' && o.status !== this.statusFilter()) return false;
-        if (this.ebeneFilter() !== 'alle' && o.ebene !== this.ebeneFilter()) return false;
-        if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
-        if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
-          return false;
-        if (begriff) {
-          const text = `${o.signatur} ${o.name} ${o.gemeinden} ${o.zustaendigName}`.toLowerCase();
-          if (!text.includes(begriff)) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => vergleiche(a, b, sortierung));
+    const strecken: IvsObjekt[] = [];
+    const proParent = new Map<string, IvsObjekt[]>();
+    for (const o of this.store.alle()) {
+      if (o.ebene === 'strecke') {
+        strecken.push(o);
+      } else if (o.parent) {
+        const liste = proParent.get(o.parent) ?? [];
+        liste.push(o);
+        proParent.set(o.parent, liste);
+      }
+    }
+    const sortiert = (liste: IvsObjekt[]) =>
+      liste.sort((a, b) => a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
+    for (const liste of proParent.values()) sortiert(liste);
+
+    const aeste: StreckenAst[] = [];
+    for (const strecke of strecken.sort((a, b) => vergleiche(a, b, sortierung))) {
+      const direkte = proParent.get(strecke.signatur) ?? [];
+      const kinder: IvsObjekt[] = [];
+      for (const lf of direkte.filter((k) => k.ebene === 'linienfuehrung')) {
+        kinder.push(lf, ...(proParent.get(lf.signatur) ?? []));
+      }
+      kinder.push(...direkte.filter((k) => k.ebene === 'wegbegleiter'));
+
+      const passende = aktiv ? kinder.filter((k) => this.passtFilter(k, begriff)) : kinder;
+      if (!aktiv || this.passtFilter(strecke, begriff) || passende.length) {
+        aeste.push({ strecke, kinder: passende });
+      }
+    }
+    return aeste;
   });
 
-  protected readonly gesamt = computed(() => this.store.alle().length);
+  protected readonly streckenGesamt = computed(
+    () => this.store.alle().filter((o) => o.ebene === 'strecke').length,
+  );
+
+  /** Bei aktiver Suche sind alle Äste offen, sonst die manuell aufgeklappten. */
+  protected istOffen(signatur: string): boolean {
+    return this.suche().trim() !== '' || this.aufgeklappt().has(signatur);
+  }
+
+  protected aufklappen(signatur: string): void {
+    this.aufgeklappt.update((menge) => {
+      const neu = new Set(menge);
+      if (neu.has(signatur)) neu.delete(signatur);
+      else neu.add(signatur);
+      return neu;
+    });
+  }
 
   protected waehle(objekt: IvsObjekt): void {
     this.auswahlSignatur.set(objekt.signatur);
+    // Die zugehörige Strecke aufklappen, damit die Markierung sichtbar ist
+    if (objekt.ebene !== 'strecke') {
+      const strecke = signaturKette(objekt.signatur).strecke;
+      if (strecke) this.aufgeklappt.update((menge) => new Set(menge).add(strecke));
+    }
   }
 
-  /** Karten-Klick springt direkt ins Objekt — ohne Zwischenschritt Side-Panel. */
+  /** Karten-Klick öffnet in jedem Fall zuerst die Preview im Side-Panel. */
   protected oeffneSignatur(signatur: string): void {
     const objekt = this.store.bySignatur(signatur);
-    if (objekt) void this.router.navigate(['/objekt', objekt.id]);
+    if (objekt) this.waehle(objekt);
   }
 
   protected schliessePanel(): void {
@@ -180,7 +252,6 @@ export class Objekte {
   protected filterZuruecksetzen(): void {
     this.suche.set('');
     this.statusFilter.set('alle');
-    this.ebeneFilter.set('alle');
     this.bedeutungFilter.set('alle');
     this.substanzFilter.set('alle');
   }

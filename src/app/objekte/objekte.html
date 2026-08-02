@@ -4,7 +4,7 @@
     <h1 class="text-base font-semibold">
       Objekte
       <span class="ml-1 text-sm font-normal text-muted-foreground">
-        {{ gefiltert().length }} von {{ gesamt() }}
+        {{ baum().length }} von {{ streckenGesamt() }} Strecken
       </span>
     </h1>
     <button
@@ -45,19 +45,6 @@
       @for (status of alleStati; track status) {
         <option hlmNativeSelectOption [value]="status">{{ statusLabel[status] }}</option>
       }
-    </hlm-native-select>
-
-    <hlm-native-select
-      class="w-36"
-      size="sm"
-      [ngModel]="ebeneFilter()"
-      (ngModelChange)="ebeneFilter.set($event)"
-    >
-      <option hlmNativeSelectOption value="alle">Ebene</option>
-      <option hlmNativeSelectOption value="strecke">Strecke</option>
-      <option hlmNativeSelectOption value="linienfuehrung">Linienführung</option>
-      <option hlmNativeSelectOption value="abschnitt">Abschnitt</option>
-      <option hlmNativeSelectOption value="wegbegleiter">Wegbegleiter</option>
     </hlm-native-select>
 
     <hlm-native-select
@@ -111,36 +98,83 @@
   </div>
 
   <div class="flex min-h-0 flex-1">
-    <!-- Dezente Objektliste -->
+    <!-- Baumliste: Strecken zuoberst, Nachkommen beim Aufklappen -->
     <nav class="w-72 shrink-0 overflow-y-auto border-r border-border" aria-label="Objektliste">
       <ul>
-        @for (o of gefiltert(); track o.id) {
+        @for (ast of baum(); track ast.strecke.id) {
           <li>
-            <button
-              type="button"
-              class="flex w-full items-start gap-2 border-b border-border/60 px-3 py-2 text-left transition-colors hover:bg-accent"
-              [class.bg-accent]="auswahlSignatur() === o.signatur"
-              (click)="waehle(o)"
+            <div
+              class="flex w-full items-start gap-1 border-b border-border/60 px-2 py-2 transition-colors hover:bg-accent"
+              [class.bg-accent]="auswahlSignatur() === ast.strecke.signatur"
             >
-              <span
-                class="mt-1.5 size-2 shrink-0 rounded-full {{ statusFarbe[o.status] }}"
-                [hlmTooltip]="statusLabel[o.status]"
-              ></span>
-              <span class="min-w-0 flex-1">
-                <span class="block font-mono text-[11px] text-muted-foreground">{{
-                  o.signatur
-                }}</span>
+              <button
+                type="button"
+                class="relative mt-0.5 shrink-0 rounded-sm p-0.5 text-muted-foreground hover:text-foreground pointer-coarse:after:absolute pointer-coarse:after:-inset-2 pointer-coarse:after:content-['']"
+                (click)="aufklappen(ast.strecke.signatur)"
+                [attr.aria-label]="
+                  ast.strecke.signatur + (istOffen(ast.strecke.signatur) ? ' zuklappen' : ' aufklappen')
+                "
+              >
+                <ng-icon
+                  name="lucideChevronRight"
+                  size="14"
+                  class="transition-transform"
+                  [class.rotate-90]="istOffen(ast.strecke.signatur)"
+                />
+              </button>
+              <button
+                type="button"
+                class="flex min-w-0 flex-1 items-start gap-2 text-left"
+                (click)="waehle(ast.strecke)"
+              >
                 <span
-                  class="block truncate text-sm"
-                  [class.font-medium]="auswahlSignatur() === o.signatur"
-                >
-                  {{ o.name }}
+                  class="mt-1.5 size-2 shrink-0 rounded-full {{ statusFarbe[ast.strecke.status] }}"
+                  [hlmTooltip]="statusLabel[ast.strecke.status]"
+                ></span>
+                <span class="min-w-0 flex-1">
+                  <span class="block font-mono text-[11px] text-muted-foreground">{{
+                    ast.strecke.signatur
+                  }}</span>
+                  <span
+                    class="block truncate text-sm"
+                    [class.font-medium]="auswahlSignatur() === ast.strecke.signatur"
+                  >
+                    {{ ast.strecke.name }}
+                  </span>
                 </span>
-              </span>
-              @if (o.inexistent) {
-                <span hlmBadge variant="destructive" class="mt-1 text-[10px]">inexistent</span>
-              }
-            </button>
+                @if (ast.strecke.inexistent) {
+                  <span hlmBadge variant="destructive" class="mt-1 text-[10px]">inexistent</span>
+                }
+              </button>
+            </div>
+            @if (istOffen(ast.strecke.signatur)) {
+              <ul>
+                @for (kind of ast.kinder; track kind.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-2 border-b border-border/40 py-1.5 pr-3 text-left transition-colors hover:bg-accent"
+                      [class.pl-7]="kind.ebene === 'linienfuehrung' || kind.ebene === 'wegbegleiter'"
+                      [class.pl-11]="kind.ebene === 'abschnitt'"
+                      [class.bg-accent]="auswahlSignatur() === kind.signatur"
+                      (click)="waehle(kind)"
+                    >
+                      <ivs-typ-symbol [typ]="objektTyp(kind)" />
+                      <span class="min-w-0 flex-1 truncate text-sm">
+                        <span class="font-mono text-[11px] text-muted-foreground">
+                          {{ kind.ebene === 'wegbegleiter' ? '' : kind.signatur.slice(3) }}
+                        </span>
+                        {{ kind.name }}
+                      </span>
+                      <span
+                        class="size-1.5 shrink-0 rounded-full {{ statusFarbe[kind.status] }}"
+                        [hlmTooltip]="statusLabel[kind.status]"
+                      ></span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
           </li>
         } @empty {
           <li>
