@@ -19,6 +19,7 @@ import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { HerkunftStore } from '../core/herkunft-store';
 import { KommentarStore } from '../core/kommentare';
 import {
   EBENE_LABEL,
@@ -81,6 +82,7 @@ export class Objekte {
   private readonly store = inject(ObjektStore);
   private readonly kommentarStore = inject(KommentarStore);
   private readonly router = inject(Router);
+  private readonly herkunft = inject(HerkunftStore);
   private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly statusLabel = STATUS_LABEL;
@@ -170,7 +172,9 @@ export class Objekte {
 
   protected oeffneAuswahl(): void {
     const o = this.auswahl();
-    if (o) void this.router.navigate(['/objekt', o.id]);
+    if (!o) return;
+    this.herkunft.uebersicht.set('/objekte');
+    void this.router.navigate(['/objekt', o.id]);
   }
 
   protected filterZuruecksetzen(): void {

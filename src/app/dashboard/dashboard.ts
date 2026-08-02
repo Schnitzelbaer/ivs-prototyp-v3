@@ -39,6 +39,7 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
+import { HerkunftStore } from '../core/herkunft-store';
 import { KommentarStore, jetztLokal } from '../core/kommentare';
 import {
   IvsObjekt,
@@ -125,6 +126,7 @@ export class Dashboard {
   private readonly store = inject(ObjektStore);
   private readonly kommentarStore = inject(KommentarStore);
   private readonly router = inject(Router);
+  private readonly herkunft = inject(HerkunftStore);
 
   private readonly karte = viewChild(Karte);
 
@@ -231,6 +233,7 @@ export class Dashboard {
   }
 
   protected oeffneObjekt(objekt: IvsObjekt): void {
+    this.herkunft.uebersicht.set('/dashboard');
     void this.router.navigate(['/objekt', objekt.id]);
   }
 

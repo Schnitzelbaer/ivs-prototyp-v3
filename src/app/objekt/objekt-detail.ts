@@ -15,6 +15,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideArrowLeft,
   lucideBookOpen,
   lucideCalendarPlus,
   lucideCamera,
@@ -52,6 +53,7 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
+import { HerkunftStore } from '../core/herkunft-store';
 import { HinweisStore } from '../core/hinweis-store';
 import { KommentarStore, jetztLokal } from '../core/kommentare';
 import {
@@ -117,6 +119,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
   ],
   providers: [
     provideIcons({
+      lucideArrowLeft,
       lucideBookOpen,
       lucideCalendarPlus,
       lucideCamera,
@@ -150,6 +153,7 @@ export class ObjektDetail implements OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly stammdaten = inject(StammdatenStore);
   private readonly hinweis = inject(HinweisStore);
+  private readonly herkunft = inject(HerkunftStore);
   protected readonly einstellungen = inject(EinstellungenStore);
 
   protected readonly karte = viewChild(Karte);
@@ -480,6 +484,15 @@ export class ObjektDetail implements OnDestroy {
 
   protected wechsleZu(objekt: IvsObjekt): void {
     void this.router.navigate(['/objekt', objekt.id]);
+  }
+
+  /** Zurück zur Übersicht, von der das Objekt geöffnet wurde. */
+  protected zurueck(): void {
+    void this.router.navigate([this.herkunft.uebersicht()]);
+  }
+
+  protected herkunftLabel(): string {
+    return this.herkunft.uebersicht() === '/objekte' ? 'Objekte' : 'Dashboard';
   }
 
   protected oeffneSignatur(signatur: string): void {

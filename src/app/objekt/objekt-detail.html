@@ -3,6 +3,19 @@
     <!-- Kopfzeile -->
     <header class="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
       <div class="flex min-w-0 items-center gap-2">
+        <!-- Zurück zur Herkunftsseite (Dashboard oder Objekte), unabhängig
+             von zwischenzeitlichen Hierarchie-Wechseln -->
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          (click)="zurueck()"
+          [hlmTooltip]="'Zurück zu «' + herkunftLabel() + '»'"
+          aria-label="Zurück zur Übersicht"
+        >
+          <ng-icon name="lucideArrowLeft" />
+        </button>
         <h1 class="truncate text-base font-semibold">{{ o.signatur }} – {{ o.name }}</h1>
         <span hlmBadge variant="secondary">
           <span class="size-2 rounded-full {{ statusFarbe[o.status] }}"></span>
