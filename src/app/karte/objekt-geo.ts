@@ -21,12 +21,8 @@ export class ObjektGeo {
     return this.ladePromise;
   }
 
-  /** Bbox eines Objekts über alle zugehörigen Features, null wenn unbekannt. */
-  async bbox(ebene: Ebene, signatur: string): Promise<Bbox | null> {
-    await this.lade();
-    if (!this.features) return null;
-
-    const passt = (f: ObjektFeature): boolean => {
+  private passt(ebene: Ebene, signatur: string): (f: ObjektFeature) => boolean {
+    return (f) => {
       switch (ebene) {
         case 'strecke':
           return f.properties.strecke === signatur;
@@ -36,9 +32,21 @@ export class ObjektGeo {
           return f.properties.signatur === signatur;
       }
     };
+  }
+
+  /** Alle Features eines Objekts (für die Vergleichskarte des Versionsvergleichs). */
+  async objektFeatures(ebene: Ebene, signatur: string): Promise<ObjektFeature[]> {
+    await this.lade();
+    return this.features?.filter(this.passt(ebene, signatur)) ?? [];
+  }
+
+  /** Bbox eines Objekts über alle zugehörigen Features, null wenn unbekannt. */
+  async bbox(ebene: Ebene, signatur: string): Promise<Bbox | null> {
+    await this.lade();
+    if (!this.features) return null;
 
     let bbox: Bbox | null = null;
-    for (const feature of this.features.filter(passt)) {
+    for (const feature of this.features.filter(this.passt(ebene, signatur))) {
       bbox = erweitere(bbox, feature.geometry.coordinates);
     }
     return bbox;

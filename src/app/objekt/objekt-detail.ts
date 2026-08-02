@@ -72,6 +72,7 @@ import { ROLLEN, darfEditieren } from '../core/rollen';
 import { NAME_FUER_ROLLE, rolleFuerStatus } from '../core/seed-data';
 import { StammdatenStore } from '../core/stammdaten';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
+import { alterStand, wortDiff } from '../core/version-vergleich';
 import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
@@ -80,6 +81,7 @@ import { BegehungDialog } from '../panorama/begehung-dialog';
 import { BewertungsPunkte } from './bewertungs-punkte';
 import { HierarchieMenu } from './hierarchie-menu';
 import { TextEditor } from './text-editor';
+import { VERSION_10_FARBE, VERSION_20_FARBE, VersionsKarte } from './versions-karte';
 
 type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
 
@@ -117,6 +119,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     Karte,
     KommentarPanel,
     TextEditor,
+    VersionsKarte,
   ],
   providers: [
     provideIcons({
@@ -429,13 +432,31 @@ export class ObjektDetail implements OnDestroy {
     this.begehungOffen.set(true);
   }
 
-  /** Versionsvergleich (08.05) ist noch nicht gebaut — erklären statt sperren. */
-  protected versionsvergleichHinweis(): void {
-    this.hinweis.zeige(
-      'Versionsvergleich folgt',
-      'Der Versionsvergleich (08.05) ist im Prototyp noch nicht umgesetzt und folgt in einer späteren Etappe.',
-    );
-  }
+  // ---------------------------------------------- Versionsvergleich (08.05)
+
+  protected readonly versionsvergleichOffen = signal(false);
+  protected readonly deckkraft10 = signal(80);
+  protected readonly deckkraft20 = signal(100);
+  protected readonly version10Farbe = `rgb(${VERSION_10_FARBE.join(',')})`;
+  protected readonly version20Farbe = `rgb(${VERSION_20_FARBE.join(',')})`;
+
+  /** IVS-1.0-Stand des Objekts (deterministisch abgeleitet bzw. kuratiert). */
+  protected readonly stand10 = computed(() => {
+    const o = this.objekt();
+    return o ? alterStand(o) : null;
+  });
+
+  protected readonly diffGeschichte = computed(() => {
+    const o = this.objekt();
+    const alt = this.stand10();
+    return o && alt ? wortDiff(alt.geschichteText, o.geschichteText) : [];
+  });
+
+  protected readonly diffGelaende = computed(() => {
+    const o = this.objekt();
+    const alt = this.stand10();
+    return o && alt ? wortDiff(alt.gelaendeText, o.gelaendeText) : [];
+  });
 
   /** «Als geprüft kennzeichnen» (09.02): ausführen oder im Modal erklären. */
   protected geprueftKennzeichnen(): void {

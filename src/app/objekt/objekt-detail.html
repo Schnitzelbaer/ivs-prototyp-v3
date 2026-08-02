@@ -114,9 +114,9 @@
         </button>
         <ng-template #historieMenu>
           <hlm-dropdown-menu class="w-64">
-            <button hlmDropdownMenuItem (triggered)="versionsvergleichHinweis()">
+            <button hlmDropdownMenuItem (triggered)="versionsvergleichOffen.set(true)">
               Versionsvergleich
-              <span class="ml-auto text-xs text-muted-foreground">folgt</span>
+              <span class="ml-auto text-xs text-muted-foreground">IVS 1.0 → 2.0</span>
             </button>
             <button hlmDropdownMenuItem (triggered)="logOffen.set(true)">Bearbeitungslog</button>
           </hlm-dropdown-menu>
@@ -1224,6 +1224,172 @@
 
   <!-- Begehung planen (Objekt vorausgewählt) -->
   <ivs-begehung-dialog [(offen)]="begehungOffen" [vorauswahl]="o.signatur" />
+
+  <!-- Versionsvergleich IVS 1.0 → 2.0 (08.05, Vorgabe 10) -->
+  <hlm-dialog
+    [state]="versionsvergleichOffen() ? 'open' : 'closed'"
+    (stateChanged)="versionsvergleichOffen.set($event === 'open')"
+  >
+    <hlm-dialog-content *hlmDialogPortal class="flex max-h-[90vh] w-[min(64rem,92vw)] flex-col sm:max-w-none">
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>Versionsvergleich — {{ o.signatur }} {{ o.name }}</h3>
+        <p hlmDialogDescription>
+          IVS 1.0 (Erstbeschrieb) gegenüber IVS 2.0 (laufende Nachführung):
+          <del class="text-red-600 no-underline line-through dark:text-red-400">Gestrichenes</del>
+          durchgestrichen,
+          <mark class="rounded-sm bg-emerald-500/15 px-0.5 text-emerald-700 dark:text-emerald-400"
+            >Neues</mark
+          >
+          markiert. Der Vergleich zeigt die Texte ohne Formatierung.
+        </p>
+      </hlm-dialog-header>
+
+      <div class="grid min-h-0 flex-1 gap-4 overflow-y-auto py-2 lg:grid-cols-2">
+        <div class="flex min-w-0 flex-col gap-4">
+          @if (stand10()?.aenderungen?.length) {
+            <section>
+              <h4 class="text-sm font-semibold">Eckdaten</h4>
+              <table class="mt-1 w-full text-sm">
+                <tbody>
+                  @for (aenderung of stand10()!.aenderungen; track aenderung.label) {
+                    <tr class="border-b border-border/60">
+                      <td class="py-1 pr-3 text-muted-foreground">{{ aenderung.label }}</td>
+                      <td class="py-1 pr-3">
+                        <del class="text-red-600 no-underline line-through dark:text-red-400">{{
+                          aenderung.alt
+                        }}</del>
+                      </td>
+                      <td class="py-1">
+                        <mark
+                          class="rounded-sm bg-emerald-500/15 px-0.5 text-emerald-700 dark:text-emerald-400"
+                          >{{ aenderung.neu }}</mark
+                        >
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </section>
+          }
+          <section>
+            <h4 class="text-sm font-semibold">Geschichte</h4>
+            <p class="mt-1 text-sm leading-relaxed">
+              @for (segment of diffGeschichte(); track $index) {
+                @switch (segment.typ) {
+                  @case ('entfernt') {
+                    <del class="text-red-600 no-underline line-through dark:text-red-400">{{
+                      segment.text
+                    }}</del>
+                  }
+                  @case ('neu') {
+                    <mark
+                      class="rounded-sm bg-emerald-500/15 px-0.5 text-emerald-700 dark:text-emerald-400"
+                      >{{ segment.text }}</mark
+                    >
+                  }
+                  @default {
+                    {{ segment.text }}
+                  }
+                }
+                {{ ' ' }}
+              } @empty {
+                <span class="text-muted-foreground">Kein Beschrieb vorhanden.</span>
+              }
+            </p>
+          </section>
+          <section>
+            <h4 class="text-sm font-semibold">Gelände</h4>
+            <p class="mt-1 text-sm leading-relaxed">
+              @for (segment of diffGelaende(); track $index) {
+                @switch (segment.typ) {
+                  @case ('entfernt') {
+                    <del class="text-red-600 no-underline line-through dark:text-red-400">{{
+                      segment.text
+                    }}</del>
+                  }
+                  @case ('neu') {
+                    <mark
+                      class="rounded-sm bg-emerald-500/15 px-0.5 text-emerald-700 dark:text-emerald-400"
+                      >{{ segment.text }}</mark
+                    >
+                  }
+                  @default {
+                    {{ segment.text }}
+                  }
+                }
+                {{ ' ' }}
+              } @empty {
+                <span class="text-muted-foreground">Kein Beschrieb vorhanden.</span>
+              }
+            </p>
+          </section>
+        </div>
+
+        <!-- Karten-Überlagerung: Deckkraft je Stand manuell regelbar -->
+        <div class="flex min-w-0 flex-col gap-2">
+          <div class="min-h-72 flex-1 overflow-hidden rounded-md border border-border">
+            @if (versionsvergleichOffen()) {
+              <ivs-versions-karte
+                class="block h-full"
+                [ebene]="o.ebene"
+                [signatur]="o.signatur"
+                [deckkraft10]="deckkraft10()"
+                [deckkraft20]="deckkraft20()"
+              />
+            }
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <label class="flex flex-col gap-1 text-xs">
+              <span class="flex items-center gap-1.5">
+                <span
+                  class="inline-block h-1 w-4 rounded-full"
+                  [style.background]="version10Farbe"
+                ></span>
+                IVS 1.0 — Deckkraft {{ deckkraft10() }} %
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                class="h-1.5 w-full accent-primary"
+                [value]="deckkraft10()"
+                (input)="deckkraft10.set(+$any($event.target).value)"
+                aria-label="Deckkraft IVS 1.0"
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-xs">
+              <span class="flex items-center gap-1.5">
+                <span
+                  class="inline-block h-1 w-4 rounded-full"
+                  [style.background]="version20Farbe"
+                ></span>
+                IVS 2.0 — Deckkraft {{ deckkraft20() }} %
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                class="h-1.5 w-full accent-primary"
+                [value]="deckkraft20()"
+                (input)="deckkraft20.set(+$any($event.target).value)"
+                aria-label="Deckkraft IVS 2.0"
+              />
+            </label>
+          </div>
+          <p class="text-xs text-muted-foreground">
+            IVS-1.0-Verlauf über der heutigen Geometrie — die Lage wurde mit der Nachführung
+            präzisiert (im Prototyp simuliert).
+          </p>
+        </div>
+      </div>
+
+      <hlm-dialog-footer>
+        <button hlmBtn variant="outline" type="button" (click)="versionsvergleichOffen.set(false)">
+          Schliessen
+        </button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
 
   <!-- Quellen / Bibliografie (07.18) -->
   <hlm-dialog
