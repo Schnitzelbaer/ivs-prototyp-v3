@@ -168,6 +168,9 @@ export class Dashboard {
     return this.store
       .alle()
       .filter((o) => {
+        // ToDos werden nur auf Strecken-Ebene zugewiesen — das Dashboard
+        // listet deshalb ausschliesslich Strecken.
+        if (o.ebene !== 'strecke') return false;
         if (!rolle.relevanteStati.includes(o.status)) return false;
         if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
         if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
