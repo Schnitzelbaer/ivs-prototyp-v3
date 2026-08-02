@@ -49,6 +49,18 @@
       >
         <ng-icon name="lucideCamera" />
       </a>
+      <a
+        hlmBtn
+        variant="ghost"
+        size="icon"
+        routerLink="/begehungen"
+        routerLinkActive="bg-accent text-accent-foreground"
+        hlmTooltip="Begehungen"
+        position="right"
+        aria-label="Begehungen"
+      >
+        <ng-icon name="lucideFootprints" />
+      </a>
       <!-- Stammdatenverwaltung: nur Fachliche Administration (R-03) -->
       @if (einstellungen.aktiveRolleId() === 'R-03') {
         <a

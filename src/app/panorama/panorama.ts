@@ -1,23 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideArrowDown,
-  lucideArrowUp,
-  lucideCalendarPlus,
-  lucideChevronLeft,
-  lucideChevronRight,
-  lucideRoute,
-  lucideTrash2,
-} from '@ng-icons/lucide';
-import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { lucideChevronLeft, lucideChevronRight, lucideRoute } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
-import { BegehungsStore, VERKEHRSMITTEL_LABEL } from '../core/begehungen';
 import { ObjektStore } from '../core/objekt-store';
 import { Karte } from '../karte/karte';
-import { BegehungDialog } from './begehung-dialog';
 import { erzeugePanorama } from './panorama-bilder';
 import { PanoramaViewer } from './panorama-viewer';
 
@@ -36,43 +24,23 @@ interface Aufnahme {
 /**
  * 360°-Aufnahmen (06, Vorgabe 9): Galerie der Befahrung mit drehbarem
  * Panorama, Vor-/Zurück-Navigation und Karte mit Standort und live
- * mitdrehender Blickrichtung — dazu die Begehungsplanung (Reihenfolge und
- * Logistik der Feldeinsätze). Die Aufnahmen sind Platzhalter; die Standorte
- * liegen real auf der Murtenstrasse (BE 7.2) zwischen Riedbach und Bümpliz
- * (Route 916 der Testdaten).
+ * mitdrehender Blickrichtung. Die Begehungsplanung hat einen eigenen Tab
+ * (/begehungen). Die Aufnahmen sind Platzhalter; die Standorte liegen real
+ * auf der Murtenstrasse (BE 7.2) zwischen Riedbach und Bümpliz (Route 916
+ * der Testdaten).
  */
 @Component({
   selector: 'ivs-panorama',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    NgIcon,
-    HlmBadgeImports,
-    HlmButtonImports,
-    HlmTabsImports,
-    HlmTooltipImports,
-    Karte,
-    BegehungDialog,
-    PanoramaViewer,
-  ],
+  imports: [NgIcon, HlmButtonImports, HlmTooltipImports, Karte, PanoramaViewer],
   providers: [
-    provideIcons({
-      lucideArrowDown,
-      lucideArrowUp,
-      lucideCalendarPlus,
-      lucideChevronLeft,
-      lucideChevronRight,
-      lucideRoute,
-      lucideTrash2,
-    }),
+    provideIcons({ lucideChevronLeft, lucideChevronRight, lucideRoute }),
   ],
   templateUrl: './panorama.html',
 })
 export class Panorama {
   private readonly store = inject(ObjektStore);
-  protected readonly begehungsStore = inject(BegehungsStore);
   private readonly router = inject(Router);
-
-  protected readonly verkehrsmittelLabel = VERKEHRSMITTEL_LABEL;
 
   /**
    * Standorte aus Route 916 (West → Ost), Azimute entlang des Wegs.
@@ -86,12 +54,8 @@ export class Panorama {
     { titel: 'Station 2.87 km', datum: '2025-06-17', lon: 7.365208, lat: 46.94777, wegAzimut: 95, objektSignatur: 'BE 7.2.1', bild: erzeugePanorama({ wegAzimut: 95, seed: 5 }) },
   ];
 
-  protected readonly hauptTab = signal('aufnahmen');
   protected readonly index = signal(0);
   protected readonly azimut = signal(this.aufnahmen[0].wegAzimut);
-
-  protected readonly begehungOffen = signal(false);
-  protected readonly begehungVorauswahl = signal<string | null>(null);
 
   protected readonly aufnahme = computed(() => this.aufnahmen[this.index()]);
   protected readonly standort = computed(() => {
@@ -118,16 +82,6 @@ export class Panorama {
   protected oeffneObjekt(signatur: string): void {
     const objekt = this.store.bySignatur(signatur);
     if (objekt) void this.router.navigate(['/objekt', objekt.id]);
-  }
-
-  protected objektName(signatur: string): string {
-    const objekt = this.store.bySignatur(signatur);
-    return objekt ? `${objekt.signatur} – ${objekt.name}` : signatur;
-  }
-
-  protected begehungPlanen(): void {
-    this.begehungVorauswahl.set(null);
-    this.begehungOffen.set(true);
   }
 
   protected formatDatum(iso: string): string {

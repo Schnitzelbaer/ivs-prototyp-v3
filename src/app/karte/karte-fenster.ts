@@ -31,6 +31,7 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { darfBegehungPlanen } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
 import { HinweisStore } from '../core/hinweis-store';
 import { KommentarStore, jetztLokal } from '../core/kommentare';
@@ -253,7 +254,7 @@ import { KarteSync } from './karte-sync';
               size="sm"
               class="mt-2"
               type="button"
-              (click)="begehungOffen.set(true)"
+              (click)="begehungPlanenKlick()"
             >
               <ng-icon name="lucideCalendarPlus" />
               Begehung planen
@@ -465,6 +466,20 @@ export class KarteFenster {
   protected geometrieGeaendert(anzahl: number): void {
     this.geometrieAnzahl.set(anzahl);
     this.geometrieGeaendertFlag = true;
+  }
+
+  /** «Begehung planen»: nur R-03/04/06/07 — sonst erklärt ein Modal. */
+  protected begehungPlanenKlick(): void {
+    if (!darfBegehungPlanen(this.einstellungen.aktiveRolleId())) {
+      this.hinweis.zeige(
+        'Begehungsplanung nicht möglich',
+        `Begehungen planen können die Fachliche Administration (R-03), die Regionale ` +
+          `Koordination (R-04), das Fachlektorat (R-06) und die Fachliche Prüfstelle (R-07) — ` +
+          `nicht die Rolle «${this.einstellungen.aktiveRolle().name}».`,
+      );
+      return;
+    }
+    this.begehungOffen.set(true);
   }
 
   // ------------------------------------------------------------- Kommentare

@@ -52,6 +52,7 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { BegehungsStore, darfBegehungPlanen } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
 import { HerkunftStore } from '../core/herkunft-store';
 import { HinweisStore } from '../core/hinweis-store';
@@ -154,6 +155,7 @@ export class ObjektDetail implements OnDestroy {
   private readonly stammdaten = inject(StammdatenStore);
   private readonly hinweis = inject(HinweisStore);
   private readonly herkunft = inject(HerkunftStore);
+  private readonly begehungsStore = inject(BegehungsStore);
   protected readonly einstellungen = inject(EinstellungenStore);
 
   protected readonly karte = viewChild(Karte);
@@ -262,6 +264,16 @@ export class ObjektDetail implements OnDestroy {
 
   // Begehung planen (aus der Detailansicht, Objekt vorausgewählt)
   protected readonly begehungOffen = signal(false);
+
+  /** Begehungen, in denen dieses Objekt eingeplant ist (Sichtbarkeit im Detail). */
+  protected readonly geplanteBegehungen = computed(() => {
+    const signatur = this.objekt()?.signatur;
+    if (!signatur) return [];
+    return this.begehungsStore
+      .alle()
+      .filter((b) => b.objekte.includes(signatur))
+      .map((b) => ({ ...b, position: b.objekte.indexOf(signatur) + 1 }));
+  });
 
   // Dialog «Kommentar auf Karte» (05.11)
   protected readonly kartenKommentarOffen = signal(false);
@@ -401,6 +413,20 @@ export class ObjektDetail implements OnDestroy {
     this.store.loeschen(o.id);
     toast.success(`${o.signatur} gelöscht`, { description: `${o.name} wurde entfernt (07.05).` });
     void this.router.navigate(['/dashboard']);
+  }
+
+  /** «Begehung planen»: nur R-03/04/06/07 — sonst erklärt ein Modal (nie-disabled). */
+  protected begehungPlanenKlick(): void {
+    if (!darfBegehungPlanen(this.einstellungen.aktiveRolleId())) {
+      this.hinweis.zeige(
+        'Begehungsplanung nicht möglich',
+        `Begehungen planen können die Fachliche Administration (R-03), die Regionale ` +
+          `Koordination (R-04), das Fachlektorat (R-06) und die Fachliche Prüfstelle (R-07) — ` +
+          `nicht die Rolle «${this.einstellungen.aktiveRolle().name}».`,
+      );
+      return;
+    }
+    this.begehungOffen.set(true);
   }
 
   /** Versionsvergleich (08.05) ist noch nicht gebaut — erklären statt sperren. */

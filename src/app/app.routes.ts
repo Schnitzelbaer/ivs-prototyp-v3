@@ -42,6 +42,11 @@ export const routes: Routes = [
         title: '360°-Aufnahmen — IVS-Nachführungstool',
       },
       {
+        path: 'begehungen',
+        loadComponent: () => import('./begehungen/begehungen').then((m) => m.Begehungen),
+        title: 'Begehungen — IVS-Nachführungstool',
+      },
+      {
         path: 'stammdaten',
         loadComponent: () => import('./stammdaten/stammdaten').then((m) => m.Stammdaten),
         canActivate: [nurFachlicheAdministration],

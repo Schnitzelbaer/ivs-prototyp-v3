@@ -1,11 +1,19 @@
 import { Injectable, effect, signal } from '@angular/core';
+import { RolleId } from './model';
 
 /**
  * Begehungsplanung (Feldarbeit): Eine Begehung bündelt Objekte in einer
  * festgelegten Reihenfolge und hält die Logistik fest — Verkehrsmittel,
- * Unterkunft und Zeitbedarf. Planbar aus der 360°-Seite oder direkt aus
- * der Objektbearbeitung.
+ * Unterkunft und Zeitbedarf. Eigener Tab «Begehungen»; planbar auch direkt
+ * aus der Objektbearbeitung.
  */
+
+/** Begehungen planen dürfen nur diese Rollen (Review-Vorgabe). */
+export const BEGEHUNGS_PLANER: readonly RolleId[] = ['R-03', 'R-04', 'R-06', 'R-07'];
+
+export function darfBegehungPlanen(rolle: RolleId): boolean {
+  return BEGEHUNGS_PLANER.includes(rolle);
+}
 
 export type Verkehrsmittel = 'zu_fuss' | 'velo' | 'oev' | 'auto';
 

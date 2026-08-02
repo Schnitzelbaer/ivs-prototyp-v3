@@ -1,0 +1,98 @@
+<div class="flex h-full flex-col">
+  <!-- Kopfzeile -->
+  <header
+    class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2"
+  >
+    <h1 class="text-base font-semibold">
+      Begehungen
+      <span class="ml-1 text-sm font-normal text-muted-foreground">
+        Reihenfolge und Logistik der Feldeinsätze
+      </span>
+    </h1>
+    <button hlmBtn size="sm" type="button" (click)="begehungPlanen()">
+      <ng-icon name="lucideCalendarPlus" />
+      Begehung planen
+    </button>
+  </header>
+
+  <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+    <div class="mx-auto flex max-w-3xl flex-col gap-4">
+      @for (begehung of begehungsStore.alle(); track begehung.id) {
+        <article class="rounded-md border border-border">
+          <header class="flex items-start gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
+            <div class="min-w-0 flex-1">
+              <h2 class="text-sm font-semibold">{{ begehung.titel }}</h2>
+              <p class="text-xs text-muted-foreground">
+                {{ formatDatum(begehung.datum) }} ·
+                {{ verkehrsmittelLabel[begehung.verkehrsmittel] }} · Unterkunft:
+                {{ begehung.unterkunft }}
+                @if (begehung.zeitbedarfStunden !== null) {
+                  · Zeitbedarf {{ begehung.zeitbedarfStunden }} h
+                }
+              </p>
+            </div>
+            <span hlmBadge variant="secondary">{{ begehung.objekte.length }} Objekte</span>
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              class="size-7"
+              type="button"
+              (click)="loeschen(begehung.id)"
+              hlmTooltip="Begehung löschen"
+              aria-label="Begehung löschen"
+            >
+              <ng-icon name="lucideTrash2" />
+            </button>
+          </header>
+          <ol class="px-4 py-2">
+            @for (signatur of begehung.objekte; track signatur) {
+              <li
+                class="flex items-center gap-1.5 border-b border-border/60 py-1.5 text-sm last:border-b-0"
+              >
+                <span class="w-5 text-xs text-muted-foreground">{{ $index + 1 }}.</span>
+                <button
+                  type="button"
+                  class="min-w-0 flex-1 truncate text-left hover:underline pointer-coarse:min-h-11"
+                  (click)="oeffneObjekt(signatur)"
+                >
+                  {{ objektName(signatur) }}
+                </button>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  class="size-6"
+                  type="button"
+                  [disabled]="$index === 0"
+                  (click)="verschieben(begehung.id, $index, -1)"
+                  aria-label="Nach oben"
+                >
+                  <ng-icon name="lucideArrowUp" />
+                </button>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  class="size-6"
+                  type="button"
+                  [disabled]="$index === begehung.objekte.length - 1"
+                  (click)="verschieben(begehung.id, $index, 1)"
+                  aria-label="Nach unten"
+                >
+                  <ng-icon name="lucideArrowDown" />
+                </button>
+              </li>
+            }
+          </ol>
+        </article>
+      } @empty {
+        <p class="py-8 text-center text-sm text-muted-foreground">
+          Noch keine Begehungen geplant — «Begehung planen» startet die erste.
+        </p>
+      }
+    </div>
+  </div>
+</div>
+
+<ivs-begehung-dialog [(offen)]="begehungOffen" />
