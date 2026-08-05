@@ -82,7 +82,7 @@ import {
 } from '../core/pruefprotokoll';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN, darfEditieren } from '../core/rollen';
-import { NAME_FUER_ROLLE, PERSONEN, rolleFuerStatus } from '../core/seed-data';
+import { NAME_FUER_ROLLE, rolleFuerStatus } from '../core/seed-data';
 import { StammdatenStore } from '../core/stammdaten';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { alterStand, wortDiff } from '../core/version-vergleich';
@@ -253,11 +253,6 @@ export class ObjektDetail implements OnDestroy {
     return ALLE_STATI.filter((s) => s === o.status || setzbare.includes(s));
   });
 
-  /** Optionen des Workflow-Status-Selects im Formular — gleiche Liste. */
-  protected readonly statusOptionen = computed(() =>
-    this.statusWahl().map((s) => ({ wert: s, label: STATUS_LABEL[s] })),
-  );
-
   protected readonly situierungsUrl = signal<string | null>(null);
   protected readonly inexistentBegruendung = signal('');
   protected readonly neueLognotiz = signal('');
@@ -395,13 +390,12 @@ export class ObjektDetail implements OnDestroy {
 
   // ------------------------------------------------------------------ Status
 
-  protected statusSetzen(status: string, select?: { writeValue(wert: unknown): void }): void {
+  protected statusSetzen(status: string): void {
     const o = this.objekt();
     if (!o || status === o.status) return;
     // Der Status wird auf Strecken-Ebene geführt (Entscheid 78) — alle
     // untergeordneten Objekte richten sich nach ihrer Strecke.
     if (o.ebene !== 'strecke') {
-      select?.writeValue(o.status);
       const strecke = this.store.strecke(o);
       this.hinweis.zeige(
         'Status wird auf der Strecke gesetzt',
@@ -413,7 +407,6 @@ export class ObjektDetail implements OnDestroy {
     // «Geprüft» setzt ein vollständig mit Ja beantwortetes Prüfprotokoll
     // voraus — sonst erklärt sich der Wechsel und die Prüfung öffnet sich.
     if (status === 'geprueft' && !pruefungBestanden(o.pruefprotokoll)) {
-      select?.writeValue(o.status);
       this.hinweis.zeige(
         'Prüfprotokoll erforderlich',
         'Bevor ein Objekt als geprüft gekennzeichnet werden kann, muss das Fachlektorat das ' +
@@ -559,26 +552,6 @@ export class ObjektDetail implements OnDestroy {
     this.pruefungOffen.set(false);
     toast.success('Zur Korrektur zurückgewiesen', {
       description: `${o.signatur} — ${befunde.length} Befund${befunde.length === 1 ? '' : 'e'} als Kommentar erfasst.`,
-    });
-  }
-
-  /** Personen für das Zuweisungs-Dropdown in der Kopfzeile. */
-  protected readonly personen = PERSONEN;
-
-  /** Zuweisung wechseln: jede Rolle darf, der Wechsel wird protokolliert. */
-  protected personSetzen(person: { name: string; rolle: RolleId }): void {
-    const o = this.objekt();
-    if (!o || person.name === o.zustaendigName) return;
-    const rolle = this.einstellungen.aktiveRolleId();
-    this.store.update(o.id, { zustaendigName: person.name, zustaendigRolle: person.rolle });
-    this.store.lognotizHinzufuegen(o.id, {
-      datum: jetztLokal().slice(0, 10),
-      autor: NAME_FUER_ROLLE[rolle],
-      rolle,
-      text: `Zugewiesen an ${person.name} (${person.rolle}), vorher ${o.zustaendigName}.`,
-    });
-    toast.success(`Zugewiesen an ${person.name}`, {
-      description: `${o.signatur} — Zuweisung protokolliert.`,
     });
   }
 

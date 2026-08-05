@@ -141,6 +141,48 @@ export class ObjektStore {
     );
   }
 
+  /**
+   * Zuständigkeit als fachliche Operation (Entscheid 81): Die Person wird
+   * wie der Status auf Strecken-Ebene geführt — Nachkommen erben sie
+   * still, die Lognotiz steht am Objekt selbst. Der Workflow-Status
+   * bleibt unberührt; einzig ein «offenes» Objekt wechselt mit der
+   * Zuweisung automatisch auf «Zugewiesen» (Entscheid 79).
+   */
+  personZuweisen(
+    id: string,
+    person: { name: string; rolle: RolleId },
+    autor: string,
+    autorRolle: RolleId,
+  ): void {
+    const objekt = this.byId(id);
+    if (!objekt || objekt.zustaendigName === person.name) return;
+    const status: WorkflowStatus = objekt.status === 'offen' ? 'zugewiesen' : objekt.status;
+    const betroffene =
+      objekt.ebene === 'strecke'
+        ? this.mitNachkommen([objekt.signatur])
+        : new Set([objekt.signatur]);
+    const notiz: Lognotiz = {
+      datum: new Date().toISOString().slice(0, 10),
+      autor,
+      rolle: autorRolle,
+      text: objekt.zustaendigName
+        ? `Zugewiesen an ${person.name} (${person.rolle}), vorher ${objekt.zustaendigName}.`
+        : `Zugewiesen an ${person.name} (${person.rolle}).`,
+    };
+    this.objekte.update((liste) =>
+      liste.map((o) => {
+        if (!betroffene.has(o.signatur)) return o;
+        return {
+          ...o,
+          status,
+          zustaendigRolle: person.rolle,
+          zustaendigName: person.name,
+          lognotizen: o.id === id ? [...o.lognotizen, notiz] : o.lognotizen,
+        };
+      }),
+    );
+  }
+
   lognotizHinzufuegen(id: string, notiz: Lognotiz): void {
     const objekt = this.byId(id);
     if (!objekt) return;

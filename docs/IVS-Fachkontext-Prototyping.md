@@ -1080,10 +1080,12 @@ _Review-Paket «Bug-Fixes / Small Changes» (PDF vom 05.08.2026)_
     **zugeklappt**.
 72. **Objekt-Kopfzeile:** Der Status-Badge neben dem Titel ist entfernt —
     das Dropdown zeigt statt «Status ändern» immer den **aktuellen
-    Status** (Farbpunkt + Label). Daneben ein **Personen-Dropdown** mit
+    Status** (Farbpunkt + Label). ~~Daneben ein **Personen-Dropdown** mit
     der zugewiesenen Person: alle Rollen dürfen wechseln, der Wechsel
     setzt `zustaendigName`/`zustaendigRolle` und wird als Lognotiz
-    protokolliert. Die Personenliste (`PERSONEN` in seed-data.ts) umfasst
+    protokolliert.~~ **Überholt durch Entscheid 81** — die Zuweisung
+    geschieht im Dashboard, das Objekt-Detail zeigt sie nur noch
+    read-only. Die Personenliste (`PERSONEN` in seed-data.ts) umfasst
     die Personas der wählbaren Rollen plus L. Furrer (R-05).
 73. **Karten folgen den Listen:** Die Dashboard-Karte zeigt nur die
     Objekte der (persönlichen, gefilterten) Strecken-Liste; auf der
@@ -1173,6 +1175,21 @@ Arbeitspakete und echte Filter.
     generierte Strecken-Nummer bleibt publiziert); **BE 7 bleibt als
     Demo-Beispiel bewusst publiziert**. Statusfarbe: neutrales Grau
     (`--status-offen`). SEED_VERSION 11.
+80. **Status-Dropdown nur in der Kopfzeile:** Das Feld «Workflow-Status»
+    in den Eckdaten des Objekt-Formulars ist entfernt; im Edit-Modus
+    steht dort nur noch die Read-only-Anzeige (der Anker `attr-status`
+    für `#`-Referenzen bleibt). Der Wechsel läuft ausschliesslich über
+    das Dropdown in der Kopfzeile (bzw. die Dashboard-Zeile).
+81. **Zuständigkeit über das Dashboard:** Die zugewiesene Person steht
+    als Spalte «Zuständig» in der Dashboard-Tabelle. **Nur R-03 und
+    R-04** wechseln sie (Zeilen-Dropdown mit allen Personen); alle
+    anderen Rollen sehen den Namen als Text. Die Zuständigkeit wird wie
+    der Status **auf Strecken-Ebene geführt und vererbt**
+    (`personZuweisen` im ObjektStore, Lognotiz an der Strecke). Der
+    Workflow-Status bleibt beim Wechsel unberührt — einzig ein
+    «offenes» Objekt wechselt mit der Zuweisung automatisch auf
+    «Zugewiesen». Das Objekt-Detail zeigt die Person nur noch
+    **read-only** (ersetzt das Personen-Dropdown aus Entscheid 72).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1277,10 +1294,11 @@ Aus der sechsten Ausbaustufe (05.08.2026) offen geblieben:
   änderbaren Pakete und keine Einsatzlisten (03.04). Der Kanton als
   Paketkriterium ist im Prototyp nur mit Bern belegt; die übrigen
   Kantone sind Attrappen.
-- **Zuweisen darf jede Rolle:** Das Personen-Dropdown im Objekt-Detail
+- ~~**Zuweisen darf jede Rolle:** Das Personen-Dropdown im Objekt-Detail
   (Entscheid 72) ist bewusst für alle Rollen offen. Ob die Zuweisung
   fachlich auf R-03/R-04 zu beschränken wäre, ist nicht abschliessend
-  geklärt.
+  geklärt.~~ **Geklärt mit Entscheid 81:** Zuweisen dürfen nur R-03 und
+  R-04, und zwar über die Zuständig-Spalte im Dashboard.
 - **Prüfkommentar neben dem Prüfprotokoll:** Der Abschnitt
   «Prüfen / Freigabe» im Formular führt weiterhin das Freitextfeld
   `pruefkommentar` (fachliche Zusammenfassung der Prüfung, seit der
@@ -1486,7 +1504,9 @@ die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
   (Entscheide 68/70, mit Status-Farbpunkt; leere Gruppen starten
   zugeklappt, Entscheid 71), Suche, Schnellfilter inkl. Status-Filter,
   Zeilen-Dropdown mit direktem Wechsel unter den **setzbaren Stati**
-  (Entscheid 69), Polygon-Selektion als geographischer Filter (05.03).
+  (Entscheid 69), **Zuständig-Spalte** mit Personen-Dropdown für
+  R-03/R-04 (Entscheid 81), Polygon-Selektion als geographischer
+  Filter (05.03).
   Die **Karte zeigt nur die Objekte der Liste** und wird von Suche und
   Filtern mitgezogen (Entscheid 73). Für die **Paketrollen R-03/R-04**
   liegt darüber der Bereich **Arbeitspakete** (Entscheid 77): R-03 weist
@@ -1504,7 +1524,10 @@ die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
   nur per Klick, Entscheide 63/74); **Status-Dropdown**, das den
   aktuellen Status zeigt und die setzbaren zur Wahl stellt (Entscheide
   59/69/72) — Statuswechsel nur auf Strecken, Nachkommen erben ihn
-  (Entscheid 78); **Personen-Dropdown** für die Zuweisung (Entscheid 72);
+  (Entscheid 78), das Eckdaten-Formular zeigt den Status nur noch
+  read-only (Entscheid 80); die **zugewiesene Person read-only** in der
+  Kopfzeile — der Wechsel geschieht in der Zuständig-Spalte des
+  Dashboards (Entscheid 81);
   **Prüfprotokoll** als Seitenleiste hinter dem Knopf «Prüfung»
   (Entscheide 75/76); **Back-Button** zur gemerkten Herkunftsseite
   (Entscheid 62); **Versionsvergleich** im Historie-Menü (Entscheid 66);

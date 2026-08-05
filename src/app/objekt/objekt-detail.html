@@ -151,37 +151,18 @@
           </hlm-dropdown-menu>
         </ng-template>
 
-        <!-- Zuweisung: die zugewiesene Person, per Dropdown wechselbar -->
-        <button
-          hlmBtn
-          variant="outline"
-          size="sm"
-          type="button"
-          [hlmDropdownMenuTrigger]="personMenu"
-          align="end"
-          hlmTooltip="Zugewiesene Person wechseln"
-          aria-label="Zugewiesene Person wechseln"
+        <!-- Zuweisung: nur Anzeige — der Wechsel geschieht in der
+             Zuständig-Spalte des Dashboards (Entscheid 81) -->
+        <span
+          class="flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-sm text-muted-foreground"
+          hlmTooltip="Zuständige Person — der Wechsel geschieht im Dashboard"
         >
           <ng-icon name="lucideUserRound" />
           {{ o.zustaendigName || '—' }}
-          <ng-icon name="lucideChevronDown" />
-        </button>
-        <ng-template #personMenu>
-          <hlm-dropdown-menu class="w-64">
-            @for (person of personen; track person.name) {
-              <button
-                hlmDropdownMenuRadio
-                [checked]="person.name === o.zustaendigName"
-                [keepOpen]="false"
-                (triggered)="personSetzen(person)"
-              >
-                <hlm-dropdown-menu-radio-indicator />
-                <span class="whitespace-nowrap">{{ person.name }}</span>
-                <span class="ml-auto pl-4 text-xs text-muted-foreground">{{ person.rolle }}</span>
-              </button>
-            }
-          </hlm-dropdown-menu>
-        </ng-template>
+          @if (o.zustaendigName) {
+            <span class="text-xs">({{ o.zustaendigRolle }})</span>
+          }
+        </span>
 
         <!-- Prüfprotokoll (4.6): nur im Status «In Prüfung» und nur für die
              prüfenden Rollen (R-06 füllt aus, R-07 hat später ein eigenes) -->
@@ -247,21 +228,20 @@
             <div hlmCollapsibleContent class="p-4">
               @if (istEdit()) {
                 <div class="grid gap-4 sm:grid-cols-2">
+                  <!-- Der Status wird nur noch über das Dropdown in der
+                       Kopfzeile gewechselt (Entscheid 80) -->
                   <div class="grid gap-1.5 sm:col-span-2" id="attr-status">
-                    <label hlmLabel for="f-status">Workflow-Status</label>
-                    <hlm-native-select
-                      #statusSelect
-                      [ngModel]="o.status"
-                      (ngModelChange)="statusSetzen($event, statusSelect)"
-                    >
-                      @for (option of statusOptionen(); track option.wert) {
-                        <option hlmNativeSelectOption [value]="option.wert">
-                          {{ option.label }}
-                        </option>
-                      }
-                    </hlm-native-select>
+                    <span hlmLabel>Workflow-Status</span>
+                    <p class="text-sm">
+                      <span
+                        class="mr-1.5 inline-block size-2 rounded-full align-middle {{
+                          statusFarbe[o.status]
+                        }}"
+                      ></span>
+                      {{ statusLabel[o.status] }}
+                    </p>
                     <p class="text-xs text-muted-foreground">
-                      Steuert die Gruppierung der Aufgabenliste im Dashboard.
+                      Wechsel über das Status-Dropdown in der Kopfzeile.
                     </p>
                   </div>
 

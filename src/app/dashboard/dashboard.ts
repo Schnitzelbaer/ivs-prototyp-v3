@@ -192,6 +192,28 @@ export class Dashboard {
   protected readonly paketPerson = signal('B. Anderegg');
   protected readonly paketPersonen = PERSONEN.filter((p) => p.rolle === 'R-05');
 
+  /** Personen für die Zuständig-Spalte (Wechsel nur durch R-03/R-04, Entscheid 81). */
+  protected readonly allePersonen = PERSONEN;
+
+  /**
+   * Zuständigkeit in der Zeile wechseln: vererbt auf die Nachkommen der
+   * Strecke; ein «offenes» Objekt wechselt automatisch auf «Zugewiesen»
+   * (Entscheid 79), sonst bleibt der Status unberührt.
+   */
+  protected personWechseln(objekt: IvsObjekt, name: string): void {
+    if (name === objekt.zustaendigName) return;
+    const person = PERSONEN.find((p) => p.name === name);
+    if (!person) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const warOffen = objekt.status === 'offen';
+    this.store.personZuweisen(objekt.id, person, NAME_FUER_ROLLE[rolle], rolle);
+    toast.success(`Zugewiesen an ${person.name}`, {
+      description: warOffen
+        ? `${objekt.signatur} — Status «Zugewiesen» gesetzt, Zuweisung protokolliert.`
+        : `${objekt.signatur} — Zuweisung protokolliert.`,
+    });
+  }
+
   /** Kantone ohne Testdaten — Attrappen im R-03-Paketbereich. */
   protected readonly kantonAttrappen = ['Wallis', 'Graubünden', 'Tessin'];
 

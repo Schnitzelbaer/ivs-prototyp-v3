@@ -289,6 +289,7 @@
                         <th hlmTh>Bezeichnung</th>
                         <th hlmTh class="w-16">Kanton</th>
                         <th hlmTh class="w-24">Bewertung</th>
+                        <th hlmTh class="w-44">Zuständig</th>
                         <th hlmTh class="w-56">Workflow-Status</th>
                       </tr>
                     </thead>
@@ -313,6 +314,31 @@
                           <td hlmTd class="text-muted-foreground">
                             {{ bewertungText(o.bewertung) }}
                           </td>
+                          <!-- Zuständigkeit: Wechsel nur durch die Paketrollen
+                               R-03/R-04, alle anderen sehen den Namen (Entscheid 81) -->
+                          @if (istPaketRolle()) {
+                            <td hlmTd (click)="$event.stopPropagation()">
+                              <hlm-native-select
+                                class="inline-block align-middle"
+                                size="sm"
+                                [ngModel]="o.zustaendigName"
+                                (ngModelChange)="personWechseln(o, $event)"
+                              >
+                                @if (!o.zustaendigName) {
+                                  <option hlmNativeSelectOption value="">—</option>
+                                }
+                                @for (person of allePersonen; track person.name) {
+                                  <option hlmNativeSelectOption [value]="person.name">
+                                    {{ person.name }} ({{ person.rolle }})
+                                  </option>
+                                }
+                              </hlm-native-select>
+                            </td>
+                          } @else {
+                            <td hlmTd class="text-muted-foreground">
+                              {{ o.zustaendigName || '—' }}
+                            </td>
+                          }
                           <td hlmTd (click)="$event.stopPropagation()">
                             @if (statusOptionen(o); as optionen) {
                               <span

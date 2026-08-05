@@ -143,8 +143,11 @@ neuen Session weiterzuarbeiten.
   Workflow-Stati** — zuvorderst «Offen» für noch niemandem zugewiesene
   Objekte — (leere Gruppen zugeklappt), Volltextsuche,
   Schnellfilter inkl. Status-Filter, Zeilen-Dropdown mit direktem
-  Statuswechsel unter den von der Rolle setzbaren Stati,
-  Polygon-Selektion auf der Karte als geographischer Filter. Die
+  Statuswechsel unter den von der Rolle setzbaren Stati, Spalte
+  «Zuständig» mit Personen-Dropdown für R-03/R-04 (vererbt auf die
+  Nachkommen der Strecke; eine Zuweisung holt «offene» Objekte
+  automatisch auf «Zugewiesen»), Polygon-Selektion auf der Karte als
+  geographischer Filter. Die
   **Karte zeigt nur die Objekte der Liste**; Suche und Filter dezimieren
   sie mit. Generierte Objekte sind neutral «System» zugewiesen und
   erscheinen in keinem Dashboard. **Arbeitspakete** für R-03
@@ -160,7 +163,8 @@ neuen Session weiterzuarbeiten.
   Lognotizen), **Hierarchie-Menü** mit Legenden-Symbolen, Typ-Tags und
   Umteilen je Child-Zeile («…»-Kontextmenü, öffnet nur per Klick),
   **Status-Dropdown** (zeigt den aktuellen Status, setzbare Stati zur
-  freien Wahl), **Personen-Dropdown** für die Zuweisung (protokolliert),
+  freien Wahl), **zugewiesene Person read-only** (der Wechsel geschieht
+  in der Zuständig-Spalte des Dashboards durch R-03/R-04),
   **Back-Button** zur gemerkten Herkunftsseite, **Versionsvergleich**
   IVS 1.0 → 2.0 im Historie-Menü (Wort-Diff mit Änderungsmarkierungen plus
   Vergleichskarte, Deckkraft beider Stände separat regelbar),
