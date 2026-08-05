@@ -1,8 +1,8 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, signal } from '@angular/core';
 import { jetztLokal } from './kommentare';
 import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus } from './model';
 import { ladeObjektModell } from './objekt-generierung';
-import { KANTONE, PaketStore } from './paket-store';
+import { KANTONE } from './paket-store';
 import {
   SEED_OBJEKTE,
   SEED_VERSION,
@@ -25,8 +25,6 @@ const STORAGE_KEY = 'ivs-prototyp-v3.objekte';
  */
 @Injectable({ providedIn: 'root' })
 export class ObjektStore {
-  private readonly paketStore = inject(PaketStore);
-
   private readonly objekte = signal<IvsObjekt[]>(laden());
 
   readonly alle = this.objekte.asReadonly();
@@ -204,49 +202,54 @@ export class ObjektStore {
   }
 
   /**
-   * Arbeitspaket zuweisen (03.02/03.03): setzt alle Objekte in einem Zug
-   * auf «Zugewiesen», trägt die Person als zuständig ein und protokolliert
-   * das Paket je Strecke als Lognotiz. Status und Zuständigkeit erben die
-   * Nachkommen still (Entscheid 78).
+   * Zuständigkeit für mehrere Strecken in einem Zug (Multi-Edit,
+   * 04.04): gleiche Semantik wie personZuweisen — Vererbung auf die
+   * Nachkommen, Lognotiz je Strecke, «offene» Objekte wechseln mit der
+   * Zuweisung auf «Zugewiesen», sonst bleibt der Status unberührt.
+   * Gibt die Zahl der tatsächlich gewechselten Strecken zurück.
    */
-  paketZuweisen(
+  personZuweisenMehrere(
     ids: readonly string[],
     person: { name: string; rolle: RolleId },
-    paket: string,
     autor: string,
     autorRolle: RolleId,
-  ): void {
+  ): number {
     const menge = new Set(ids);
-    const signaturen = this.mitNachkommen(
-      this.objekte()
-        .filter((o) => menge.has(o.id))
-        .map((o) => o.signatur),
+    const wechselnde = this.objekte().filter(
+      (o) => menge.has(o.id) && o.zustaendigName !== person.name,
     );
+    if (!wechselnde.length) return 0;
+    const notizIds = new Set(wechselnde.map((o) => o.id));
+    const signaturen = this.mitNachkommen(wechselnde.map((o) => o.signatur));
+    const vorherProId = new Map(wechselnde.map((o) => [o.id, o.zustaendigName]));
     const datum = jetztLokal().slice(0, 10);
     this.objekte.update((liste) =>
-      liste.map((o) =>
-        signaturen.has(o.signatur)
-          ? {
-              ...o,
-              status: 'zugewiesen' as WorkflowStatus,
-              zustaendigRolle: person.rolle,
-              zustaendigName: person.name,
-              // Lognotiz nur auf den Strecken des Pakets, Nachkommen erben still
-              lognotizen: menge.has(o.id)
-                ? [
-                    ...o.lognotizen,
-                    {
-                      datum,
-                      autor,
-                      rolle: autorRolle,
-                      text: `${paket} zugewiesen an ${person.name} (${person.rolle}).`,
-                    },
-                  ]
-                : o.lognotizen,
-            }
-          : o,
-      ),
+      liste.map((o) => {
+        if (!signaturen.has(o.signatur)) return o;
+        const vorher = vorherProId.get(o.id);
+        return {
+          ...o,
+          status: o.status === 'offen' ? ('zugewiesen' as WorkflowStatus) : o.status,
+          zustaendigRolle: person.rolle,
+          zustaendigName: person.name,
+          // Lognotiz nur auf den gewählten Strecken, Nachkommen erben still
+          lognotizen: notizIds.has(o.id)
+            ? [
+                ...o.lognotizen,
+                {
+                  datum,
+                  autor,
+                  rolle: autorRolle,
+                  text: vorher
+                    ? `Zugewiesen an ${person.name} (${person.rolle}), vorher ${vorher}.`
+                    : `Zugewiesen an ${person.name} (${person.rolle}).`,
+                },
+              ]
+            : o.lognotizen,
+        };
+      }),
     );
+    return wechselnde.length;
   }
 
   /**
@@ -298,13 +301,7 @@ export class ObjektStore {
     const objekt = this.byId(id);
     if (!objekt) return;
     const zuLoeschen = this.mitNachkommen([objekt.signatur]);
-    // Gelöschte Objekte auch aus den Arbeitspaketen austragen — sonst
-    // zählen und zeigen die Pakete tote Ids (Review-Befund zu E83)
-    const geloeschteIds = this.objekte()
-      .filter((o) => zuLoeschen.has(o.signatur))
-      .map((o) => o.id);
     this.objekte.update((liste) => liste.filter((o) => !zuLoeschen.has(o.signatur)));
-    this.paketStore.objekteAustragen(geloeschteIds);
   }
 
   /** Setzt alles auf den Seed zurück (Werkzeug für Demos). */

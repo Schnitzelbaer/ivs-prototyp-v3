@@ -1,12 +1,4 @@
-import {
-  IvsObjekt,
-  NhgWert,
-  Substanzgrad,
-  WorkflowStatus,
-  bewertungMittel,
-  idAusSignatur,
-} from './model';
-import { signaturKette } from './objekt-generierung';
+import { IvsObjekt, NhgWert, Substanzgrad, WorkflowStatus, bewertungMittel } from './model';
 
 /**
  * Gemeinsame Attributfilter für Dashboard und Objekte-Übersicht
@@ -29,7 +21,7 @@ export interface AttributFilter {
   inexistent: 'alle' | 'nur' | 'ohne';
   /** Name der zuständigen Person, OHNE_PERSON oder 'alle' (nur R-03/R-04). */
   person: 'alle' | string;
-  /** 'alle', `kanton:<Kürzel>` oder `paket:<Id>` (nur R-03/R-04). */
+  /** 'alle' oder `kanton:<Kürzel>` — Kantonspakete, nur R-03 (Entscheid 85). */
   paket: string;
 }
 
@@ -66,16 +58,8 @@ export function attributFilterAktiv(f: AttributFilter): boolean {
   );
 }
 
-/**
- * Gemeinsames Filterprädikat. Der Arbeitspaket-Filter wirkt über die
- * Strecke: Nachkommen paketierter Strecken gelten als im Paket
- * (`paketInhalt` liefert die Strecken-Ids eines Pakets).
- */
-export function passtAttributFilter(
-  o: IvsObjekt,
-  f: AttributFilter,
-  paketInhalt: (paketId: string) => readonly string[] | undefined,
-): boolean {
+/** Gemeinsames Filterprädikat für Dashboard und Objekte-Übersicht. */
+export function passtAttributFilter(o: IvsObjekt, f: AttributFilter): boolean {
   if (f.status !== 'alle' && o.status !== f.status) return false;
   if (f.bedeutung !== 'alle' && o.nhgWert !== f.bedeutung) return false;
   if (f.substanz !== 'alle' && o.substanzgrad !== f.substanz) return false;
@@ -97,18 +81,8 @@ export function passtAttributFilter(
       return false;
     }
   }
-  if (f.paket !== 'alle') {
-    if (f.paket.startsWith('kanton:')) {
-      if (o.kanton !== f.paket.slice('kanton:'.length)) return false;
-    } else if (f.paket.startsWith('paket:')) {
-      const ids = paketInhalt(f.paket.slice('paket:'.length));
-      // Unbekanntes Paket (z. B. soeben gelöscht): Kriterium ignorieren,
-      // statt still jedes Objekt auszuschliessen
-      if (ids) {
-        const strecke = signaturKette(o.signatur).strecke || o.signatur;
-        if (!ids.includes(idAusSignatur(strecke))) return false;
-      }
-    }
+  if (f.paket !== 'alle' && f.paket.startsWith('kanton:')) {
+    if (o.kanton !== f.paket.slice('kanton:'.length)) return false;
   }
   return true;
 }

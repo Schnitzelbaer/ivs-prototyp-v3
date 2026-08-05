@@ -157,11 +157,11 @@ neuen Session weiterzuarbeiten.
   persönlichen Dashboard. **Arbeitspakete** für R-03 (alle 26 Kantone
   an die Regionale Koordination — persistent, änderbar und ohne
   Statuswechsel; Grenzfall-Strecken lassen sich einem anderen Kanton
-  zuordnen) und R-04 (benannte, gespeicherte, löschbare Pakete aus
-  Checkbox-/Polygon-Auswahl, ein Objekt in höchstens einem Paket —
-  erst die Zuweisung des Pakets an eine Inventarisierende setzt
-  Status «Zugewiesen», Person und Lognotiz in einem Zug). R-03 sieht
-  alle Objekte, R-04 nur die ihr zugewiesenen Kantone.
+  zuordnen). R-04 bildet keine Pakete — sie weist rein über die
+  Zuständigkeit zu (Zuständig-Spalte oder Multi-Edit); erst die
+  Zuweisung an eine Person setzt Status «Zugewiesen», Person und
+  Lognotiz in einem Zug. R-03 sieht alle Objekte, R-04 nur die ihr
+  zugewiesenen Kantone.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
   via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte

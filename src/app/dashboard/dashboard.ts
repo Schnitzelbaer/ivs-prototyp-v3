@@ -62,7 +62,7 @@ import {
   passtAttributFilter,
 } from '../core/objekt-filter';
 import { ObjektStore } from '../core/objekt-store';
-import { Arbeitspaket, KANTONE, PaketStore } from '../core/paket-store';
+import { KANTONE, PaketStore } from '../core/paket-store';
 import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte } from '../karte/karte';
@@ -190,19 +190,14 @@ export class Dashboard {
     paket: this.paketFilter(),
   }));
 
-  /** Optionen des Arbeitspaket-Filters: R-03 Kantone + alle Pakete, R-04 eigene. */
-  protected readonly paketFilterOptionen = computed<{ wert: string; label: string }[]>(() => {
-    const rolle = this.einstellungen.aktiveRolleId();
-    if (rolle === 'R-03') {
-      return [
-        ...KANTONE.map((k) => ({ wert: `kanton:${k.kuerzel}`, label: `Kanton ${k.name}` })),
-        ...this.paketStore
-          .pakete()
-          .map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}» (${p.koordinator})` })),
-      ];
-    }
-    return this.meinePakete().map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}»` }));
-  });
+  /**
+   * Optionen des Arbeitspaket-Filters (nur R-03): die 26 Kantonspakete.
+   * Die R-04-Paket-Entitäten sind mit Entscheid 85 entfallen.
+   */
+  protected readonly paketFilterOptionen = KANTONE.map((k) => ({
+    wert: `kanton:${k.kuerzel}`,
+    label: `Kanton ${k.name}`,
+  }));
 
   protected readonly sortAufsteigend = signal(true);
   protected readonly ausgewaehlt = signal<ReadonlySet<string>>(new Set());
@@ -227,9 +222,6 @@ export class Dashboard {
     return rolle === 'R-03' || rolle === 'R-04';
   });
 
-  /** Inventarisierende als Zielpersonen der R-04-Pakete. */
-  protected readonly paketPersonen = PERSONEN.filter((p) => p.rolle === 'R-05');
-
   /**
    * Kantone, die der aktiven Regionalen Koordination zugewiesen sind —
    * R-04 sieht und bewirtschaftet nur noch diese (Entscheid 83).
@@ -242,29 +234,6 @@ export class Dashboard {
         .map(([kuerzel]) => kuerzel),
     );
   });
-
-  /** Die Arbeitspakete der aktiven Regionalen Koordination (Entscheid 83). */
-  protected readonly meinePakete = computed(() =>
-    this.paketStore.pakete().filter((p) => p.koordinator === NAME_FUER_ROLLE['R-04']),
-  );
-
-  /** Name für ein neues Arbeitspaket. */
-  protected readonly paketName = signal('');
-
-  /** Zielperson je Paket (Standard: erste Inventarisierende). */
-  private readonly paketZiel = signal<Record<string, string>>({});
-
-  protected zielFuer(paketId: string): string {
-    return this.paketZiel()[paketId] ?? this.paketPersonen[0].name;
-  }
-
-  protected zielSetzen(paketId: string, name: string): void {
-    this.paketZiel.update((z) => ({ ...z, [paketId]: name }));
-  }
-
-  protected signaturVon(objektId: string): string {
-    return this.store.byId(objektId)?.signatur ?? objektId;
-  }
 
   /** Personen für die Zuständig-Spalte (Wechsel nur durch R-03/R-04, Entscheid 81). */
   protected readonly allePersonen = PERSONEN;
@@ -312,8 +281,6 @@ export class Dashboard {
     const ich = this.istPaketRolle() ? null : NAME_FUER_ROLLE[rolle];
     const meineKantone = rolle === 'R-04' ? this.meineKantone() : null;
     const filter = this.attributFilter();
-    const paketInhalt = (paketId: string) =>
-      this.paketStore.pakete().find((p) => p.id === paketId)?.objektIds;
     const begriff = this.suche().trim().toLowerCase();
     const polygon = this.polygonSignaturen();
     const richtung = this.sortAufsteigend() ? 1 : -1;
@@ -330,7 +297,7 @@ export class Dashboard {
         // beteiligt (gleiche Semantik wie der Kommentar-Filter, Entscheid 56)
         if (ich !== null && o.zustaendigName !== ich && !o.lognotizen.some((n) => n.autor === ich))
           return false;
-        if (!passtAttributFilter(o, filter, paketInhalt)) return false;
+        if (!passtAttributFilter(o, filter)) return false;
         if (polygon && !polygon.has(o.signatur)) return false;
         if (begriff) {
           const text = `${o.signatur} ${o.name} ${o.gemeinden}`.toLowerCase();
@@ -481,91 +448,6 @@ export class Dashboard {
     const auswahl = this.ausgewaehlt();
     if (auswahl.size) return [...auswahl];
     return this.polygonSignaturen() ? this.gefiltert().map((o) => o.id) : [];
-  }
-
-  /**
-   * R-04: aus den ausgewählten Strecken (Checkboxen; ersatzweise die
-   * aktive Polygon-Selektion) ein benanntes Arbeitspaket erstellen
-   * (Entscheid 83). Bereits paketierte Strecken wandern in das neue
-   * Paket — ein Objekt gehört zu höchstens einem Paket.
-   */
-  protected paketErstellen(): void {
-    const name = this.paketName().trim();
-    if (!name) return;
-    const ids = this.ausgewaehlteIds();
-    if (ids.length === 0) {
-      this.hinweis.zeige(
-        'Keine Strecken ausgewählt',
-        'Wähle die Strecken für das Paket über die Checkboxen in den Status-Gruppen oder ' +
-          'über die Polygon-Selektion auf der Karte aus.',
-      );
-      return;
-    }
-    this.paketStore.paketErstellen(name, NAME_FUER_ROLLE['R-04'], ids);
-    this.paketName.set('');
-    this.ausgewaehlt.set(new Set());
-    toast.success(`Arbeitspaket «${name}» erstellt`, {
-      description: `${ids.length} Strecke${ids.length === 1 ? '' : 'n'} — Zuweisung an eine Inventarisierende über «Zuweisen».`,
-    });
-  }
-
-  /** R-04: die aktuelle Auswahl einem bestehenden Paket hinzufügen. */
-  protected paketObjekteHinzufuegen(paket: Arbeitspaket): void {
-    const ids = this.ausgewaehlteIds();
-    if (ids.length === 0) {
-      this.hinweis.zeige(
-        'Keine Strecken ausgewählt',
-        'Wähle zuerst die Strecken über die Checkboxen in den Status-Gruppen oder die ' +
-          'Polygon-Selektion aus — sie werden dann dem Paket hinzugefügt.',
-      );
-      return;
-    }
-    this.paketStore.objekteHinzufuegen(paket.id, ids);
-    this.ausgewaehlt.set(new Set());
-    toast.success(`${ids.length} Strecke${ids.length === 1 ? '' : 'n'} zu «${paket.name}» hinzugefügt`);
-  }
-
-  protected paketObjektEntfernen(paket: Arbeitspaket, objektId: string): void {
-    this.paketStore.objektEntfernen(paket.id, objektId);
-  }
-
-  protected paketLoeschen(paket: Arbeitspaket): void {
-    // Zeigt der Arbeitspaket-Filter auf dieses Paket, würde er sonst als
-    // toter Wert weiterwirken und die Liste leeren (Review-Befund)
-    if (this.paketFilter() === `paket:${paket.id}`) this.paketFilter.set('alle');
-    this.paketStore.paketLoeschen(paket.id);
-    toast.success(`Arbeitspaket «${paket.name}» gelöscht`, {
-      description: 'Die Strecken selbst bleiben unverändert.',
-    });
-  }
-
-  /**
-   * R-04: das Paket einer Inventarisierenden zuweisen — alle Strecken
-   * wechseln auf «Zugewiesen» und erhalten die Person als zuständig
-   * (Entscheide 79/83).
-   */
-  protected paketZuweisen(paket: Arbeitspaket): void {
-    if (paket.objektIds.length === 0) {
-      this.hinweis.zeige(
-        'Leeres Paket',
-        `«${paket.name}» enthält keine Strecken — füge zuerst über «+ Auswahl» Strecken hinzu.`,
-      );
-      return;
-    }
-    const ziel = this.paketPersonen.find((p) => p.name === this.zielFuer(paket.id));
-    if (!ziel) return;
-    const rolle = this.einstellungen.aktiveRolleId();
-    this.store.paketZuweisen(
-      paket.objektIds,
-      ziel,
-      `Arbeitspaket «${paket.name}»`,
-      NAME_FUER_ROLLE[rolle],
-      rolle,
-    );
-    this.paketStore.paketZuweisungSetzen(paket.id, ziel.name);
-    toast.success(`Arbeitspaket «${paket.name}» zugewiesen`, {
-      description: `${paket.objektIds.length} Strecken an ${ziel.name} (${ziel.rolle}) — Status «Zugewiesen».`,
-    });
   }
 
   protected filterZuruecksetzen(): void {

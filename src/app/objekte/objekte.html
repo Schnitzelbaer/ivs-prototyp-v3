@@ -158,7 +158,10 @@
         <option hlmNativeSelectOption value="System">System (R-08)</option>
         <option hlmNativeSelectOption [value]="ohnePerson">Ohne Zuweisung</option>
       </hlm-native-select>
+    }
 
+    <!-- Kantonspakete filtern kann nur die Fachliche Administration -->
+    @if (istFachlicheAdministration()) {
       <hlm-native-select
         class="w-44"
         size="sm"
@@ -167,7 +170,7 @@
         aria-label="Arbeitspaket"
       >
         <option hlmNativeSelectOption value="alle">Arbeitspaket</option>
-        @for (option of paketFilterOptionen(); track option.wert) {
+        @for (option of paketFilterOptionen; track option.wert) {
           <option hlmNativeSelectOption [value]="option.wert">{{ option.label }}</option>
         }
       </hlm-native-select>

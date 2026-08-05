@@ -1219,22 +1219,17 @@ Arbeitspakete und echte Filter.
     heisst die Aktion «In Kanton verschieben») — die Signatur bleibt
     unverändert, nur das `kanton`-Attribut wechselt, Nachkommen ziehen
     still mit (Lognotiz an der Strecke).
-83. **Arbeitspakete als Entitäten** (ersetzt den R-04-Teil von
+83. ~~**Arbeitspakete als Entitäten** (ersetzt den R-04-Teil von
     Entscheid 77): Die Regionale Koordination erstellt **benannte,
     gespeicherte, löschbare Pakete** (Name frei wählbar; Strecken über
-    Checkboxen oder Polygon). Der **Inhalt ist änderbar** («+ Auswahl»
-    fügt hinzu, «×» am Signatur-Badge entfernt); ein Objekt gehört zu
-    **höchstens einem Paket** — die letzte Definition gilt, bereits
-    paketierte Strecken wandern um. Die **Zuweisung an eine
-    Inventarisierende geschieht pro Paket** («Zuweisen»): alle Strecken
-    wechseln auf «Zugewiesen» samt Person und Lognotiz, das Paket
-    vermerkt die Person (`zugewiesenAn`); sie bleibt änderbar. Die
-    Kantons-Zuweisung durch R-03 geschieht davor, ganz am Anfang.
-    **R-04 sieht nur noch die ihr zugewiesenen Kantone** (Dashboard,
-    Karte und Pakete; Seed: Bern → T. Nyffenegger). Der
-    **Ansicht-Umschalter ist entfernt** — Ersatz ist der Filter
-    «Zuständige Person» (Entscheid 84). Persistiert im `PaketStore`
-    (`ivs-prototyp-v3.pakete`, Zufalls-Ids nach 12.6).
+    Checkboxen oder Polygon). Der **Inhalt ist änderbar**; ein Objekt
+    gehört zu **höchstens einem Paket**. Die **Zuweisung an eine
+    Inventarisierende geschieht pro Paket**.~~ **Aufgehoben durch
+    Entscheid 85** — die R-04-Paket-Entitäten sind wieder entfallen.
+    Bestehen bleiben aus diesem Entscheid: **R-04 sieht nur die ihr
+    zugewiesenen Kantone** (Dashboard und Karte; Seed: Bern →
+    T. Nyffenegger), und der **Ansicht-Umschalter ist entfernt** —
+    Ersatz ist der Filter «Zuständige Person» (Entscheid 84).
 84. **Echte Attributfilter** (Dashboard und Objekte-Übersicht,
     gemeinsames Prädikat in `core/objekt-filter.ts`): Das
     «Alle Filter»-Popover ist keine Attrappe mehr — es filtert
@@ -1249,6 +1244,20 @@ Arbeitspakete und echte Filter.
     Paket). Die persönliche Einschränkung für R-05/06/07 bleibt
     bestehen — diese Rollen sehen die beiden Filter nicht. Die
     **Karte folgt den Filtern** auf beiden Seiten (Entscheid 73).
+
+**Achte Ausbaustufe — Review-Paket vom 06.08.2026 (14 Rückfragen in
+derselben Session geklärt).** Rückbau der R-04-Pakete, Zuweisungs-Dialog,
+Multi-Edit, Kommentar-Pflichtzuweisung, Begehungs-Ausbau,
+Strecken-Anforderung und Geometrie-Werkzeuge.
+
+85. **R-04-Arbeitspakete entfallen** (hebt den Paket-Teil von
+    Entscheid 83 auf): Die Regionale Koordination bildet keine
+    benannten Pakete mehr — **die Zuweisung an Inventarisierende läuft
+    rein über die Zuständigkeit** (Zuständig-Spalte bzw. Multi-Edit).
+    Der Arbeitspakete-Bereich im Dashboard gehört allein R-03
+    (Kantonspakete, Entscheid 82); der Filter «Arbeitspaket» steht nur
+    noch R-03 zur Verfügung und bietet die 26 Kantonspakete. Das
+    Kanton-Scoping von R-04 bleibt.
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1474,8 +1483,8 @@ src/app/
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
     geometrie-store.ts Arbeitsgeometrien je Signatur (storage-Sync)
     begehungen.ts      Begehungsplanung, darfBegehungPlanen (R-03/04/06/07)
-    paket-store.ts     KANTONE, Kanton→Koordination-Zuweisungen und
-                       Arbeitspaket-Entitäten (Entscheide 82/83)
+    paket-store.ts     KANTONE und Kanton→Koordination-Zuweisungen
+                       (Entscheide 82/85)
     herkunft-store.ts  Herkunft des Objekt-Details (Back-Button)
     objekt-filter.ts   gemeinsame Attributfilter von Dashboard und Objekten
                        (Entscheid 84)
@@ -1523,7 +1532,7 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen           | Konstante in `begehungen.ts`      |
 | `ivs-prototyp-v3.stammdaten`    | Auswahllisten                 | Konstante in `stammdaten.ts`      |
-| `ivs-prototyp-v3.pakete`        | Kanton-Zuweisungen und Arbeitspakete | Konstante in `paket-store.ts` |
+| `ivs-prototyp-v3.pakete`        | Kanton→Koordination-Zuweisungen | Konstante in `paket-store.ts`   |
 | `ivs-prototyp-v3.einstellungen` | Standard-Rolle neuer Tabs, Dark-Mode | —                          |
 | `ivs-prototyp-v3.rolle` (**sessionStorage**) | Rolle dieses Tabs (Entscheid 67) | —                  |
 
@@ -1579,14 +1588,13 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–84 in
   **Zuständig-Spalte** mit Personen-Dropdown für R-03/R-04
   (Entscheid 81), Polygon-Selektion als geographischer Filter (05.03).
   Die **Karte zeigt nur die Objekte der Liste** und wird von Suche und
-  Filtern mitgezogen (Entscheid 73). Für die **Paketrollen R-03/R-04**
-  liegt darüber der Bereich **Arbeitspakete** (Entscheide 77/82/83):
-  R-03 weist alle 26 Kantone der Regionalen Koordination zu (persistent
-  und änderbar, ohne Statuswechsel) und ordnet Grenzfall-Strecken einem
-  anderen Kanton zu; R-04 erstellt **benannte, änder- und löschbare
-  Pakete** (Checkbox- oder Polygon-Auswahl, ein Objekt in höchstens
-  einem Paket) und weist sie pro Paket einer Inventarisierenden zu.
-  R-03 sieht alle Objekte, **R-04 nur die ihr zugewiesenen Kantone**.
+  Filtern mitgezogen — inklusive Status-Filter (Entscheid 73). Für
+  **R-03** liegt darüber der Bereich **Arbeitspakete** (Entscheide
+  77/82/85): alle 26 Kantone an die Regionale Koordination zuweisbar
+  (persistent und änderbar, ohne Statuswechsel), Grenzfall-Strecken
+  einem anderen Kanton zuordenbar. R-04 bildet keine Pakete mehr —
+  sie **weist rein über die Zuständigkeit zu** (Entscheid 85). R-03
+  sieht alle Objekte, **R-04 nur die ihr zugewiesenen Kantone**.
 - **Objektbearbeitung (07)**: View-/Edit-Modus mit automatischem Speichern
   und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
   Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
@@ -1685,15 +1693,14 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–84 in
   ihr späteres eigenes Protokoll) mit Ja/Nein-Fragen in vier Gruppen,
   Nein-Befunde werden beim Zurückweisen zu Kommentaren, «Geprüft» ist
   ohne bestandenes Protokoll überall gesperrt (Guard mit Erklär-Modal).
-- **Arbeitspakete (03.02/03.03, Entscheide 77/82/83)**: Bereich im
-  Dashboard für R-03 (alle 26 Kantone an die Regionale Koordination —
-  persistent, änderbar, ohne Statuswechsel; Grenzfall-Strecken einem
-  anderen Kanton zuordenbar) und R-04 (benannte, gespeicherte,
-  löschbare Pakete mit änderbarem Inhalt); erst die Zuweisung eines
-  Pakets an eine Inventarisierende setzt Status, Person und Lognotiz
-  in einem Zug. R-03 sieht alle Objekte, R-04 nur die ihr
-  zugewiesenen Kantone; statt des Ansicht-Umschalters filtert
-  «Zuständige Person» (Entscheid 84).
+- **Arbeitspakete (03.02, Entscheide 77/82/85)**: Bereich im
+  Dashboard nur für R-03 — alle 26 Kantone an die Regionale
+  Koordination zuweisbar (persistent, änderbar, ohne Statuswechsel),
+  Grenzfall-Strecken einem anderen Kanton zuordenbar. R-04 bildet
+  keine Pakete mehr und weist rein über die Zuständigkeit zu
+  (Zuständig-Spalte, Multi-Edit). R-03 sieht alle Objekte, R-04 nur
+  die ihr zugewiesenen Kantone; statt des Ansicht-Umschalters
+  filtert «Zuständige Person» (Entscheid 84).
 
 **Personen im Prototyp** (`NAME_FUER_ROLLE` und `PERSONEN` in
 `seed-data.ts`). Sie tragen das persönliche Dashboard (Entscheid 70), die
@@ -2049,11 +2056,10 @@ wechseln, oder `?rolle=R-06` an die URL hängen — die Rolle gilt pro Tab):
 1. **R-03** weist im Dashboard einen Kanton der Regionalen Koordination
    zu (persistent, ohne Statuswechsel — die Objekte bleiben «Offen»
    bzw. in ihrem Status).
-2. **R-04** wählt im Dashboard einige Strecken (Checkboxen oder
-   Polygon), erstellt daraus ein benanntes Arbeitspaket und weist es
-   einer Inventarisierenden zu → erst jetzt stehen die Strecken auf
-   «Zugewiesen». Wo die Arbeit einer Person liegt, zeigt der Filter
-   «Zuständige Person».
+2. **R-04** weist im Dashboard über die Zuständig-Spalte (oder per
+   Multi-Edit für mehrere gewählte Strecken) einer Inventarisierenden
+   zu → erst jetzt stehen die Strecken auf «Zugewiesen». Wo die
+   Arbeit einer Person liegt, zeigt der Filter «Zuständige Person».
 3. **R-05** (B. Anderegg) nimmt BE 21 in Bearbeitung, bearbeitet den
    Beschrieb und gibt die Strecke «Bereit zur Prüfung».
 4. **R-06** (M. Gerber) setzt «In Prüfung», öffnet «Prüfung», beantwortet

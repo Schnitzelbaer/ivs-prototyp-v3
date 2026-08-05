@@ -40,8 +40,8 @@ import {
   leererAttributFilter,
   passtAttributFilter,
 } from '../core/objekt-filter';
-import { KANTONE, PaketStore } from '../core/paket-store';
-import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
+import { KANTONE } from '../core/paket-store';
+import { PERSONEN } from '../core/seed-data';
 import {
   EBENE_LABEL,
   IvsObjekt,
@@ -116,7 +116,6 @@ export class Objekte {
   private readonly herkunft = inject(HerkunftStore);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly einstellungen = inject(EinstellungenStore);
-  private readonly paketStore = inject(PaketStore);
 
   constructor() {
     // Rollenwechsel: Person- und Paket-Filter zurücksetzen — die beiden
@@ -172,22 +171,19 @@ export class Objekte {
     return rolle === 'R-03' || rolle === 'R-04';
   });
 
-  /** Optionen des Arbeitspaket-Filters: R-03 Kantone + alle Pakete, R-04 eigene. */
-  protected readonly paketFilterOptionen = computed<{ wert: string; label: string }[]>(() => {
-    const rolle = this.einstellungen.aktiveRolleId();
-    if (rolle === 'R-03') {
-      return [
-        ...KANTONE.map((k) => ({ wert: `kanton:${k.kuerzel}`, label: `Kanton ${k.name}` })),
-        ...this.paketStore
-          .pakete()
-          .map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}» (${p.koordinator})` })),
-      ];
-    }
-    return this.paketStore
-      .pakete()
-      .filter((p) => p.koordinator === NAME_FUER_ROLLE['R-04'])
-      .map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}»` }));
-  });
+  /**
+   * Optionen des Arbeitspaket-Filters (nur R-03): die 26 Kantonspakete.
+   * Die R-04-Paket-Entitäten sind mit Entscheid 85 entfallen.
+   */
+  protected readonly paketFilterOptionen = KANTONE.map((k) => ({
+    wert: `kanton:${k.kuerzel}`,
+    label: `Kanton ${k.name}`,
+  }));
+
+  /** Der Paket-Filter steht nur der Fachlichen Administration zu. */
+  protected readonly istFachlicheAdministration = computed(
+    () => this.einstellungen.aktiveRolleId() === 'R-03',
+  );
 
   /** Gebündelter Attributfilter fürs gemeinsame Prädikat (Entscheid 84). */
   private readonly attributFilter = computed<AttributFilter>(() => ({
@@ -230,9 +226,7 @@ export class Objekte {
 
   /** Filterprädikat ohne Ebenen-Bezug (wirkt auf alle Ebenen gleich). */
   private passtFilter(o: IvsObjekt, begriff: string): boolean {
-    const paketInhalt = (paketId: string) =>
-      this.paketStore.pakete().find((p) => p.id === paketId)?.objektIds;
-    if (!passtAttributFilter(o, this.attributFilter(), paketInhalt)) return false;
+    if (!passtAttributFilter(o, this.attributFilter())) return false;
     if (begriff) {
       const text = `${o.signatur} ${o.name} ${o.gemeinden} ${o.zustaendigName}`.toLowerCase();
       if (!text.includes(begriff)) return false;
