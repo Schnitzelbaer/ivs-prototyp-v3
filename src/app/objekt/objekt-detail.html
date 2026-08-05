@@ -183,6 +183,20 @@
           </hlm-dropdown-menu>
         </ng-template>
 
+        <!-- Prüfprotokoll (4.6): öffnet die Prüfung in der Seitenleiste -->
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          (click)="pruefungOffen.set(true)"
+          hlmTooltip="Prüfprotokoll öffnen"
+          aria-label="Prüfprotokoll öffnen"
+        >
+          <ng-icon name="lucideClipboardCheck" />
+          Prüfung
+        </button>
+
         <div class="mx-1 h-5 w-px bg-border"></div>
 
         <!-- View ↔ Edit: immer aktiv — ohne Recht erklärt ein Modal warum -->
@@ -233,8 +247,9 @@
                   <div class="grid gap-1.5 sm:col-span-2" id="attr-status">
                     <label hlmLabel for="f-status">Workflow-Status</label>
                     <hlm-native-select
+                      #statusSelect
                       [ngModel]="o.status"
-                      (ngModelChange)="statusSetzen($event)"
+                      (ngModelChange)="statusSetzen($event, statusSelect)"
                     >
                       @for (option of statusOptionen(); track option.wert) {
                         <option hlmNativeSelectOption [value]="option.wert">
@@ -243,7 +258,7 @@
                       }
                     </hlm-native-select>
                     <p class="text-xs text-muted-foreground">
-                      Steuert die Einordnung im Aufgaben-Bereich (Backlog / In Arbeit / Done).
+                      Steuert die Gruppierung der Aufgabenliste im Dashboard.
                     </p>
                   </div>
 
@@ -815,7 +830,8 @@
                 Als geprüft kennzeichnen
               </button>
               <p class="text-xs text-muted-foreground">
-                Das Prüfprotokoll (Checkliste 1 mit Befunden) folgt in einer späteren Etappe.
+                Voraussetzung ist das vollständig mit Ja beantwortete Prüfprotokoll — zu öffnen
+                über den Knopf «Prüfung» in der Kopfzeile.
               </p>
             </div>
           </section>
@@ -1523,6 +1539,137 @@
             </p>
             <p class="mt-1 whitespace-pre-line">{{ notiz.text }}</p>
           </div>
+        }
+      </div>
+    </hlm-sheet-content>
+  </hlm-sheet>
+
+  <!-- Prüfprotokoll (4.6): Fachliche Prüfung durch das Fachlektorat -->
+  <hlm-sheet
+    side="right"
+    [state]="pruefungOffen() ? 'open' : 'closed'"
+    (stateChanged)="pruefungOffen.set($event === 'open')"
+  >
+    <hlm-sheet-content *hlmSheetPortal class="w-full sm:max-w-xl">
+      <hlm-sheet-header>
+        <h3 hlmSheetTitle>Prüfprotokoll</h3>
+        <p hlmSheetDescription>
+          {{ o.signatur }} – {{ o.name }} · Fachliche Prüfung durch das Fachlektorat.
+          @if (!darfPruefen()) {
+            Ausfüllen kann das Fachlektorat (R-06), solange das Objekt in Prüfung ist —
+            aktuell nur Einsicht.
+          }
+        </p>
+      </hlm-sheet-header>
+
+      <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4">
+        @if (o.pruefprotokoll?.abschluss; as abschluss) {
+          <p class="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+            Letzte Prüfung: {{ formatDatum(abschluss.datum) }} · {{ abschluss.autor }} ({{
+              abschluss.rolle
+            }}) —
+            {{ abschluss.ergebnis === 'geprueft' ? 'als geprüft gekennzeichnet' : 'zur Korrektur zurückgewiesen' }}
+          </p>
+        }
+
+        @for (gruppe of pruefGruppen; track gruppe.titel) {
+          <section class="rounded-md border border-border">
+            <h4 class="rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold">
+              {{ gruppe.titel }}
+            </h4>
+            <div class="flex flex-col gap-4 p-3">
+              @for (frage of gruppe.fragen; track frage.id) {
+                @if (antwortVon(o.pruefprotokoll, frage.id); as antwort) {
+                  <div class="flex flex-col gap-2">
+                    <p class="text-sm">{{ frage.text }}</p>
+                    @if (darfPruefen()) {
+                      <hlm-toggle-group
+                        type="single"
+                        variant="outline"
+                        size="sm"
+                        [value]="antwort.antwort"
+                        (valueChange)="pruefAntwortSetzen(frage.id, $event)"
+                      >
+                        <button hlmToggleGroupItem value="ja" type="button">Ja</button>
+                        <button hlmToggleGroupItem value="nein" type="button">Nein</button>
+                      </hlm-toggle-group>
+                      @if (antwort.antwort === 'nein') {
+                        <textarea
+                          hlmTextarea
+                          class="min-h-20 w-full"
+                          placeholder="Was muss überarbeitet werden?"
+                          [ngModel]="antwort.begruendung"
+                          (ngModelChange)="pruefBegruendungSetzen(frage.id, $event)"
+                        ></textarea>
+                        @if (!antwort.begruendung.trim()) {
+                          <p class="text-xs text-destructive">
+                            Begründung erforderlich — sie wird beim Zurückweisen als Kommentar
+                            erfasst.
+                          </p>
+                        }
+                      }
+                    } @else {
+                      <div class="flex items-start gap-2">
+                        @switch (antwort.antwort) {
+                          @case ('ja') {
+                            <span hlmBadge variant="secondary">Ja</span>
+                          }
+                          @case ('nein') {
+                            <span hlmBadge variant="destructive">Nein</span>
+                          }
+                          @default {
+                            <span hlmBadge variant="outline">offen</span>
+                          }
+                        }
+                        @if (antwort.antwort === 'nein' && antwort.begruendung.trim()) {
+                          <p class="text-sm whitespace-pre-line text-muted-foreground">
+                            {{ antwort.begruendung }}
+                          </p>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          </section>
+        }
+      </div>
+
+      <!-- Abschluss: alle Ja → geprüft; Nein-Befunde → zurück zur Korrektur -->
+      <div class="flex flex-col gap-2 border-t border-border p-4">
+        <p class="text-xs text-muted-foreground">
+          {{ pruefBeantwortet() }} von {{ frageAnzahl }} Fragen beantwortet
+          @if (pruefBefunde().length > 0) {
+            · {{ pruefBefunde().length }} Befund{{ pruefBefunde().length === 1 ? '' : 'e' }}
+          }
+        </p>
+        @if (darfPruefen()) {
+          @if (pruefBefunde().length === 0) {
+            <button
+              hlmBtn
+              type="button"
+              [disabled]="!pruefBestanden()"
+              (click)="pruefungGeprueft()"
+            >
+              <ng-icon name="lucideCheck" />
+              Als geprüft kennzeichnen
+            </button>
+          } @else {
+            <button
+              hlmBtn
+              variant="destructive"
+              type="button"
+              [disabled]="!pruefVollstaendig()"
+              (click)="pruefungZurueckweisen()"
+            >
+              Zur Korrektur zurückweisen ({{ pruefBefunde().length }})
+            </button>
+            <p class="text-xs text-muted-foreground">
+              Die Begründungen werden als Kommentare am Objekt erfasst; ein als geprüft
+              Kennzeichnen ist mit offenen Befunden nicht möglich.
+            </p>
+          }
         }
       </div>
     </hlm-sheet-content>

@@ -66,6 +66,26 @@ export interface Lognotiz {
   text: string;
 }
 
+/** Antwort auf eine Prüffrage; bei «nein» ist die Begründung Pflicht. */
+export interface PruefAntwort {
+  antwort: 'ja' | 'nein' | null;
+  begruendung: string;
+}
+
+/**
+ * Prüfprotokoll des Fachlektorats am Objekt (Fragenkatalog und Regeln in
+ * core/pruefprotokoll.ts). `abschluss` vermerkt die letzte Prüfrunde.
+ */
+export interface Pruefprotokoll {
+  antworten: Record<string, PruefAntwort>;
+  abschluss: {
+    datum: string;
+    autor: string;
+    rolle: RolleId;
+    ergebnis: 'geprueft' | 'korrektur';
+  } | null;
+}
+
 export interface IvsObjekt {
   /** Technische Id für URLs, abgeleitet aus der Signatur («be-21-1-2»). */
   id: string;
@@ -116,6 +136,8 @@ export interface IvsObjekt {
 
   // Prüfen / Freigabe
   pruefkommentar: string;
+  /** Prüfprotokoll des Fachlektorats — fehlt, solange nie geprüft wurde. */
+  pruefprotokoll?: Pruefprotokoll;
 
   lognotizen: Lognotiz[];
 }

@@ -155,7 +155,10 @@ neuen Session weiterzuarbeiten.
   IVS 1.0 → 2.0 im Historie-Menü (Wort-Diff mit Änderungsmarkierungen plus
   Vergleichskarte, Deckkraft beider Stände separat regelbar),
   Begehungs-Einplanung sichtbar (Badge und 360°-Bereich),
-  Bearbeitungslog-Sheet.
+  Bearbeitungslog-Sheet, **Prüfprotokoll** als Seitenleiste (Knopf
+  «Prüfung»: Ja/Nein-Fragen in vier Gruppen, Nein mit Pflichtbegründung;
+  Befunde werden beim Zurückweisen zu Kommentaren und das Objekt geht in
+  «Korrektur», ohne bestandenes Protokoll ist «Geprüft» gesperrt).
 - **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS und den
   `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Quelldaten — die
   bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden
@@ -212,8 +215,8 @@ neuen Session weiterzuarbeiten.
   generierte Kunstbaute mit eigener Teilstück-Geometrie. Änderungen
   überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
 
-Noch offen (spätere Etappen): Prüfprotokoll/Checkliste 1, Nebenblöcke
-(Accounts, Arbeitspakete, Reports).
+Noch offen (spätere Etappen): Umsetzungsvermerk der Inventarisierenden im
+Prüfprotokoll, Nebenblöcke (Accounts, Arbeitspakete, Reports).
 
 Die Zuordnung Signatur → Testdaten-Feature liegt in
 `src/app/karte/karten-layer.ts` und wird zur Laufzeit auf die geladenen

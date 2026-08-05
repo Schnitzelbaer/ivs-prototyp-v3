@@ -21,6 +21,7 @@ import {
   lucideCamera,
   lucideCheck,
   lucideChevronDown,
+  lucideClipboardCheck,
   lucideDownload,
   lucideExternalLink,
   lucideHistory,
@@ -52,6 +53,7 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
+import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { BegehungsStore, darfBegehungPlanen } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
@@ -63,11 +65,21 @@ import {
   EBENE_LABEL,
   IvsObjekt,
   NHG_LABEL,
+  Pruefprotokoll,
   RolleId,
   SUBSTANZGRAD_LABEL,
   WorkflowStatus,
   bewertungText,
 } from '../core/model';
+import {
+  ALLE_PRUEF_FRAGEN,
+  PRUEF_GRUPPEN,
+  antwortVon,
+  beantworteteFragen,
+  neinBefunde,
+  protokollVollstaendig,
+  pruefungBestanden,
+} from '../core/pruefprotokoll';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN, darfEditieren } from '../core/rollen';
 import { NAME_FUER_ROLLE, PERSONEN, rolleFuerStatus } from '../core/seed-data';
@@ -113,6 +125,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
     HlmSheetImports,
     HlmTabsImports,
     HlmTextareaImports,
+    HlmToggleGroupImports,
     HlmTooltipImports,
     BegehungDialog,
     BewertungsPunkte,
@@ -130,6 +143,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideCamera,
       lucideCheck,
       lucideChevronDown,
+      lucideClipboardCheck,
       lucideDownload,
       lucideExternalLink,
       lucideHistory,
@@ -381,13 +395,132 @@ export class ObjektDetail implements OnDestroy {
 
   // ------------------------------------------------------------------ Status
 
-  protected statusSetzen(status: string): void {
+  protected statusSetzen(status: string, select?: { writeValue(wert: unknown): void }): void {
     const o = this.objekt();
     if (!o || status === o.status) return;
+    // «Geprüft» setzt ein vollständig mit Ja beantwortetes Prüfprotokoll
+    // voraus — sonst erklärt sich der Wechsel und die Prüfung öffnet sich.
+    if (status === 'geprueft' && !pruefungBestanden(o.pruefprotokoll)) {
+      select?.writeValue(o.status);
+      this.hinweis.zeige(
+        'Prüfprotokoll erforderlich',
+        'Bevor ein Objekt als geprüft gekennzeichnet werden kann, muss das Fachlektorat das ' +
+          'Prüfprotokoll vollständig mit Ja beantworten. Enthält es Nein-Befunde, geht das ' +
+          'Objekt zur Korrektur zurück an die Inventarisierenden.',
+      );
+      this.pruefungOffen.set(true);
+      return;
+    }
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(o.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
       description: `${o.signatur} — Übergang protokolliert.`,
+    });
+  }
+
+  // -------------------------------------------------- Prüfprotokoll (4.6)
+
+  protected readonly pruefGruppen = PRUEF_GRUPPEN;
+  protected readonly frageAnzahl = ALLE_PRUEF_FRAGEN.length;
+  protected readonly antwortVon = antwortVon;
+  protected readonly pruefungOffen = signal(false);
+
+  /** Ausfüllen darf das Fachlektorat, solange das Objekt in Prüfung ist. */
+  protected readonly darfPruefen = computed(() => {
+    const o = this.objekt();
+    return (
+      !!o && o.status === 'in_pruefung' && this.einstellungen.aktiveRolleId() === 'R-06'
+    );
+  });
+
+  protected readonly pruefBeantwortet = computed(() =>
+    beantworteteFragen(this.objekt()?.pruefprotokoll),
+  );
+  protected readonly pruefBefunde = computed(() => neinBefunde(this.objekt()?.pruefprotokoll));
+  protected readonly pruefVollstaendig = computed(() =>
+    protokollVollstaendig(this.objekt()?.pruefprotokoll),
+  );
+  protected readonly pruefBestanden = computed(() =>
+    pruefungBestanden(this.objekt()?.pruefprotokoll),
+  );
+
+  private protokollUpdate(frageId: string, patch: Partial<{ antwort: 'ja' | 'nein'; begruendung: string }>): void {
+    const o = this.objekt();
+    if (!o || !this.darfPruefen()) return;
+    const bisher: Pruefprotokoll = o.pruefprotokoll ?? { antworten: {}, abschluss: null };
+    this.store.update(o.id, {
+      pruefprotokoll: {
+        ...bisher,
+        antworten: {
+          ...bisher.antworten,
+          [frageId]: { ...antwortVon(bisher, frageId), ...patch },
+        },
+      },
+    });
+  }
+
+  protected pruefAntwortSetzen(frageId: string, antwort: unknown): void {
+    if (antwort !== 'ja' && antwort !== 'nein') return;
+    this.protokollUpdate(frageId, { antwort });
+  }
+
+  protected pruefBegruendungSetzen(frageId: string, begruendung: string): void {
+    this.protokollUpdate(frageId, { begruendung });
+  }
+
+  /** Alle Fragen mit Ja beantwortet: Prüfung abschliessen und Status setzen. */
+  protected pruefungGeprueft(): void {
+    const o = this.objekt();
+    if (!o || !this.darfPruefen() || !this.pruefBestanden()) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const autor = NAME_FUER_ROLLE[rolle];
+    this.store.update(o.id, {
+      pruefprotokoll: {
+        antworten: { ...(o.pruefprotokoll?.antworten ?? {}) },
+        abschluss: { datum: jetztLokal().slice(0, 10), autor, rolle, ergebnis: 'geprueft' },
+      },
+    });
+    this.store.statusWechseln(o.id, 'geprueft', autor, rolle);
+    this.pruefungOffen.set(false);
+    toast.success('Prüfung abgeschlossen', {
+      description: `${o.signatur} — als geprüft gekennzeichnet.`,
+    });
+  }
+
+  /**
+   * Nein-Befunde: je Frage einen Kommentar am Objekt erstellen und das
+   * Objekt zur Korrektur an die Inventarisierenden zurückweisen.
+   */
+  protected pruefungZurueckweisen(): void {
+    const o = this.objekt();
+    if (!o || !this.darfPruefen() || !this.pruefVollstaendig()) return;
+    const befunde = this.pruefBefunde();
+    if (befunde.length === 0) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const autor = NAME_FUER_ROLLE[rolle];
+    for (const befund of befunde) {
+      this.kommentarStore.hinzufuegen({
+        objektSignatur: o.signatur,
+        position: null,
+        titel: `Prüfbefund: ${befund.gruppe}`,
+        text: `${befund.frage.text}\n\n${befund.begruendung}`,
+        autor,
+        rolle,
+        zeit: jetztLokal(),
+        erledigt: false,
+        antworten: [],
+      });
+    }
+    this.store.update(o.id, {
+      pruefprotokoll: {
+        antworten: { ...(o.pruefprotokoll?.antworten ?? {}) },
+        abschluss: { datum: jetztLokal().slice(0, 10), autor, rolle, ergebnis: 'korrektur' },
+      },
+    });
+    this.store.statusWechseln(o.id, 'korrektur', autor, rolle);
+    this.pruefungOffen.set(false);
+    toast.success('Zur Korrektur zurückgewiesen', {
+      description: `${o.signatur} — ${befunde.length} Befund${befunde.length === 1 ? '' : 'e'} als Kommentar erfasst.`,
     });
   }
 
@@ -495,7 +628,13 @@ export class ObjektDetail implements OnDestroy {
       );
       return;
     }
-    this.statusSetzen('geprueft');
+    if (this.pruefBestanden()) {
+      // über das Protokoll abschliessen, damit der Abschluss-Vermerk stimmt
+      this.pruefungGeprueft();
+    } else {
+      // Guard in statusSetzen: erklärt das fehlende Protokoll und öffnet es
+      this.statusSetzen('geprueft');
+    }
   }
 
   protected inexistentKlick(): void {

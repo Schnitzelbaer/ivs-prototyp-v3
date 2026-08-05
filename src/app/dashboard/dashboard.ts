@@ -40,7 +40,9 @@ import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { EinstellungenStore } from '../core/einstellungen-store';
 import { HerkunftStore } from '../core/herkunft-store';
+import { HinweisStore } from '../core/hinweis-store';
 import { KommentarStore, jetztLokal } from '../core/kommentare';
+import { pruefungBestanden } from '../core/pruefprotokoll';
 import {
   IvsObjekt,
   NhgWert,
@@ -120,6 +122,7 @@ export class Dashboard {
   private readonly kommentarStore = inject(KommentarStore);
   private readonly router = inject(Router);
   private readonly herkunft = inject(HerkunftStore);
+  private readonly hinweis = inject(HinweisStore);
 
   private readonly karte = viewChild(Karte);
 
@@ -222,8 +225,23 @@ export class Dashboard {
     }));
   }
 
-  protected statusWechseln(objekt: IvsObjekt, status: string): void {
+  protected statusWechseln(
+    objekt: IvsObjekt,
+    status: string,
+    select?: { writeValue(wert: unknown): void },
+  ): void {
     if (status === objekt.status) return;
+    // «Geprüft» setzt ein bestandenes Prüfprotokoll voraus (siehe Objekt-Detail)
+    if (status === 'geprueft' && !pruefungBestanden(objekt.pruefprotokoll)) {
+      select?.writeValue(objekt.status);
+      this.hinweis.zeige(
+        'Prüfprotokoll erforderlich',
+        `${objekt.signatur} kann erst als geprüft gekennzeichnet werden, wenn das Fachlektorat ` +
+          'das Prüfprotokoll vollständig mit Ja beantwortet hat — öffne das Objekt und ' +
+          'schliesse die Prüfung über den Knopf «Prüfung» ab.',
+      );
+      return;
+    }
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(objekt.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {

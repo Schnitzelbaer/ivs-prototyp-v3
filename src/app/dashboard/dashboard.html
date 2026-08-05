@@ -226,10 +226,11 @@
                                 }}"
                               ></span>
                               <hlm-native-select
+                                #zeilenSelect
                                 class="inline-block align-middle"
                                 size="sm"
                                 [ngModel]="o.status"
-                                (ngModelChange)="statusWechseln(o, $event)"
+                                (ngModelChange)="statusWechseln(o, $event, zeilenSelect)"
                               >
                                 @for (option of optionen; track option.wert) {
                                   <option hlmNativeSelectOption [value]="option.wert">

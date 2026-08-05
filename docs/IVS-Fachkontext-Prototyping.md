@@ -17,7 +17,7 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 74), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 75), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
@@ -1058,6 +1058,27 @@ Rückfragen in derselben Session geklärt)**
     siehe Fallstrick in 12.6); beim Öffnen ist nur noch das **aktive
     Objekt** markiert — der CDK-Fokus wird per Direktive
     (`ivsFokusAktiv`) vom ersten Eintrag auf die aktive Zeile verschoben.
+75. **Prüfprotokoll gebaut** (Abschnitt 4.6; Vorlage vom 05.08.2026):
+    Knopf **«Prüfung»** neben dem Stift öffnet eine **Seitenleiste** mit
+    vier Fragegruppen (Allgemein, Gelände-, Geschichtsbeschrieb,
+    Schutzbegründung; 8 Fragen — zwei kommen bewusst in zwei Gruppen vor
+    und werden **separat** beantwortet). Der Katalog **ersetzt im
+    Prototyp die Checkliste 1** (4.7). Antworten als **Ja/Nein**
+    (`hlm-toggle-group`) statt Switches; ein Nein verlangt eine
+    Begründung («Was muss überarbeitet werden?»). Ausfüllen kann
+    **R-06 im Status «In Prüfung»**, alle anderen sehen das Protokoll
+    read-only (Badges). Abschluss unten in der Leiste: **alle Ja →
+    «Als geprüft kennzeichnen»** (setzt Status und Abschluss-Vermerk);
+    **mindestens ein Nein → «Zur Korrektur zurückweisen»** — je Befund
+    entsteht **beim Zurückweisen** ein Kommentar am Objekt (Titel
+    «Prüfbefund: <Gruppe>», Text Frage + Begründung), das Objekt geht in
+    «Korrektur». Der **Wechsel auf «Geprüft» ist überall geschützt**
+    (Kopfzeilen-Dropdown, Formular-Select, Dashboard-Zeile, Knopf im
+    Abschnitt Prüfen/Freigabe): ohne bestandenes Protokoll erklärt ein
+    Modal die Voraussetzung, im Objekt-Detail öffnet sich zusätzlich die
+    Prüfung. Persistiert am Objekt (`pruefprotokoll` mit
+    Abschluss-Vermerk der letzten Runde); Umsetzungsvermerk der
+    Inventarisierenden (4.6) folgt in einer späteren Etappe.
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1238,6 +1259,7 @@ src/app/
     geometrie-store.ts Arbeitsgeometrien je Signatur (storage-Sync)
     begehungen.ts      Begehungsplanung, darfBegehungPlanen (R-03/04/06/07)
     herkunft-store.ts  Herkunft des Objekt-Details (Back-Button)
+    pruefprotokoll.ts  Fragenkatalog und Regeln des Prüfprotokolls (Entscheid 75)
     hinweis-store.ts   zentraler «Warum nicht?»-Hinweis (nie-disabled-Regel)
     version-vergleich.ts  IVS-1.0-Ableitung, kuratierte Alttexte, Wort-Diff
     stammdaten.ts      Auswahllisten DE/FR/IT
@@ -1403,8 +1425,13 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
   vorgesehen (`pnpm test` meldet «No tests found»).
 
-Noch nicht gebaut: Prüfprotokoll/Checkliste 1 (Etappe folgt),
-Nebenblöcke (Accounts, Arbeitspakete, Reports).
+- **Prüfprotokoll (4.6, Entscheid 75)**: Seitenleiste «Prüfung» mit
+  Ja/Nein-Fragen in vier Gruppen, Nein-Befunde werden beim Zurückweisen
+  zu Kommentaren, «Geprüft» ist ohne bestandenes Protokoll überall
+  gesperrt (Guard mit Erklär-Modal).
+
+Noch nicht gebaut: Nebenblöcke (Accounts, Arbeitspakete, Reports),
+Umsetzungsvermerk der Inventarisierenden im Prüfprotokoll.
 
 ### 12.6 Fallstricke aus der bisherigen Arbeit
 
@@ -1664,18 +1691,15 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach der fünften Ausbaustufe (02.08.2026, Review-Pakete «Changes IVS»
-und «Neue ToDos» umgesetzt — Entscheide 48–66); Reihenfolge als Vorschlag.
+Stand nach den Review-Paketen vom 05.08.2026 (Entscheide 67–75, inkl.
+Prüfprotokoll); Reihenfolge als Vorschlag.
 
-1. **Prüfprotokoll / Checkliste 1 (Abschnitt 4.6/4.7).** Der grösste noch
-   offene Fachblock: neun binäre Prüffragen mit Kommentarfeld bei «nicht
-   erfüllt», freie Befunde für Kartenkorrekturen, Umsetzungsvermerk der
-   Inventarisierenden und begründete Abweichungen — integriert im
-   Objektbeschrieb, nicht als separates Dokument. Abschnitt «Prüfen /
-   Freigabe» im Formular ist der vorgesehene Ort; das Verhältnis zum
-   «Prüfregister QS» (Abschnitt 10) bleibt zu klären. **Empfehlung:** vorher
-   oder dabei `hlmField` einführen (siehe Punkt 5) — die neun Fragen mit
-   bedingtem Kommentarfeld sind der natürliche Anlass.
+1. **Prüfprotokoll ausbauen (Abschnitt 4.6).** Der Fragenteil ist gebaut
+   (Entscheid 75, Katalog der Review-Vorlage statt Checkliste 1). Offen
+   bleiben: **Umsetzungsvermerk der Inventarisierenden** (welche Befunde
+   umgesetzt, Abweichungen begründet), freie Befunde für
+   Kartenkorrekturen und das Verhältnis zum «Prüfregister QS»
+   (Abschnitt 10).
 2. **Manuelle Prüfung der Karten-Interaktionen.** Hover-MapTip, Direktklick,
    Kontextmenü und Pin-Klick sind inzwischen end-to-end mit synthetischen
    Pointer-Events verifiziert (identischer Event-Pfad wie echte Eingabe);
@@ -1692,13 +1716,14 @@ und «Neue ToDos» umgesetzt — Entscheide 48–66); Reihenfolge als Vorschlag.
    liessen sich auf `hlmField` / `hlmFieldLabel` / `hlmFieldDescription`
    umstellen; die Pflichtbegründung bei «inexistent» hat bis heute kein
    `hlm-field-error`, nur ein handgeschriebenes `*`. Grosser Diff, geringe
-   optische Wirkung — deshalb bewusst an Punkt 1 gekoppelt.
+   optische Wirkung.
 6. **Performance der Vollabdeckung**, falls sie störend wird: Virtualisierung
    der langen Listen oder Debouncing der localStorage-Persistenz (12.6).
 
 **Wo es weitergeht.** `pnpm start`, dann `/dashboard` — oder direkt
 <https://ivs-prototyp-v3.vercel.app>. Die Rolle wechselt man im
-**Account-Menü unten links** (Personen-Icon); als R-03 erscheint zusätzlich
+**Account-Menü unten links** (Button mit der Rollen-Nummer, Rolle gilt
+pro Tab); als R-03 erscheint zusätzlich
 die Stammdatenverwaltung. «Demodaten zurücksetzen» liegt im selben Menü —
 nötig nach jeder Änderung an den Seed-Daten, sonst zeigt der Browser den
 alten Stand (oder `SEED_VERSION` erhöhen).
