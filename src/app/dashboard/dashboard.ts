@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   signal,
   viewChild,
@@ -23,6 +22,7 @@ import {
   lucideMessageSquarePlus,
   lucideRotateCw,
   lucideSearch,
+  lucideTrash2,
 } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -54,7 +54,7 @@ import {
   SUBSTANZGRAD_LABEL,
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
-import { KANTONE, PaketStore } from '../core/paket-store';
+import { Arbeitspaket, KANTONE, PaketStore } from '../core/paket-store';
 import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte } from '../karte/karte';
@@ -114,6 +114,7 @@ interface StatusOption {
       lucideMessageSquarePlus,
       lucideRotateCw,
       lucideSearch,
+      lucideTrash2,
     }),
   ],
   templateUrl: './dashboard.html',
@@ -128,14 +129,6 @@ export class Dashboard {
   private readonly hinweis = inject(HinweisStore);
 
   private readonly karte = viewChild(Karte);
-
-  constructor() {
-    // Ein Rollenwechsel setzt die Absteigen-Ansicht zurück
-    effect(() => {
-      this.einstellungen.aktiveRolleId();
-      this.ansichtPerson.set('eigene');
-    });
-  }
 
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly statusFarbe = STATUS_FARBE;
@@ -175,24 +168,44 @@ export class Dashboard {
     return rolle === 'R-03' || rolle === 'R-04';
   });
 
+  /** Inventarisierende als Zielpersonen der R-04-Pakete. */
+  protected readonly paketPersonen = PERSONEN.filter((p) => p.rolle === 'R-05');
+
   /**
-   * «Absteigen»: Personen, deren persönliches Dashboard die Paketrolle
-   * einsehen kann — R-03 die Koordinatoren und Inventarisierenden,
-   * R-04 die Inventarisierenden.
+   * Kantone, die der aktiven Regionalen Koordination zugewiesen sind —
+   * R-04 sieht und bewirtschaftet nur noch diese (Entscheid 83).
    */
-  protected readonly absteigPersonen = computed(() => {
-    const rolle = this.einstellungen.aktiveRolleId();
-    if (rolle === 'R-03') return PERSONEN.filter((p) => p.rolle === 'R-04' || p.rolle === 'R-05');
-    if (rolle === 'R-04') return PERSONEN.filter((p) => p.rolle === 'R-05');
-    return [];
+  private readonly meineKantone = computed(() => {
+    const ich = NAME_FUER_ROLLE['R-04'];
+    return new Set(
+      Object.entries(this.paketStore.kantonZuweisungen())
+        .filter(([, name]) => name === ich)
+        .map(([kuerzel]) => kuerzel),
+    );
   });
 
-  /** Gewählte Ansicht: 'eigene' oder der Name einer unterstellten Person. */
-  protected readonly ansichtPerson = signal<'eigene' | string>('eigene');
+  /** Die Arbeitspakete der aktiven Regionalen Koordination (Entscheid 83). */
+  protected readonly meinePakete = computed(() =>
+    this.paketStore.pakete().filter((p) => p.koordinator === NAME_FUER_ROLLE['R-04']),
+  );
 
-  /** Zielperson des R-04-Pakets. */
-  protected readonly paketPerson = signal('B. Anderegg');
-  protected readonly paketPersonen = PERSONEN.filter((p) => p.rolle === 'R-05');
+  /** Name für ein neues Arbeitspaket. */
+  protected readonly paketName = signal('');
+
+  /** Zielperson je Paket (Standard: erste Inventarisierende). */
+  private readonly paketZiel = signal<Record<string, string>>({});
+
+  protected zielFuer(paketId: string): string {
+    return this.paketZiel()[paketId] ?? this.paketPersonen[0].name;
+  }
+
+  protected zielSetzen(paketId: string, name: string): void {
+    this.paketZiel.update((z) => ({ ...z, [paketId]: name }));
+  }
+
+  protected signaturVon(objektId: string): string {
+    return this.store.byId(objektId)?.signatur ?? objektId;
+  }
 
   /** Personen für die Zuständig-Spalte (Wechsel nur durch R-03/R-04, Entscheid 81). */
   protected readonly allePersonen = PERSONEN;
@@ -234,15 +247,11 @@ export class Dashboard {
 
   /** Aufgaben der aktiven Sicht nach allen Filtern. */
   private readonly gefiltert = computed(() => {
-    const ansicht = this.ansichtPerson();
-    // Paketrollen sehen alles; das Absteigen zeigt die persönliche Sicht
-    // einer unterstellten Person; alle anderen sehen ihre eigene.
-    const ich =
-      ansicht !== 'eigene'
-        ? ansicht
-        : this.istPaketRolle()
-          ? null
-          : NAME_FUER_ROLLE[this.einstellungen.aktiveRolleId()];
+    const rolle = this.einstellungen.aktiveRolleId();
+    // Paketrollen sehen alle Objekte (R-04 beschränkt auf ihre Kantone,
+    // Entscheid 83); alle anderen sehen ihre persönliche Sicht.
+    const ich = this.istPaketRolle() ? null : NAME_FUER_ROLLE[rolle];
+    const meineKantone = rolle === 'R-04' ? this.meineKantone() : null;
     const begriff = this.suche().trim().toLowerCase();
     const polygon = this.polygonSignaturen();
     const richtung = this.sortAufsteigend() ? 1 : -1;
@@ -253,6 +262,8 @@ export class Dashboard {
         // ToDos werden nur auf Strecken-Ebene zugewiesen — das Dashboard
         // listet deshalb ausschliesslich Strecken.
         if (o.ebene !== 'strecke') return false;
+        // R-04: nur die der Koordination zugewiesenen Kantone
+        if (meineKantone && !meineKantone.has(o.kanton)) return false;
         // Persönlich: aktuell zugewiesen oder laut Lognotizen einmal
         // beteiligt (gleiche Semantik wie der Kommentar-Filter, Entscheid 56)
         if (ich !== null && o.zustaendigName !== ich && !o.lognotizen.some((n) => n.autor === ich))
@@ -413,10 +424,14 @@ export class Dashboard {
   }
 
   /**
-   * R-04: die ausgewählten Strecken (Checkboxen; ersatzweise die aktive
-   * Polygon-Selektion) als Paket einer Inventarisierenden zuweisen.
+   * R-04: aus den ausgewählten Strecken (Checkboxen; ersatzweise die
+   * aktive Polygon-Selektion) ein benanntes Arbeitspaket erstellen
+   * (Entscheid 83). Bereits paketierte Strecken wandern in das neue
+   * Paket — ein Objekt gehört zu höchstens einem Paket.
    */
-  protected paketZuweisen(): void {
+  protected paketErstellen(): void {
+    const name = this.paketName().trim();
+    if (!name) return;
     const ids = this.ausgewaehlteIds();
     if (ids.length === 0) {
       this.hinweis.zeige(
@@ -426,19 +441,67 @@ export class Dashboard {
       );
       return;
     }
-    const ziel = this.paketPersonen.find((p) => p.name === this.paketPerson());
+    this.paketStore.paketErstellen(name, NAME_FUER_ROLLE['R-04'], ids);
+    this.paketName.set('');
+    this.ausgewaehlt.set(new Set());
+    toast.success(`Arbeitspaket «${name}» erstellt`, {
+      description: `${ids.length} Strecke${ids.length === 1 ? '' : 'n'} — Zuweisung an eine Inventarisierende über «Zuweisen».`,
+    });
+  }
+
+  /** R-04: die aktuelle Auswahl einem bestehenden Paket hinzufügen. */
+  protected paketObjekteHinzufuegen(paket: Arbeitspaket): void {
+    const ids = this.ausgewaehlteIds();
+    if (ids.length === 0) {
+      this.hinweis.zeige(
+        'Keine Strecken ausgewählt',
+        'Wähle zuerst die Strecken über die Checkboxen in den Status-Gruppen oder die ' +
+          'Polygon-Selektion aus — sie werden dann dem Paket hinzugefügt.',
+      );
+      return;
+    }
+    this.paketStore.objekteHinzufuegen(paket.id, ids);
+    this.ausgewaehlt.set(new Set());
+    toast.success(`${ids.length} Strecke${ids.length === 1 ? '' : 'n'} zu «${paket.name}» hinzugefügt`);
+  }
+
+  protected paketObjektEntfernen(paket: Arbeitspaket, objektId: string): void {
+    this.paketStore.objektEntfernen(paket.id, objektId);
+  }
+
+  protected paketLoeschen(paket: Arbeitspaket): void {
+    this.paketStore.paketLoeschen(paket.id);
+    toast.success(`Arbeitspaket «${paket.name}» gelöscht`, {
+      description: 'Die Strecken selbst bleiben unverändert.',
+    });
+  }
+
+  /**
+   * R-04: das Paket einer Inventarisierenden zuweisen — alle Strecken
+   * wechseln auf «Zugewiesen» und erhalten die Person als zuständig
+   * (Entscheide 79/83).
+   */
+  protected paketZuweisen(paket: Arbeitspaket): void {
+    if (paket.objektIds.length === 0) {
+      this.hinweis.zeige(
+        'Leeres Paket',
+        `«${paket.name}» enthält keine Strecken — füge zuerst über «+ Auswahl» Strecken hinzu.`,
+      );
+      return;
+    }
+    const ziel = this.paketPersonen.find((p) => p.name === this.zielFuer(paket.id));
     if (!ziel) return;
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.paketZuweisen(
-      ids,
+      paket.objektIds,
       ziel,
-      `Arbeitspaket (${ids.length} Strecken)`,
+      `Arbeitspaket «${paket.name}»`,
       NAME_FUER_ROLLE[rolle],
       rolle,
     );
-    this.ausgewaehlt.set(new Set());
-    toast.success('Arbeitspaket zugewiesen', {
-      description: `${ids.length} Strecken an ${ziel.name} (${ziel.rolle}) — Status «Zugewiesen».`,
+    this.paketStore.paketZuweisungSetzen(paket.id, ziel.name);
+    toast.success(`Arbeitspaket «${paket.name}» zugewiesen`, {
+      description: `${paket.objektIds.length} Strecken an ${ziel.name} (${ziel.rolle}) — Status «Zugewiesen».`,
     });
   }
 

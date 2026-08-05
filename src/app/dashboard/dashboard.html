@@ -192,7 +192,7 @@
                 </div>
                 <!-- Grenzfälle: ausgewählte Strecken in einen anderen Kanton
                      verschieben — die Signatur bleibt (Entscheid 82) -->
-                <div class="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+                <div class="flex flex-wrap items-center gap-2 px-3 py-2">
                   <p class="text-sm">
                     {{ ausgewaehlt().size }} Strecken ausgewählt
                     <span class="text-muted-foreground">
@@ -218,8 +218,88 @@
                   </div>
                 </div>
               } @else {
-                <!-- R-04: freie Auswahl (Checkboxen/Polygon) für Inventarisierende -->
-                <div class="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+                <!-- R-04: benannte, gespeicherte Arbeitspakete (Entscheid 83) —
+                     Inhalt änderbar, Zuweisung an eine Inventarisierende pro
+                     Paket setzt Status «Zugewiesen» -->
+                @for (paket of meinePakete(); track paket.id) {
+                  <div class="border-b border-border px-3 py-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="text-sm font-medium">{{ paket.name }}</p>
+                      <span hlmBadge variant="secondary">
+                        {{ paket.objektIds.length }} Strecken
+                      </span>
+                      @if (paket.zugewiesenAn) {
+                        <span hlmBadge>zugewiesen an {{ paket.zugewiesenAn }}</span>
+                      }
+                      <div class="ml-auto flex items-center gap-1.5">
+                        <hlm-native-select
+                          size="sm"
+                          [ngModel]="zielFuer(paket.id)"
+                          (ngModelChange)="zielSetzen(paket.id, $event)"
+                          [attr.aria-label]="'Zielperson für ' + paket.name"
+                        >
+                          @for (person of paketPersonen; track person.name) {
+                            <option hlmNativeSelectOption [value]="person.name">
+                              {{ person.name }} ({{ person.rolle }})
+                            </option>
+                          }
+                        </hlm-native-select>
+                        <button
+                          hlmBtn
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          (click)="paketZuweisen(paket)"
+                        >
+                          Zuweisen
+                        </button>
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="sm"
+                          type="button"
+                          (click)="paketObjekteHinzufuegen(paket)"
+                          hlmTooltip="Ausgewählte Strecken diesem Paket hinzufügen"
+                        >
+                          + Auswahl
+                        </button>
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="icon"
+                          type="button"
+                          (click)="paketLoeschen(paket)"
+                          hlmTooltip="Paket löschen (die Strecken bleiben unverändert)"
+                          aria-label="Paket löschen"
+                        >
+                          <ng-icon name="lucideTrash2" />
+                        </button>
+                      </div>
+                    </div>
+                    @if (paket.objektIds.length) {
+                      <div class="mt-1.5 flex flex-wrap gap-1">
+                        @for (id of paket.objektIds; track id) {
+                          <span hlmBadge variant="outline" class="gap-1 font-mono text-xs">
+                            {{ signaturVon(id) }}
+                            <button
+                              type="button"
+                              (click)="paketObjektEntfernen(paket, id)"
+                              [attr.aria-label]="signaturVon(id) + ' aus dem Paket entfernen'"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @empty {
+                  <p class="border-b border-border px-3 py-2 text-sm text-muted-foreground">
+                    Noch keine Arbeitspakete — unten Strecken auswählen, Paketname
+                    vergeben und «Paket erstellen».
+                  </p>
+                }
+                <div class="flex flex-wrap items-center gap-2 px-3 py-2">
                   <p class="text-sm">
                     {{ ausgewaehlt().size }} Strecken ausgewählt
                     <span class="text-muted-foreground">
@@ -227,48 +307,27 @@
                     </span>
                   </p>
                   <div class="ml-auto flex items-center gap-2">
-                    <hlm-native-select
+                    <input
+                      hlmInput
+                      class="h-8 w-56"
+                      placeholder="Paketname"
+                      [ngModel]="paketName()"
+                      (ngModelChange)="paketName.set($event)"
+                      aria-label="Paketname"
+                    />
+                    <button
+                      hlmBtn
+                      variant="outline"
                       size="sm"
-                      [ngModel]="paketPerson()"
-                      (ngModelChange)="paketPerson.set($event)"
+                      type="button"
+                      [disabled]="!paketName().trim()"
+                      (click)="paketErstellen()"
                     >
-                      @for (person of paketPersonen; track person.name) {
-                        <option hlmNativeSelectOption [value]="person.name">
-                          {{ person.name }} ({{ person.rolle }})
-                        </option>
-                      }
-                    </hlm-native-select>
-                    <button hlmBtn variant="outline" size="sm" type="button" (click)="paketZuweisen()">
-                      Paket zuweisen
+                      Paket erstellen
                     </button>
                   </div>
                 </div>
               }
-              <!-- Absteigen: die persönliche Sicht einer unterstellten Person -->
-              <div class="flex flex-wrap items-center gap-2 px-3 py-2">
-                <label hlmLabel class="text-xs text-muted-foreground" for="db-ansicht">
-                  Ansicht
-                </label>
-                <hlm-native-select
-                  id="db-ansicht"
-                  size="sm"
-                  class="w-64"
-                  [ngModel]="ansichtPerson()"
-                  (ngModelChange)="ansichtPerson.set($event)"
-                >
-                  <option hlmNativeSelectOption value="eigene">Alle Objekte (eigene Sicht)</option>
-                  @for (person of absteigPersonen(); track person.name) {
-                    <option hlmNativeSelectOption [value]="person.name">
-                      Dashboard von {{ person.name }} ({{ person.rolle }})
-                    </option>
-                  }
-                </hlm-native-select>
-                @if (ansichtPerson() !== 'eigene') {
-                  <span hlmBadge variant="secondary">
-                    zeigt die persönlichen Aufgaben von {{ ansichtPerson() }}
-                  </span>
-                }
-              </div>
             </div>
           </div>
         }
