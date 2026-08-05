@@ -1284,6 +1284,16 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     statusunabhängig** (04.04 nennt sie ausdrücklich). Änderungen
     werden je Objekt als Lognotiz protokolliert
     (`attributSetzenMehrere` im ObjektStore).
+88. **Kommentare immer mit Objekt:** Jeder Kommentar ist einem Objekt
+    zugewiesen — auch räumliche Notizen auf der Karte (revidiert die
+    optionale Zuweisung aus Entscheid 38 und 05.11). Die Karten-Dialoge
+    (Dashboard, Objekt-Detail, Kartenfenster) führen die Zuweisung als
+    **Pflichtfeld**, vorbelegt mit dem **an der Klickstelle getroffenen
+    Objekt** (das `kommentarPosition`-Ereignis der Karte liefert die
+    Signatur mit); der objektübergreifende Kommentar-Composer erhält
+    ein Pflicht-Select. Modell: `objektSignatur` ist nicht mehr
+    nullable; der freie Seed-Kommentar ist BE 21.1.3 zugeordnet
+    (Kommentar-Seed-Version 2).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1692,7 +1702,8 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–84 in
   objektübergreifend nur eigene — Entscheid 56); `@`-Erwähnungen
   (Benutzer mit Rolle) und `#`-Attribut-Referenzen, die im Objektformular
   zum Feld springen (09.03); Kommentare an Objekten jeder Ebene oder frei
-  auf der Karte platzierbar (05.11), Objektzuweisung optional.
+  auf der Karte platzierbar (05.11) — seit Entscheid 88 immer mit
+  Pflicht-Objektzuweisung, vorbelegt mit dem getroffenen Objekt.
 - **Detail-Werkzeuge**: Rich-Text-Editor für die Beschriebe (07.17: fett,
   kursiv, durchstreichen, Markerfarben), Geometrie-Editing auf der Karte
   (05.05: zeichnen, verschieben, Stützpunkte, verschneiden, zusammenfügen;

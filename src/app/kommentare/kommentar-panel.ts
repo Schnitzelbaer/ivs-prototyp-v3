@@ -28,6 +28,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
@@ -75,6 +76,7 @@ const WOCHENTAGE = [
     HlmEmptyImports,
     HlmInputImports,
     HlmInputGroupImports,
+    HlmNativeSelectImports,
     HlmTextareaImports,
     HlmTooltipImports,
   ],
@@ -130,6 +132,16 @@ export class KommentarPanel {
 
   protected readonly neuerTitel = signal('');
   protected readonly neuerText = signal('');
+
+  /** Pflicht-Objekt im objektübergreifenden Panel (Entscheid 88). */
+  protected readonly neuesObjekt = signal('');
+
+  /** Alle Objekte für die Pflicht-Zuweisung neuer Kommentare. */
+  protected readonly alleObjekte = computed(() =>
+    [...this.objektStore.alle()].sort((a, b) =>
+      a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }),
+    ),
+  );
 
   protected readonly persona = computed(() => {
     const rolle = this.einstellungen.aktiveRolleId();
@@ -256,10 +268,13 @@ export class KommentarPanel {
 
   protected kommentarSenden(): void {
     const text = this.neuerText().trim();
-    if (!text) return;
+    // Jeder Kommentar braucht ein Objekt (Entscheid 88): im gebundenen
+    // Panel das Objekt selbst, sonst die Pflicht-Auswahl des Composers.
+    const signatur = this.objektSignatur() ?? this.neuesObjekt();
+    if (!text || !signatur) return;
     const { name, rolle } = this.persona();
     this.store.hinzufuegen({
-      objektSignatur: this.objektSignatur(),
+      objektSignatur: signatur,
       position: null,
       titel: this.neuerTitel().trim(),
       text,
@@ -271,6 +286,7 @@ export class KommentarPanel {
     });
     this.neuerTitel.set('');
     this.neuerText.set('');
+    this.neuesObjekt.set('');
   }
 
   /** Fügt ein `@[…]`- oder `#[…]`-Token an der Cursorposition ein. */

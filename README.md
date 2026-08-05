@@ -211,8 +211,9 @@ neuen Session weiterzuarbeiten.
   Filtern (Standard «Offene»; objektübergreifende Listen zeigen nur die
   eigenen — zugewiesen, mal zugewiesen oder erwähnt), `@`-Erwähnungen und
   `#`-Attribut-Referenzen (springen im Formular zum Feld); Kommentare an
-  Objekten jeder Ebene oder frei auf der Karte (Sprechblasen-Pins,
-  Platzier-Werkzeug, optionale Objektzuweisung).
+  Objekten jeder Ebene oder platziert auf der Karte (Sprechblasen-Pins,
+  Platzier-Werkzeug) — immer mit Pflicht-Objektzuweisung, vorbelegt
+  mit dem an der Klickstelle getroffenen Objekt.
 - **Detail-Werkzeuge**: Rich-Text-Editor (07.17) für Geschichte/Gelände,
   Geometrie-Editing (05.05/05.09: zeichnen, verschieben, Stützpunkte,
   verschneiden, zusammenfügen, Snapping), Hintergrundkarten und Overlays

@@ -304,13 +304,13 @@ import { KarteSync } from './karte-sync';
             ></textarea>
           </div>
           <div class="grid gap-1.5">
-            <label hlmLabel for="kf-objekt">Objekt (optional)</label>
+            <label hlmLabel for="kf-objekt">Objekt <span class="text-destructive">*</span></label>
             <hlm-native-select
               id="kf-objekt"
               [ngModel]="kartenKommentarZuweisung()"
               (ngModelChange)="kartenKommentarZuweisung.set($event)"
             >
-              <option hlmNativeSelectOption value="">Keine Zuweisung</option>
+              <option hlmNativeSelectOption value="">— Objekt wählen</option>
               @for (eintrag of alleObjekte(); track eintrag.id) {
                 <option hlmNativeSelectOption [value]="eintrag.signatur">
                   {{ eintrag.signatur }} – {{ eintrag.name }}
@@ -326,7 +326,7 @@ import { KarteSync } from './karte-sync';
           <button
             hlmBtn
             type="button"
-            [disabled]="!kartenKommentarText().trim()"
+            [disabled]="!kartenKommentarText().trim() || !kartenKommentarZuweisung()"
             (click)="kartenKommentarSpeichern()"
           >
             Kommentar speichern
@@ -493,9 +493,14 @@ export class KarteFenster {
     this.kartenTab.set('kommentare');
   }
 
-  protected kommentarPositionGewaehlt(position: { lon: number; lat: number }): void {
+  protected kommentarPositionGewaehlt(position: {
+    lon: number;
+    lat: number;
+    signatur: string | null;
+  }): void {
     this.kartenKommentarPosition.set(position);
-    this.kartenKommentarZuweisung.set(this.selektion()?.signatur ?? '');
+    // Pflicht-Zuweisung (Entscheid 88): getroffenes Objekt, sonst Selektion
+    this.kartenKommentarZuweisung.set(position.signatur ?? this.selektion()?.signatur ?? '');
     this.kartenKommentarTitel.set('');
     this.kartenKommentarText.set('');
     this.kartenKommentarOffen.set(true);
@@ -504,10 +509,10 @@ export class KarteFenster {
   protected kartenKommentarSpeichern(): void {
     const position = this.kartenKommentarPosition();
     const text = this.kartenKommentarText().trim();
-    if (!position || !text) return;
+    if (!position || !text || !this.kartenKommentarZuweisung()) return;
     const rolle = this.einstellungen.aktiveRolleId();
     this.kommentarStore.hinzufuegen({
-      objektSignatur: this.kartenKommentarZuweisung() || null,
+      objektSignatur: this.kartenKommentarZuweisung(),
       position,
       titel: this.kartenKommentarTitel().trim(),
       text,

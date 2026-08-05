@@ -322,7 +322,12 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Beim Klick auf einen Kommentar-Pin: Kommentar-Id. */
   readonly kommentarKlick = output<string>();
   /** Nach dem Platzieren mit dem Kommentar-Werkzeug: gewählte Position. */
-  readonly kommentarPosition = output<{ lon: number; lat: number }>();
+  /**
+   * Gewählte Kommentar-Position samt dem an der Stelle getroffenen Objekt
+   * (Vorbelegung der Pflicht-Zuweisung, Entscheid 88) — null, wenn im
+   * Umkreis nichts liegt.
+   */
+  readonly kommentarPosition = output<{ lon: number; lat: number; signatur: string | null }>();
   /** Geometrie-Editing (05.05): Signatur des zu bearbeitenden Objekts, null = aus. */
   readonly geometrieEditObjekt = input<string | null>(null);
   /**
@@ -669,9 +674,15 @@ export class Karte implements AfterViewInit, OnDestroy {
         this.kommentarModus.set(false);
         view.container?.style.removeProperty('cursor');
         const geografisch = webMercatorUtils.webMercatorToGeographic(ereignis.mapPoint) as Point;
-        this.kommentarPosition.emit({
-          lon: geografisch.longitude ?? 0,
-          lat: geografisch.latitude ?? 0,
+        // Das an der Stelle getroffene Objekt als Vorbelegung der
+        // Pflicht-Zuweisung mitgeben (Entscheid 88)
+        void this.objektTrefferAmPunkt(ereignis).then((attribute) => {
+          const blaetter = this.blattSignaturen(attribute);
+          this.kommentarPosition.emit({
+            lon: geografisch.longitude ?? 0,
+            lat: geografisch.latitude ?? 0,
+            signatur: blaetter[0] ?? null,
+          });
         });
         return;
       }

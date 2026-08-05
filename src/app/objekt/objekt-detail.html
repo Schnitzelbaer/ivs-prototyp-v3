@@ -1260,13 +1260,13 @@
           ></textarea>
         </div>
         <div class="grid gap-1.5">
-          <label hlmLabel for="kk-objekt">Objekt (optional)</label>
+          <label hlmLabel for="kk-objekt">Objekt <span class="text-destructive">*</span></label>
           <hlm-native-select
             id="kk-objekt"
             [ngModel]="kartenKommentarZuweisung()"
             (ngModelChange)="kartenKommentarZuweisung.set($event)"
           >
-            <option hlmNativeSelectOption value="">Keine Zuweisung</option>
+            <option hlmNativeSelectOption value="">— Objekt wählen</option>
             @for (eintrag of alleObjekte(); track eintrag.id) {
               <option hlmNativeSelectOption [value]="eintrag.signatur">
                 {{ eintrag.signatur }} – {{ eintrag.name }}
@@ -1282,7 +1282,7 @@
         <button
           hlmBtn
           type="button"
-          [disabled]="!kartenKommentarText().trim()"
+          [disabled]="!kartenKommentarText().trim() || !kartenKommentarZuweisung()"
           (click)="kartenKommentarSpeichern()"
         >
           Kommentar speichern

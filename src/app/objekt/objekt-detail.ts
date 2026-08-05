@@ -873,9 +873,14 @@ export class ObjektDetail implements OnDestroy {
     this.karte()?.kommentarWerkzeugUmschalten();
   }
 
-  protected kommentarPositionGewaehlt(position: { lon: number; lat: number }): void {
+  protected kommentarPositionGewaehlt(position: {
+    lon: number;
+    lat: number;
+    signatur: string | null;
+  }): void {
     this.kartenKommentarPosition.set(position);
-    this.kartenKommentarZuweisung.set(this.objekt()?.signatur ?? '');
+    // Pflicht-Zuweisung (Entscheid 88): getroffenes Objekt, sonst das offene
+    this.kartenKommentarZuweisung.set(position.signatur ?? this.objekt()?.signatur ?? '');
     this.kartenKommentarTitel.set('');
     this.kartenKommentarText.set('');
     this.kartenKommentarOffen.set(true);
@@ -884,10 +889,10 @@ export class ObjektDetail implements OnDestroy {
   protected kartenKommentarSpeichern(): void {
     const position = this.kartenKommentarPosition();
     const text = this.kartenKommentarText().trim();
-    if (!position || !text) return;
+    if (!position || !text || !this.kartenKommentarZuweisung()) return;
     const rolle = this.einstellungen.aktiveRolleId();
     this.kommentarStore.hinzufuegen({
-      objektSignatur: this.kartenKommentarZuweisung() || null,
+      objektSignatur: this.kartenKommentarZuweisung(),
       position,
       titel: this.kartenKommentarTitel().trim(),
       text,

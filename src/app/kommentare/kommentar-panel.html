@@ -228,6 +228,22 @@
   <!-- Composer -->
   <div class="flex flex-col gap-2 border-t border-border px-3 py-2.5">
     <p class="text-xs text-muted-foreground">{{ persona().name }} · {{ persona().rollenName }}</p>
+    @if (objektSignatur() === null) {
+      <!-- Objektübergreifendes Panel: Jeder Kommentar braucht ein Objekt (E88) -->
+      <hlm-native-select
+        size="sm"
+        [ngModel]="neuesObjekt()"
+        (ngModelChange)="neuesObjekt.set($event)"
+        aria-label="Objekt des Kommentars"
+      >
+        <option hlmNativeSelectOption value="">— Objekt wählen *</option>
+        @for (eintrag of alleObjekte(); track eintrag.id) {
+          <option hlmNativeSelectOption [value]="eintrag.signatur">
+            {{ eintrag.signatur }} – {{ eintrag.name }}
+          </option>
+        }
+      </hlm-native-select>
+    }
     <input
       hlmInput
       class="h-8 w-full text-sm"
@@ -298,7 +314,7 @@
         size="sm"
         class="ml-auto"
         type="button"
-        [disabled]="!neuerText().trim()"
+        [disabled]="!neuerText().trim() || (objektSignatur() === null && !neuesObjekt())"
         (click)="kommentarSenden()"
       >
         <ng-icon name="lucideSend" />

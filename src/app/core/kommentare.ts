@@ -18,8 +18,11 @@ export interface KommentarAntwort {
 
 export interface Kommentar {
   id: string;
-  /** Signatur des Objekts, null bei freien Karten-Kommentaren. */
-  objektSignatur: string | null;
+  /**
+   * Signatur des Objekts — Pflicht: Jeder Kommentar ist einem Objekt
+   * zugewiesen, auch räumliche Notizen auf der Karte (Entscheid 88).
+   */
+  objektSignatur: string;
   /** Kartenposition (räumliche Notiz), null bei reinen Objekt-Kommentaren. */
   position: { lon: number; lat: number } | null;
   titel: string;
@@ -66,7 +69,7 @@ export function parseKommentarText(text: string): KommentarSegment[] {
 }
 
 /** Bei Änderungen erhöhen — verwirft gespeicherte Kommentar-Stände. */
-const KOMMENTAR_SEED_VERSION = 1;
+const KOMMENTAR_SEED_VERSION = 2;
 
 const SEED_KOMMENTARE: Kommentar[] = [
   {
@@ -122,10 +125,10 @@ const SEED_KOMMENTARE: Kommentar[] = [
   },
   {
     id: 'k4',
-    objektSignatur: null,
+    objektSignatur: 'BE 21.1.3',
     position: { lon: 7.2549, lat: 46.9641 },
     titel: 'Wegfortsetzung unklar',
-    text: 'Hier scheint der Hohlweg weiterzulaufen, ist aber keinem Objekt zugeordnet. Bei nächster Begehung klären.',
+    text: 'Hier scheint der Hohlweg weiterzulaufen. Bei nächster Begehung klären, ob er noch zu BE 21.1.3 gehört.',
     autor: 'B. Anderegg',
     rolle: 'R-05',
     zeit: '2026-07-26T08:30:00',
