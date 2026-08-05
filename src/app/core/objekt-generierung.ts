@@ -562,6 +562,8 @@ function teilstueck(strang: Koordinate[], von: number, bis: number): Koordinate[
 function generierteFelder(code: number | null): GenerierteFelder {
   const basis: GenerierteFelder = {
     status: 'publiziert',
+    // neutral zugewiesen: Generierte erscheinen in keinem persönlichen Dashboard
+    zustaendigRolle: 'R-08',
     gemeinden: '',
     geschichteText:
       'Übernommen aus IVS 1.0; Beschrieb im Rahmen der Nachführung noch nicht überarbeitet.',

@@ -68,9 +68,10 @@ interface StatusOption {
 }
 
 /**
- * Dashboard (04): rollenspezifisch vorgefilterte Aufgabenliste, gruppiert
- * nach den rollenrelevanten Workflow-Stati, daneben die Karte. Die
- * vollständige, ungefilterte Übersicht liegt unter «Objekte».
+ * Dashboard (04): persönliche Aufgabenliste, gruppiert nach allen acht
+ * Workflow-Stati — je Status erscheinen nur Objekte, die der aktiven
+ * Person zugewiesen sind oder laut Lognotizen einmal zugewiesen waren.
+ * Die vollständige Übersicht liegt unter «Objekte».
  */
 @Component({
   selector: 'ivs-dashboard',
@@ -152,9 +153,9 @@ export class Dashboard {
   protected readonly kartenKommentarText = signal('');
   protected readonly kartenKommentarZuweisung = signal('');
 
-  /** Aufgaben der aktiven Rolle nach allen Filtern. */
+  /** Aufgaben der aktiven Person nach allen Filtern. */
   private readonly gefiltert = computed(() => {
-    const rolle = this.einstellungen.aktiveRolle();
+    const ich = NAME_FUER_ROLLE[this.einstellungen.aktiveRolleId()];
     const begriff = this.suche().trim().toLowerCase();
     const polygon = this.polygonSignaturen();
     const richtung = this.sortAufsteigend() ? 1 : -1;
@@ -165,7 +166,9 @@ export class Dashboard {
         // ToDos werden nur auf Strecken-Ebene zugewiesen — das Dashboard
         // listet deshalb ausschliesslich Strecken.
         if (o.ebene !== 'strecke') return false;
-        if (!rolle.relevanteStati.includes(o.status)) return false;
+        // Persönlich: aktuell zugewiesen oder laut Lognotizen einmal
+        // beteiligt (gleiche Semantik wie der Kommentar-Filter, Entscheid 56)
+        if (o.zustaendigName !== ich && !o.lognotizen.some((n) => n.autor === ich)) return false;
         if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
         if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
           return false;
@@ -181,21 +184,18 @@ export class Dashboard {
       .sort((a, b) => richtung * a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
   });
 
-  /** Stati der aktiven Rolle in Workflow-Reihenfolge (Gruppen und Filter). */
-  protected readonly rollenStati = computed<WorkflowStatus[]>(() => {
-    const relevante = this.einstellungen.aktiveRolle().relevanteStati;
-    return ALLE_STATI.filter((s) => relevante.includes(s));
-  });
+  /** Alle acht Stati in Workflow-Reihenfolge (Gruppen und Filter). */
+  protected readonly alleStati = ALLE_STATI;
 
   protected readonly bloecke = computed<StatusBlock[]>(() => {
     const objekte = this.gefiltert();
-    return this.rollenStati()
-      .filter((s) => this.statusFilter() === 'alle' || this.statusFilter() === s)
-      .map((status) => ({
-        status,
-        label: STATUS_LABEL[status],
-        objekte: objekte.filter((o) => o.status === status),
-      }));
+    return ALLE_STATI.filter(
+      (s) => this.statusFilter() === 'alle' || this.statusFilter() === s,
+    ).map((status) => ({
+      status,
+      label: STATUS_LABEL[status],
+      objekte: objekte.filter((o) => o.status === status),
+    }));
   });
 
   protected readonly polygonAktiv = computed(() => this.karte()?.polygonAktiv() ?? false);

@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 7;
+export const SEED_VERSION = 8;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -39,6 +39,8 @@ export interface Vorlage {
   name: string;
   parent: string | null;
   status: WorkflowStatus;
+  /** Übersteuert die aus dem Status abgeleitete Zuständigkeit (z. B. R-08 für Generierte). */
+  zustaendigRolle?: RolleId;
   zustaendigName?: string;
   nhgWert?: NhgWert;
   substanzgrad?: Substanzgrad | null;
@@ -98,7 +100,7 @@ function leereBewertung(): Bewertung {
 }
 
 export function objektAusVorlage(v: Vorlage): IvsObjekt {
-  const rolle = rolleFuerStatus(v.status);
+  const rolle = v.zustaendigRolle ?? rolleFuerStatus(v.status);
   return {
     id: idAusSignatur(v.signatur),
     signatur: v.signatur,
@@ -174,6 +176,12 @@ const BE_7: Vorlage[] = [
       'Anderegg, K. (1998): Der bernische Chausseebau im 18. Jahrhundert. Bern.\n' +
       'Flückiger, R. (2002): IVS Dokumentation Kanton Bern, Strecke BE 7.',
     lognotizen: [
+      {
+        datum: '2025-02-11',
+        autor: 'S. Koch',
+        rolle: 'R-07',
+        text: 'Übergreifende Prüfung abgeschlossen, keine Einwände gegen die Publikation.',
+      },
       {
         datum: '2025-03-02',
         autor: 'K. Aebischer',
@@ -617,6 +625,20 @@ const BE_22: Vorlage[] = [
     datierungGelaende20: '2025-03-18',
     bibliografie:
       'Büttner, H. (1953): Studien zur Geschichte der Kirchgemeinden des Berner Mittellandes. Bern.',
+    lognotizen: [
+      {
+        datum: '2026-06-12',
+        autor: 'T. Nyffenegger',
+        rolle: 'R-04',
+        text: 'Arbeitspaket «Wohlensee Süd» zugewiesen an B. Anderegg.',
+      },
+      {
+        datum: '2026-06-28',
+        autor: 'B. Anderegg',
+        rolle: 'R-05',
+        text: 'Nachführung abgeschlossen, zur Prüfung übergeben.',
+      },
+    ],
   },
   {
     signatur: 'BE 22.1',
@@ -736,6 +758,14 @@ const BE_23: Vorlage[] = [
     geschichteText:
       'Text identisch mit Erstbeschrieb IVS 1.0 (Stand 14.09.1993). Höhenweg über Matzwil, Vorgänger der Talstrasse.',
     datierungGeschichte10: '1993-09-14',
+    lognotizen: [
+      {
+        datum: '2026-06-12',
+        autor: 'T. Nyffenegger',
+        rolle: 'R-04',
+        text: 'Arbeitspaket «Wohlensee Süd» zugewiesen an L. Furrer.',
+      },
+    ],
   },
   {
     signatur: 'BE 23.1',
@@ -822,6 +852,12 @@ const BE_35: Vorlage[] = [
         autor: 'M. Gerber',
         rolle: 'R-06',
         text: 'Fachliche Prüfung abgeschlossen, keine offenen Befunde.',
+      },
+      {
+        datum: '2026-07-21',
+        autor: 'S. Koch',
+        rolle: 'R-07',
+        text: 'Übergreifende Prüfung aufgenommen; Stellungnahme der kantonalen Fachstelle ausstehend.',
       },
     ],
   },

@@ -64,7 +64,7 @@
       (ngModelChange)="statusFilter.set($event)"
     >
       <option hlmNativeSelectOption value="alle">Alle Stati</option>
-      @for (status of rollenStati(); track status) {
+      @for (status of alleStati; track status) {
         <option hlmNativeSelectOption [value]="status">{{ statusLabel[status] }}</option>
       }
     </hlm-native-select>
@@ -166,7 +166,7 @@
                     </div>
                     <div hlmEmptyTitle>Keine Objekte in diesem Status</div>
                     <div hlmEmptyDescription>
-                      Für die aktive Rolle und die gesetzten Filter liegt hier nichts an.
+                      Für die aktive Person und die gesetzten Filter liegt hier nichts an.
                     </div>
                   </div>
                 </div>

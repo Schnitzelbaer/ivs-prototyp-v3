@@ -17,7 +17,7 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 69), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 70), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
@@ -935,10 +935,10 @@ Rückfragen in derselben Session geklärt)**
     erwähnte sowie Kommentare auf Objekten, die der Person zugewiesen sind
     oder laut Lognotizen einmal zugewiesen waren. Im geöffneten Objekt
     bleiben alle sichtbar (Prüf-Workflow).
-57. **Dashboard:** Liste und Zeilen-Dropdown arbeiten mit den
-    **rollenrelevanten Stati** (`relevanteStati` in rollen.ts — die Stati,
-    in denen die Rolle arbeitet, plus jene, die sie über ihre Übergänge
-    setzt); das Dropdown erlaubt den direkten Wechsel.
+57. ~~**Dashboard:** Liste und Zeilen-Dropdown arbeiten mit den
+    rollenrelevanten Stati (`relevanteStati` in rollen.ts).~~
+    **Aufgehoben durch die Entscheide 69 und 70** — die Dropdowns bieten
+    die setzbaren Stati, die Liste filtert persönlich.
 58. **Kartenfenster `/karte` mit Panel-Kopf:** Tabs (Karte, 360° Bilder
     mit Begehungsplanung, Kommentare) und Werkzeuge inklusive Zeichnen;
     Arbeitsgeometrien und Kommentare synchronisieren über
@@ -1021,6 +1021,17 @@ Rückfragen in derselben Session geklärt)**
     setzen**; `publiziert` gehört neu auch zu ihren relevanten Stati
     (eigene Dashboard-Gruppe). Die seit Entscheid 59 tote
     Übergangs-Tabelle (`UEBERGAENGE` in status.ts) ist entfernt.
+70. **Dashboard ist persönlich, alle Stati:** Für jede Rolle erscheinen
+    **alle acht Stati** als Gruppen (präzisiert Entscheid 68); je Status
+    stehen nur Objekte, die der **aktiven Person** zugewiesen sind oder
+    laut Lognotizen einmal zugewiesen waren (gleiche Semantik wie der
+    Kommentar-Filter, Entscheid 56). `relevanteStati` ist damit entfernt
+    (ersetzt den Dashboard-Teil von Entscheid 57). Generierte Objekte
+    sind neutral **«System» (R-08)** zugewiesen und erscheinen in keinem
+    persönlichen Dashboard; der Status-Filter bietet alle acht Stati.
+    Seed-Ergänzung: Zuweisungs- und Prüf-Lognotizen auf den Strecken
+    BE 7/22/23/35, damit jede Rolle (inkl. R-04 T. Nyffenegger und
+    R-07 S. Koch) eigene Einträge sieht.
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1191,7 +1202,7 @@ src/app/
   core/                Modell, Stati, Rollen, Seed-Daten, Stores
     model.ts           IvsObjekt, ObjektTyp/objektTypText, WorkflowStatus, …
     status.ts          Status-Labels und -Farben
-    rollen.ts          Rollen mit relevanteStati, setzbareStati und editStati
+    rollen.ts          Rollen mit setzbareStati und editStati, darfEditieren
     seed-data.ts       48 kuratierte Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
     objekt-generierung.ts  Vollabdeckung: Objekte, Kunstbauten, Feature-Zuordnung
     objekt-store.ts    Objekte, statusWechseln, ergänzt generierte idempotent
@@ -1278,9 +1289,10 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   Modal), zusammen mit Profil und «Demodaten zurücksetzen». Dark-Mode,
   Sprachwechsler als Attrappe, zentraler Hinweis-Dialog (nie-disabled).
 - **Dashboard (04)**: **nur Strecken** (ToDos auf Strecken-Ebene,
-  Entscheid 60) in den **rollenrelevanten Stati** (Entscheid 57),
-  gruppiert **nach den echten Workflow-Stati** in Workflow-Reihenfolge
-  (Entscheid 68, mit Status-Farbpunkt), Suche, Schnellfilter inkl.
+  Entscheid 60), **persönlich** — je Status nur Objekte, die der aktiven
+  Person zugewiesen sind oder einmal zugewiesen waren (Entscheid 70) —,
+  gruppiert **nach allen acht Workflow-Stati** in Workflow-Reihenfolge
+  (Entscheide 68/70, mit Status-Farbpunkt), Suche, Schnellfilter inkl.
   Status-Filter, Zeilen-Dropdown mit direktem Wechsel unter den
   **setzbaren Stati** (Entscheid 69), Polygon-Selektion als
   geographischer Filter (05.03).

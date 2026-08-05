@@ -132,13 +132,15 @@ neuen Session weiterzuarbeiten.
   Überall dieselben Symbole (Karte, Kartenbild-Panel, Hierarchie-Menü,
   MapTip, Side-Panel): Strecke/Linienführung orange gleich dick, Abschnitte
   blau durchgezogen in drei Dicken, Wegbegleiter rot.
-- **Dashboard** (`/dashboard`): Aufgabenliste **nur mit Strecken** (ToDos
-  werden auf Strecken-Ebene zugewiesen), gruppiert **nach den
-  rollenrelevanten Workflow-Stati** (echte Stati statt
-  Backlog/In Arbeit/Done), Volltextsuche, Schnellfilter inkl.
-  Status-Filter, Zeilen-Dropdown mit direktem Statuswechsel unter den
-  von der Rolle setzbaren Stati, Polygon-Selektion auf der Karte als
-  geographischer Filter.
+- **Dashboard** (`/dashboard`): **persönliche** Aufgabenliste, nur mit
+  Strecken (ToDos werden auf Strecken-Ebene zugewiesen) — je Status
+  erscheinen nur Objekte, die der aktiven Person zugewiesen sind oder
+  laut Lognotizen einmal zugewiesen waren; gruppiert **nach allen acht
+  Workflow-Stati**, Volltextsuche, Schnellfilter inkl. Status-Filter,
+  Zeilen-Dropdown mit direktem Statuswechsel unter den von der Rolle
+  setzbaren Stati, Polygon-Selektion auf der Karte als geographischer
+  Filter. Generierte Objekte sind neutral «System» zugewiesen und
+  erscheinen in keinem Dashboard.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
   via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte
