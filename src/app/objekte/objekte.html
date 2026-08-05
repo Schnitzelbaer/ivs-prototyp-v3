@@ -35,6 +35,99 @@
       />
     </div>
 
+    <!-- «Alle Filter»: die weiteren Attributfilter — gleiche Semantik wie
+         im Dashboard (Entscheid 84) -->
+    <hlm-popover sideOffset="6">
+      <button hlmPopoverTrigger hlmBtn variant="outline" size="sm" type="button">
+        <ng-icon name="lucideListFilter" />
+        Alle Filter
+      </button>
+      <hlm-popover-content *hlmPopoverPortal align="start" class="w-80">
+        <hlm-popover-header>
+          <div hlmPopoverTitle>Alle Filter</div>
+          <p hlmPopoverDescription>Weitere Attribute der Objekte.</p>
+        </hlm-popover-header>
+        <div class="mt-3 grid gap-3">
+          <div class="grid gap-1.5">
+            <label hlmLabel for="of-kanton">Kanton</label>
+            <hlm-native-select
+              id="of-kanton"
+              size="sm"
+              [ngModel]="kantonFilter()"
+              (ngModelChange)="kantonFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Alle Kantone</option>
+              @for (kanton of kantone; track kanton.kuerzel) {
+                <option hlmNativeSelectOption [value]="kanton.kuerzel">{{ kanton.name }}</option>
+              }
+            </hlm-native-select>
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="of-gemeinde">Gemeinde</label>
+            <input
+              hlmInput
+              id="of-gemeinde"
+              class="h-8"
+              placeholder="z. B. Frauenkappelen"
+              [ngModel]="gemeindeFilter()"
+              (ngModelChange)="gemeindeFilter.set($event)"
+            />
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="of-alter">Aufnahmejahr</label>
+            <hlm-native-select
+              id="of-alter"
+              size="sm"
+              [ngModel]="alterFilter()"
+              (ngModelChange)="alterFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Alle Jahre</option>
+              <option hlmNativeSelectOption value="2024">2024</option>
+              <option hlmNativeSelectOption value="2025">2025</option>
+            </hlm-native-select>
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="of-bewertung">Bewertung (Durchschnitt)</label>
+            <hlm-native-select
+              id="of-bewertung"
+              size="sm"
+              [ngModel]="bewertungMinFilter()"
+              (ngModelChange)="bewertungMinFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Beliebig</option>
+              <option hlmNativeSelectOption value="1">mindestens Ø 1</option>
+              <option hlmNativeSelectOption value="2">mindestens Ø 2</option>
+              <option hlmNativeSelectOption value="3">mindestens Ø 3</option>
+            </hlm-native-select>
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="of-inexistent">Inexistenz</label>
+            <hlm-native-select
+              id="of-inexistent"
+              size="sm"
+              [ngModel]="inexistentFilter()"
+              (ngModelChange)="inexistentFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Alle Objekte</option>
+              <option hlmNativeSelectOption value="nur">Nur inexistente</option>
+              <option hlmNativeSelectOption value="ohne">Ohne inexistente</option>
+            </hlm-native-select>
+          </div>
+        </div>
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          class="mt-3 w-full"
+          type="button"
+          (click)="filterZuruecksetzen()"
+        >
+          <ng-icon name="lucideRotateCw" />
+          Filter zurücksetzen
+        </button>
+      </hlm-popover-content>
+    </hlm-popover>
+
     <hlm-native-select
       class="w-40"
       size="sm"
@@ -46,6 +139,39 @@
         <option hlmNativeSelectOption [value]="status">{{ statusLabel[status] }}</option>
       }
     </hlm-native-select>
+
+    <!-- Nur für die Paketrollen R-03/R-04 (Entscheid 84) -->
+    @if (istPaketRolle()) {
+      <hlm-native-select
+        class="w-44"
+        size="sm"
+        [ngModel]="personFilter()"
+        (ngModelChange)="personFilter.set($event)"
+        aria-label="Zuständige Person"
+      >
+        <option hlmNativeSelectOption value="alle">Zuständige Person</option>
+        @for (person of allePersonen; track person.name) {
+          <option hlmNativeSelectOption [value]="person.name">
+            {{ person.name }} ({{ person.rolle }})
+          </option>
+        }
+        <option hlmNativeSelectOption value="System">System (R-08)</option>
+        <option hlmNativeSelectOption [value]="ohnePerson">Ohne Zuweisung</option>
+      </hlm-native-select>
+
+      <hlm-native-select
+        class="w-44"
+        size="sm"
+        [ngModel]="paketFilter()"
+        (ngModelChange)="paketFilter.set($event)"
+        aria-label="Arbeitspaket"
+      >
+        <option hlmNativeSelectOption value="alle">Arbeitspaket</option>
+        @for (option of paketFilterOptionen(); track option.wert) {
+          <option hlmNativeSelectOption [value]="option.wert">{{ option.label }}</option>
+        }
+      </hlm-native-select>
+    }
 
     <hlm-native-select
       class="w-32"

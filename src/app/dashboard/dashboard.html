@@ -30,6 +30,7 @@
       />
     </div>
 
+    <!-- «Alle Filter»: die weiteren Attributfilter (Entscheid 84) -->
     <hlm-popover sideOffset="6">
       <button hlmPopoverTrigger hlmBtn variant="outline" size="sm" type="button">
         <ng-icon name="lucideListFilter" />
@@ -38,11 +39,75 @@
       <hlm-popover-content *hlmPopoverPortal align="start" class="w-80">
         <hlm-popover-header>
           <div hlmPopoverTitle>Alle Filter</div>
-          <p hlmPopoverDescription>
-            Volltextsuche und Schnellfilter sind funktional; weitere Attribut- und Stammdaten-Filter
-            folgen in einer späteren Etappe.
-          </p>
+          <p hlmPopoverDescription>Weitere Attribute der Objekte.</p>
         </hlm-popover-header>
+        <div class="mt-3 grid gap-3">
+          <div class="grid gap-1.5">
+            <label hlmLabel for="df-kanton">Kanton</label>
+            <hlm-native-select
+              id="df-kanton"
+              size="sm"
+              [ngModel]="kantonFilter()"
+              (ngModelChange)="kantonFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Alle Kantone</option>
+              @for (kanton of kantone; track kanton.kuerzel) {
+                <option hlmNativeSelectOption [value]="kanton.kuerzel">{{ kanton.name }}</option>
+              }
+            </hlm-native-select>
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="df-gemeinde">Gemeinde</label>
+            <input
+              hlmInput
+              id="df-gemeinde"
+              class="h-8"
+              placeholder="z. B. Frauenkappelen"
+              [ngModel]="gemeindeFilter()"
+              (ngModelChange)="gemeindeFilter.set($event)"
+            />
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="df-alter">Aufnahmejahr</label>
+            <hlm-native-select
+              id="df-alter"
+              size="sm"
+              [ngModel]="alterFilter()"
+              (ngModelChange)="alterFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Alle Jahre</option>
+              <option hlmNativeSelectOption value="2024">2024</option>
+              <option hlmNativeSelectOption value="2025">2025</option>
+            </hlm-native-select>
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="df-bewertung">Bewertung (Durchschnitt)</label>
+            <hlm-native-select
+              id="df-bewertung"
+              size="sm"
+              [ngModel]="bewertungMinFilter()"
+              (ngModelChange)="bewertungMinFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Beliebig</option>
+              <option hlmNativeSelectOption value="1">mindestens Ø 1</option>
+              <option hlmNativeSelectOption value="2">mindestens Ø 2</option>
+              <option hlmNativeSelectOption value="3">mindestens Ø 3</option>
+            </hlm-native-select>
+          </div>
+          <div class="grid gap-1.5">
+            <label hlmLabel for="df-inexistent">Inexistenz</label>
+            <hlm-native-select
+              id="df-inexistent"
+              size="sm"
+              [ngModel]="inexistentFilter()"
+              (ngModelChange)="inexistentFilter.set($event)"
+            >
+              <option hlmNativeSelectOption value="alle">Alle Objekte</option>
+              <option hlmNativeSelectOption value="nur">Nur inexistente</option>
+              <option hlmNativeSelectOption value="ohne">Ohne inexistente</option>
+            </hlm-native-select>
+          </div>
+        </div>
         <button
           hlmBtn
           variant="outline"
@@ -69,15 +134,39 @@
       }
     </hlm-native-select>
 
-    <hlm-native-select
-      class="w-40"
-      size="sm"
-      [ngModel]="regionFilter()"
-      (ngModelChange)="regionFilter.set($event)"
-    >
-      <option hlmNativeSelectOption value="alle">Region</option>
-      <option hlmNativeSelectOption value="bern_mittelland">Bern-Mittelland</option>
-    </hlm-native-select>
+    <!-- «Zuständige Person» und «Arbeitspaket»: nur für die Paketrollen
+         R-03/R-04 (Entscheid 84, ersetzt den Ansicht-Umschalter) -->
+    @if (istPaketRolle()) {
+      <hlm-native-select
+        class="w-48"
+        size="sm"
+        [ngModel]="personFilter()"
+        (ngModelChange)="personFilter.set($event)"
+        aria-label="Zuständige Person"
+      >
+        <option hlmNativeSelectOption value="alle">Zuständige Person</option>
+        @for (person of allePersonen; track person.name) {
+          <option hlmNativeSelectOption [value]="person.name">
+            {{ person.name }} ({{ person.rolle }})
+          </option>
+        }
+        <option hlmNativeSelectOption value="System">System (R-08)</option>
+        <option hlmNativeSelectOption [value]="ohnePerson">Ohne Zuweisung</option>
+      </hlm-native-select>
+
+      <hlm-native-select
+        class="w-48"
+        size="sm"
+        [ngModel]="paketFilter()"
+        (ngModelChange)="paketFilter.set($event)"
+        aria-label="Arbeitspaket"
+      >
+        <option hlmNativeSelectOption value="alle">Arbeitspaket</option>
+        @for (option of paketFilterOptionen(); track option.wert) {
+          <option hlmNativeSelectOption [value]="option.wert">{{ option.label }}</option>
+        }
+      </hlm-native-select>
+    }
 
     <hlm-native-select
       class="w-36"
@@ -102,17 +191,6 @@
       <option hlmNativeSelectOption value="mit_substanz">Mit Substanz</option>
       <option hlmNativeSelectOption value="wenig_substanz">Wenig Substanz</option>
       <option hlmNativeSelectOption value="ohne_substanz">Ohne Substanz</option>
-    </hlm-native-select>
-
-    <hlm-native-select
-      class="w-32"
-      size="sm"
-      [ngModel]="alterFilter()"
-      (ngModelChange)="alterFilter.set($event)"
-    >
-      <option hlmNativeSelectOption value="alle">Alter</option>
-      <option hlmNativeSelectOption value="2024">2024</option>
-      <option hlmNativeSelectOption value="2025">2025</option>
     </hlm-native-select>
 
     <button

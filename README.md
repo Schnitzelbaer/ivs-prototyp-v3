@@ -142,7 +142,10 @@ neuen Session weiterzuarbeiten.
   laut Lognotizen einmal zugewiesen waren; gruppiert **nach allen neun
   Workflow-Stati** — zuvorderst «Offen» für noch niemandem zugewiesene
   Objekte — (leere Gruppen zugeklappt), Volltextsuche,
-  Schnellfilter inkl. Status-Filter, Zeilen-Dropdown mit direktem
+  echte Attributfilter (Schnellfilter plus «Alle Filter» mit Kanton,
+  Gemeinde, Aufnahmejahr, Bewertung und Inexistenz; für R-03/R-04
+  zusätzlich «Zuständige Person» und «Arbeitspaket» — die gleichen
+  Filter stehen auf dem Objekte-Tab), Zeilen-Dropdown mit direktem
   Statuswechsel unter den von der Rolle setzbaren Stati, Spalte
   «Zuständig» mit Personen-Dropdown für R-03/R-04 (vererbt auf die
   Nachkommen der Strecke; eine Zuweisung holt «offene» Objekte

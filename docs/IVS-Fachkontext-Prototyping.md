@@ -1224,6 +1224,20 @@ Arbeitspakete und echte Filter.
     **Ansicht-Umschalter ist entfernt** — Ersatz ist der Filter
     «Zuständige Person» (Entscheid 84). Persistiert im `PaketStore`
     (`ivs-prototyp-v3.pakete`, Zufalls-Ids nach 12.6).
+84. **Echte Attributfilter** (Dashboard und Objekte-Übersicht,
+    gemeinsames Prädikat in `core/objekt-filter.ts`): Das
+    «Alle Filter»-Popover ist keine Attrappe mehr — es filtert
+    **Kanton, Gemeinde (Teilstring), Aufnahmejahr,
+    Bewertungs-Durchschnitt (mindestens Ø 1–3) und Inexistenz**; die
+    Schnellfilter (Status, Bedeutung, Substanzgrad) bleiben. Die
+    **Region-Attrappe ist ersetzt**. Auf erster Ebene stehen — **nur
+    für R-03 und R-04** — die Filter **«Zuständige Person»** (alle
+    Personen, «System», «Ohne Zuweisung») und **«Arbeitspaket»**
+    (R-03: 26 Kantonspakete und alle R-04-Pakete; R-04: nur die
+    eigenen Pakete; Nachkommen paketierter Strecken gelten als im
+    Paket). Die persönliche Einschränkung für R-05/06/07 bleibt
+    bestehen — diese Rollen sehen die beiden Filter nicht. Die
+    **Karte folgt den Filtern** auf beiden Seiten (Entscheid 73).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1342,12 +1356,14 @@ Aus der sechsten Ausbaustufe (05.08.2026) offen geblieben:
   daneben in der Seitenleiste. Ob das Feld bleibt, im Protokoll aufgeht
   oder zu dessen Gesamtbemerkung wird, ist offen — **nicht
   eigenmächtig zusammenlegen**.
-- **Region-Filter ist eine Attrappe:** Das Select «Region» in der
+- ~~**Region-Filter ist eine Attrappe:** Das Select «Region» in der
   Dashboard-Filterleiste (einziger Wert «Bern-Mittelland») wird bewusst
   **nicht ausgewertet** — die Testdaten kennen nur eine Region.
   Filterleiste und «Alle Filter»-Popover zeigen generell mehr Filter, als
   fachlich hinterlegt sind (vgl. Vorgabe 12: Attrappen sind zulässig).
-  Kein Bug — nicht ungefragt «reparieren».
+  Kein Bug — nicht ungefragt «reparieren».~~ **Überholt durch
+  Entscheid 84** — die Filter-Attrappen (Region, «Alle Filter») sind
+  durch echte Attributfilter ersetzt.
 
 ---
 
@@ -1450,6 +1466,8 @@ src/app/
     paket-store.ts     KANTONE, Kanton→Koordination-Zuweisungen und
                        Arbeitspaket-Entitäten (Entscheide 82/83)
     herkunft-store.ts  Herkunft des Objekt-Details (Back-Button)
+    objekt-filter.ts   gemeinsame Attributfilter von Dashboard und Objekten
+                       (Entscheid 84)
     pruefprotokoll.ts  Fragenkatalog und Regeln des Prüfprotokolls (Entscheid 75)
     hinweis-store.ts   zentraler «Warum nicht?»-Hinweis (nie-disabled-Regel)
     version-vergleich.ts  IVS-1.0-Ableitung, kuratierte Alttexte, Wort-Diff
@@ -1542,11 +1560,13 @@ die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
   Person zugewiesen sind oder einmal zugewiesen waren (Entscheid 70) —,
   gruppiert **nach allen Workflow-Stati** (inkl. «Offen», Entscheid 79) in Workflow-Reihenfolge
   (Entscheide 68/70, mit Status-Farbpunkt; leere Gruppen starten
-  zugeklappt, Entscheid 71), Suche, Schnellfilter inkl. Status-Filter,
-  Zeilen-Dropdown mit direktem Wechsel unter den **setzbaren Stati**
-  (Entscheid 69), **Zuständig-Spalte** mit Personen-Dropdown für
-  R-03/R-04 (Entscheid 81), Polygon-Selektion als geographischer
-  Filter (05.03).
+  zugeklappt, Entscheid 71), Suche, **echte Attributfilter** —
+  Schnellfilter plus «Alle Filter»-Popover (Kanton, Gemeinde,
+  Aufnahmejahr, Bewertung, Inexistenz) sowie für R-03/R-04 «Zuständige
+  Person» und «Arbeitspaket» (Entscheid 84) —, Zeilen-Dropdown mit
+  direktem Wechsel unter den **setzbaren Stati** (Entscheid 69),
+  **Zuständig-Spalte** mit Personen-Dropdown für R-03/R-04
+  (Entscheid 81), Polygon-Selektion als geographischer Filter (05.03).
   Die **Karte zeigt nur die Objekte der Liste** und wird von Suche und
   Filtern mitgezogen (Entscheid 73). Für die **Paketrollen R-03/R-04**
   liegt darüber der Bereich **Arbeitspakete** (Entscheide 77/82/83):
@@ -1609,6 +1629,7 @@ die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
   Vordergrund, links der **aufklappbare Strecken-Baum** (Entscheid 64), ein
   Klick (Liste oder Karte) öffnet rechts das Side-Panel mit dem
   **vollständigen** Objektinhalt und dem Hierarchie-Menü (Entscheid 55);
+  dieselben **echten Attributfilter** wie im Dashboard (Entscheid 84);
   sobald Suche oder Filter aktiv sind, wird auch die **Karte gefiltert**
   (Entscheid 73).
 - **360°-Aufnahmen (06, Vorgabe 9)** unter `/panorama`: Galerie der

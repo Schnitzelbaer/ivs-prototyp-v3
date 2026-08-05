@@ -53,6 +53,13 @@ import {
   NHG_LABEL,
   SUBSTANZGRAD_LABEL,
 } from '../core/model';
+import {
+  AttributFilter,
+  OHNE_PERSON,
+  attributFilterAktiv,
+  leererAttributFilter,
+  passtAttributFilter,
+} from '../core/objekt-filter';
 import { ObjektStore } from '../core/objekt-store';
 import { Arbeitspaket, KANTONE, PaketStore } from '../core/paket-store';
 import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
@@ -136,14 +143,53 @@ export class Dashboard {
   protected readonly substanzLabel = SUBSTANZGRAD_LABEL;
   protected readonly bewertungText = bewertungText;
 
-  // Filterzustand
+  // Filterzustand (echte Attributfilter, Entscheid 84)
   protected readonly suche = signal('');
   protected readonly statusFilter = signal<'alle' | WorkflowStatus>('alle');
   protected readonly bedeutungFilter = signal<'alle' | NhgWert>('alle');
   protected readonly substanzFilter = signal<'alle' | Substanzgrad>('alle');
-  protected readonly regionFilter = signal<'alle' | 'bern_mittelland'>('alle');
-  protected readonly alterFilter = signal<'alle' | '2024' | '2025'>('alle');
+  protected readonly kantonFilter = signal<'alle' | string>('alle');
+  protected readonly gemeindeFilter = signal('');
+  protected readonly alterFilter = signal<'alle' | string>('alle');
+  protected readonly bewertungMinFilter = signal<'alle' | string>('alle');
+  protected readonly inexistentFilter = signal<'alle' | 'nur' | 'ohne'>('alle');
+  protected readonly personFilter = signal<'alle' | string>('alle');
+  protected readonly paketFilter = signal('alle');
   protected readonly polygonSignaturen = signal<ReadonlySet<string> | null>(null);
+
+  protected readonly ohnePerson = OHNE_PERSON;
+
+  /**
+   * Gebündelter Attributfilter fürs gemeinsame Prädikat. Der Status wird
+   * im Dashboard über die Gruppen bzw. den Status-Filter der Blöcke
+   * gehandhabt und bleibt hier aussen vor.
+   */
+  private readonly attributFilter = computed<AttributFilter>(() => ({
+    ...leererAttributFilter(),
+    bedeutung: this.bedeutungFilter(),
+    substanz: this.substanzFilter(),
+    kanton: this.kantonFilter(),
+    gemeinde: this.gemeindeFilter(),
+    aufnahmejahr: this.alterFilter(),
+    bewertungMin: this.bewertungMinFilter(),
+    inexistent: this.inexistentFilter(),
+    person: this.personFilter(),
+    paket: this.paketFilter(),
+  }));
+
+  /** Optionen des Arbeitspaket-Filters: R-03 Kantone + alle Pakete, R-04 eigene. */
+  protected readonly paketFilterOptionen = computed<{ wert: string; label: string }[]>(() => {
+    const rolle = this.einstellungen.aktiveRolleId();
+    if (rolle === 'R-03') {
+      return [
+        ...KANTONE.map((k) => ({ wert: `kanton:${k.kuerzel}`, label: `Kanton ${k.name}` })),
+        ...this.paketStore
+          .pakete()
+          .map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}» (${p.koordinator})` })),
+      ];
+    }
+    return this.meinePakete().map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}»` }));
+  });
 
   protected readonly sortAufsteigend = signal(true);
   protected readonly ausgewaehlt = signal<ReadonlySet<string>>(new Set());
@@ -252,6 +298,9 @@ export class Dashboard {
     // Entscheid 83); alle anderen sehen ihre persönliche Sicht.
     const ich = this.istPaketRolle() ? null : NAME_FUER_ROLLE[rolle];
     const meineKantone = rolle === 'R-04' ? this.meineKantone() : null;
+    const filter = this.attributFilter();
+    const paketInhalt = (paketId: string) =>
+      this.paketStore.pakete().find((p) => p.id === paketId)?.objektIds;
     const begriff = this.suche().trim().toLowerCase();
     const polygon = this.polygonSignaturen();
     const richtung = this.sortAufsteigend() ? 1 : -1;
@@ -268,11 +317,7 @@ export class Dashboard {
         // beteiligt (gleiche Semantik wie der Kommentar-Filter, Entscheid 56)
         if (ich !== null && o.zustaendigName !== ich && !o.lognotizen.some((n) => n.autor === ich))
           return false;
-        if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
-        if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
-          return false;
-        if (this.alterFilter() !== 'alle' && String(o.aufnahmejahr) !== this.alterFilter())
-          return false;
+        if (!passtAttributFilter(o, filter, paketInhalt)) return false;
         if (polygon && !polygon.has(o.signatur)) return false;
         if (begriff) {
           const text = `${o.signatur} ${o.name} ${o.gemeinden}`.toLowerCase();
@@ -510,8 +555,13 @@ export class Dashboard {
     this.statusFilter.set('alle');
     this.bedeutungFilter.set('alle');
     this.substanzFilter.set('alle');
-    this.regionFilter.set('alle');
+    this.kantonFilter.set('alle');
+    this.gemeindeFilter.set('');
     this.alterFilter.set('alle');
+    this.bewertungMinFilter.set('alle');
+    this.inexistentFilter.set('alle');
+    this.personFilter.set('alle');
+    this.paketFilter.set('alle');
     if (this.polygonSignaturen() !== null) this.karte()?.polygonUmschalten();
     this.polygonSignaturen.set(null);
   }

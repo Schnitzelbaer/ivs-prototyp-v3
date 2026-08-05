@@ -7,6 +7,7 @@ import {
   lucideChevronDown,
   lucideChevronRight,
   lucideDownload,
+  lucideListFilter,
   lucideRotateCw,
   lucideSearch,
   lucideSearchX,
@@ -16,11 +17,24 @@ import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { EinstellungenStore } from '../core/einstellungen-store';
 import { HerkunftStore } from '../core/herkunft-store';
 import { KommentarStore } from '../core/kommentare';
+import {
+  AttributFilter,
+  OHNE_PERSON,
+  attributFilterAktiv,
+  leererAttributFilter,
+  passtAttributFilter,
+} from '../core/objekt-filter';
+import { KANTONE, PaketStore } from '../core/paket-store';
+import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
 import {
   EBENE_LABEL,
   IvsObjekt,
@@ -64,8 +78,11 @@ interface StreckenAst {
     HlmButtonImports,
     HlmDropdownMenuImports,
     HlmEmptyImports,
+    HlmInputImports,
     HlmInputGroupImports,
+    HlmLabelImports,
     HlmNativeSelectImports,
+    HlmPopoverImports,
     HlmTooltipImports,
     HierarchieMenu,
     Karte,
@@ -76,6 +93,7 @@ interface StreckenAst {
       lucideChevronDown,
       lucideChevronRight,
       lucideDownload,
+      lucideListFilter,
       lucideRotateCw,
       lucideSearch,
       lucideSearchX,
@@ -90,6 +108,8 @@ export class Objekte {
   private readonly router = inject(Router);
   private readonly herkunft = inject(HerkunftStore);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly einstellungen = inject(EinstellungenStore);
+  private readonly paketStore = inject(PaketStore);
 
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly statusFarbe = STATUS_FARBE;
@@ -115,7 +135,56 @@ export class Objekte {
   protected readonly statusFilter = signal<'alle' | WorkflowStatus>('alle');
   protected readonly bedeutungFilter = signal<'alle' | NhgWert>('alle');
   protected readonly substanzFilter = signal<'alle' | Substanzgrad>('alle');
+  protected readonly kantonFilter = signal<'alle' | string>('alle');
+  protected readonly gemeindeFilter = signal('');
+  protected readonly alterFilter = signal<'alle' | string>('alle');
+  protected readonly bewertungMinFilter = signal<'alle' | string>('alle');
+  protected readonly inexistentFilter = signal<'alle' | 'nur' | 'ohne'>('alle');
+  protected readonly personFilter = signal<'alle' | string>('alle');
+  protected readonly paketFilter = signal('alle');
   protected readonly sortierung = signal<SortSpalte>('signatur');
+
+  protected readonly kantone = KANTONE;
+  protected readonly allePersonen = PERSONEN;
+  protected readonly ohnePerson = OHNE_PERSON;
+
+  /** «Zuständige Person» und «Arbeitspaket» filtern nur die Paketrollen. */
+  protected readonly istPaketRolle = computed(() => {
+    const rolle = this.einstellungen.aktiveRolleId();
+    return rolle === 'R-03' || rolle === 'R-04';
+  });
+
+  /** Optionen des Arbeitspaket-Filters: R-03 Kantone + alle Pakete, R-04 eigene. */
+  protected readonly paketFilterOptionen = computed<{ wert: string; label: string }[]>(() => {
+    const rolle = this.einstellungen.aktiveRolleId();
+    if (rolle === 'R-03') {
+      return [
+        ...KANTONE.map((k) => ({ wert: `kanton:${k.kuerzel}`, label: `Kanton ${k.name}` })),
+        ...this.paketStore
+          .pakete()
+          .map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}» (${p.koordinator})` })),
+      ];
+    }
+    return this.paketStore
+      .pakete()
+      .filter((p) => p.koordinator === NAME_FUER_ROLLE['R-04'])
+      .map((p) => ({ wert: `paket:${p.id}`, label: `«${p.name}»` }));
+  });
+
+  /** Gebündelter Attributfilter fürs gemeinsame Prädikat (Entscheid 84). */
+  private readonly attributFilter = computed<AttributFilter>(() => ({
+    ...leererAttributFilter(),
+    status: this.statusFilter(),
+    bedeutung: this.bedeutungFilter(),
+    substanz: this.substanzFilter(),
+    kanton: this.kantonFilter(),
+    gemeinde: this.gemeindeFilter(),
+    aufnahmejahr: this.alterFilter(),
+    bewertungMin: this.bewertungMinFilter(),
+    inexistent: this.inexistentFilter(),
+    person: this.personFilter(),
+    paket: this.paketFilter(),
+  }));
 
   /** Manuell aufgeklappte Strecken (bei aktiver Suche sind alle offen). */
   protected readonly aufgeklappt = signal<ReadonlySet<string>>(new Set());
@@ -143,9 +212,9 @@ export class Objekte {
 
   /** Filterprädikat ohne Ebenen-Bezug (wirkt auf alle Ebenen gleich). */
   private passtFilter(o: IvsObjekt, begriff: string): boolean {
-    if (this.statusFilter() !== 'alle' && o.status !== this.statusFilter()) return false;
-    if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
-    if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter()) return false;
+    const paketInhalt = (paketId: string) =>
+      this.paketStore.pakete().find((p) => p.id === paketId)?.objektIds;
+    if (!passtAttributFilter(o, this.attributFilter(), paketInhalt)) return false;
     if (begriff) {
       const text = `${o.signatur} ${o.name} ${o.gemeinden} ${o.zustaendigName}`.toLowerCase();
       if (!text.includes(begriff)) return false;
@@ -154,12 +223,7 @@ export class Objekte {
   }
 
   private filterAktiv(begriff: string): boolean {
-    return (
-      !!begriff ||
-      this.statusFilter() !== 'alle' ||
-      this.bedeutungFilter() !== 'alle' ||
-      this.substanzFilter() !== 'alle'
-    );
+    return !!begriff || attributFilterAktiv(this.attributFilter());
   }
 
   /**
@@ -269,6 +333,13 @@ export class Objekte {
     this.statusFilter.set('alle');
     this.bedeutungFilter.set('alle');
     this.substanzFilter.set('alle');
+    this.kantonFilter.set('alle');
+    this.gemeindeFilter.set('');
+    this.alterFilter.set('alle');
+    this.bewertungMinFilter.set('alle');
+    this.inexistentFilter.set('alle');
+    this.personFilter.set('alle');
+    this.paketFilter.set('alle');
   }
 
   /** Beschriebe sind seit dem Rich-Text-Editor HTML — wie im Detail rendern. */
