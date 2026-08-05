@@ -142,7 +142,12 @@ neuen Session weiterzuarbeiten.
   Polygon-Selektion auf der Karte als geographischer Filter. Die
   **Karte zeigt nur die Objekte der Liste**; Suche und Filter dezimieren
   sie mit. Generierte Objekte sind neutral «System» zugewiesen und
-  erscheinen in keinem Dashboard.
+  erscheinen in keinem Dashboard. **Arbeitspakete** für R-03
+  (Kantonspakete an die Regionale Koordination) und R-04 (freie Auswahl
+  per Checkbox/Polygon an Inventarisierende) — die Zuweisung setzt
+  Status «Zugewiesen», Person und Lognotiz in einem Zug; Paketrollen
+  sehen alle Objekte und können per Ansicht-Umschalter auf die
+  persönlichen Dashboards ihrer Personen **absteigen**.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
   via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte
@@ -156,9 +161,11 @@ neuen Session weiterzuarbeiten.
   Vergleichskarte, Deckkraft beider Stände separat regelbar),
   Begehungs-Einplanung sichtbar (Badge und 360°-Bereich),
   Bearbeitungslog-Sheet, **Prüfprotokoll** als Seitenleiste (Knopf
-  «Prüfung»: Ja/Nein-Fragen in vier Gruppen, Nein mit Pflichtbegründung;
-  Befunde werden beim Zurückweisen zu Kommentaren und das Objekt geht in
-  «Korrektur», ohne bestandenes Protokoll ist «Geprüft» gesperrt).
+  «Prüfung», nur im Status «In Prüfung» für R-06/R-07: Ja/Nein-Fragen
+  in vier Gruppen, Nein mit Pflichtbegründung; Befunde werden beim
+  Zurückweisen zu Kommentaren und das Objekt geht in «Korrektur», ohne
+  bestandenes Protokoll ist «Geprüft» gesperrt; R-07 sieht einen
+  Platzhalter für ihr später spezifiziertes eigenes Protokoll).
 - **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS und den
   `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Quelldaten — die
   bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden
@@ -215,8 +222,9 @@ neuen Session weiterzuarbeiten.
   generierte Kunstbaute mit eigener Teilstück-Geometrie. Änderungen
   überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
 
-Noch offen (spätere Etappen): Umsetzungsvermerk der Inventarisierenden im
-Prüfprotokoll, Nebenblöcke (Accounts, Arbeitspakete, Reports).
+Noch offen (spätere Etappen): Umsetzungsvermerk der Inventarisierenden und
+das eigene Protokoll der Fachlichen Prüfstelle im Prüfprotokoll,
+Nebenblöcke (Accounts, Reports, Einsatzlisten).
 
 Die Zuordnung Signatur → Testdaten-Feature liegt in
 `src/app/karte/karten-layer.ts` und wird zur Laufzeit auf die geladenen

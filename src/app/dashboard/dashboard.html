@@ -136,6 +136,101 @@
     <!-- Aufgabenliste -->
     <section class="min-w-0 flex-1 overflow-y-auto px-4 py-3">
       <div class="flex flex-col gap-4">
+        <!-- Arbeitspakete (03.02/03.03): nur für die Paketrollen R-03/R-04 -->
+        @if (istPaketRolle()) {
+          <div
+            hlmCollapsible
+            [expanded]="true"
+            #paketeAuf="brnCollapsible"
+            class="rounded-md border border-border"
+          >
+            <button
+              hlmCollapsibleTrigger
+              class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold"
+            >
+              <ng-icon
+                name="lucideChevronDown"
+                class="text-muted-foreground transition-transform"
+                [class.-rotate-90]="!paketeAuf.expanded()"
+              />
+              Arbeitspakete
+            </button>
+            <div hlmCollapsibleContent>
+              @if (einstellungen.aktiveRolleId() === 'R-03') {
+                <!-- R-03: Kantonspakete für die Regionale Koordination -->
+                <div class="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+                  <p class="text-sm">
+                    Kanton Bern
+                    <span class="text-muted-foreground">· {{ streckenGesamt() }} Strecken</span>
+                  </p>
+                  <button hlmBtn variant="outline" size="sm" type="button" (click)="kantonspaketZuweisen()">
+                    An T. Nyffenegger (R-04) zuweisen
+                  </button>
+                </div>
+                @for (kanton of kantonAttrappen; track kanton) {
+                  <div class="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+                    <p class="text-sm text-muted-foreground">Kanton {{ kanton }} · keine Daten</p>
+                    <button hlmBtn variant="outline" size="sm" type="button" (click)="kantonAttrappeKlick(kanton)">
+                      Zuweisen …
+                    </button>
+                  </div>
+                }
+              } @else {
+                <!-- R-04: freie Auswahl (Checkboxen/Polygon) für Inventarisierende -->
+                <div class="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+                  <p class="text-sm">
+                    {{ ausgewaehlt().size }} Strecken ausgewählt
+                    <span class="text-muted-foreground">
+                      · Auswahl über die Checkboxen unten oder die Polygon-Selektion
+                    </span>
+                  </p>
+                  <div class="ml-auto flex items-center gap-2">
+                    <hlm-native-select
+                      size="sm"
+                      [ngModel]="paketPerson()"
+                      (ngModelChange)="paketPerson.set($event)"
+                    >
+                      @for (person of paketPersonen; track person.name) {
+                        <option hlmNativeSelectOption [value]="person.name">
+                          {{ person.name }} ({{ person.rolle }})
+                        </option>
+                      }
+                    </hlm-native-select>
+                    <button hlmBtn variant="outline" size="sm" type="button" (click)="paketZuweisen()">
+                      Paket zuweisen
+                    </button>
+                  </div>
+                </div>
+              }
+              <!-- Absteigen: die persönliche Sicht einer unterstellten Person -->
+              <div class="flex flex-wrap items-center gap-2 px-3 py-2">
+                <label hlmLabel class="text-xs text-muted-foreground" for="db-ansicht">
+                  Ansicht
+                </label>
+                <hlm-native-select
+                  id="db-ansicht"
+                  size="sm"
+                  class="w-64"
+                  [ngModel]="ansichtPerson()"
+                  (ngModelChange)="ansichtPerson.set($event)"
+                >
+                  <option hlmNativeSelectOption value="eigene">Alle Objekte (eigene Sicht)</option>
+                  @for (person of absteigPersonen(); track person.name) {
+                    <option hlmNativeSelectOption [value]="person.name">
+                      Dashboard von {{ person.name }} ({{ person.rolle }})
+                    </option>
+                  }
+                </hlm-native-select>
+                @if (ansichtPerson() !== 'eigene') {
+                  <span hlmBadge variant="secondary">
+                    zeigt die persönlichen Aufgaben von {{ ansichtPerson() }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
         @for (block of bloecke(); track block.status) {
           <!-- Leere Status-Gruppen starten zugeklappt -->
           <div

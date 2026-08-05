@@ -183,19 +183,22 @@
           </hlm-dropdown-menu>
         </ng-template>
 
-        <!-- Prüfprotokoll (4.6): öffnet die Prüfung in der Seitenleiste -->
-        <button
-          hlmBtn
-          variant="outline"
-          size="sm"
-          type="button"
-          (click)="pruefungOffen.set(true)"
-          hlmTooltip="Prüfprotokoll öffnen"
-          aria-label="Prüfprotokoll öffnen"
-        >
-          <ng-icon name="lucideClipboardCheck" />
-          Prüfung
-        </button>
+        <!-- Prüfprotokoll (4.6): nur im Status «In Prüfung» und nur für die
+             prüfenden Rollen (R-06 füllt aus, R-07 hat später ein eigenes) -->
+        @if (pruefungSichtbar()) {
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            type="button"
+            (click)="pruefungOffen.set(true)"
+            hlmTooltip="Prüfprotokoll öffnen"
+            aria-label="Prüfprotokoll öffnen"
+          >
+            <ng-icon name="lucideClipboardCheck" />
+            Prüfung
+          </button>
+        }
 
         <div class="mx-1 h-5 w-px bg-border"></div>
 
@@ -1554,14 +1557,37 @@
       <hlm-sheet-header>
         <h3 hlmSheetTitle>Prüfprotokoll</h3>
         <p hlmSheetDescription>
-          {{ o.signatur }} – {{ o.name }} · Fachliche Prüfung durch das Fachlektorat.
-          @if (!darfPruefen()) {
-            Ausfüllen kann das Fachlektorat (R-06), solange das Objekt in Prüfung ist —
-            aktuell nur Einsicht.
+          {{ o.signatur }} – {{ o.name }} ·
+          @if (istPruefstelle()) {
+            Übergreifende Prüfung durch die Fachliche Prüfstelle.
+          } @else {
+            Fachliche Prüfung durch das Fachlektorat.
+            @if (!darfPruefen()) {
+              Ausfüllen kann das Fachlektorat (R-06), solange das Objekt in Prüfung ist —
+              aktuell nur Einsicht.
+            }
           }
         </p>
       </hlm-sheet-header>
 
+      @if (istPruefstelle()) {
+        <!-- R-07 erhält ein eigenes Protokoll — wird später spezifiziert -->
+        <div class="flex min-h-0 flex-1 flex-col justify-center px-4 pb-4">
+          <div hlmEmpty class="border-0">
+            <div hlmEmptyHeader>
+              <div hlmEmptyMedia variant="icon">
+                <ng-icon name="lucideClipboardCheck" />
+              </div>
+              <div hlmEmptyTitle>Protokoll der Fachlichen Prüfstelle</div>
+              <div hlmEmptyDescription>
+                Die Fachliche Prüfstelle erhält ein eigenes Prüfprotokoll — es wird zu einem
+                späteren Zeitpunkt spezifiziert. Das Protokoll des Fachlektorats bleibt dessen
+                Rolle vorbehalten.
+              </div>
+            </div>
+          </div>
+        </div>
+      } @else {
       <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4">
         @if (o.pruefprotokoll?.abschluss; as abschluss) {
           <p class="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
@@ -1672,6 +1698,7 @@
           }
         }
       </div>
+      }
     </hlm-sheet-content>
   </hlm-sheet>
 } @else {

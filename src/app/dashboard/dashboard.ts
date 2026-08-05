@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -53,7 +54,7 @@ import {
   SUBSTANZGRAD_LABEL,
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
-import { NAME_FUER_ROLLE } from '../core/seed-data';
+import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte } from '../karte/karte';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
@@ -126,6 +127,14 @@ export class Dashboard {
 
   private readonly karte = viewChild(Karte);
 
+  constructor() {
+    // Ein Rollenwechsel setzt die Absteigen-Ansicht zurück
+    effect(() => {
+      this.einstellungen.aktiveRolleId();
+      this.ansichtPerson.set('eigene');
+    });
+  }
+
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly statusFarbe = STATUS_FARBE;
   protected readonly nhgLabel = NHG_LABEL;
@@ -156,9 +165,49 @@ export class Dashboard {
   protected readonly kartenKommentarText = signal('');
   protected readonly kartenKommentarZuweisung = signal('');
 
-  /** Aufgaben der aktiven Person nach allen Filtern. */
+  // -------------------------------------------- Arbeitspakete und Sichten
+
+  /** Paketrollen (R-03/R-04) schnüren Arbeitspakete und sehen alle Objekte. */
+  protected readonly istPaketRolle = computed(() => {
+    const rolle = this.einstellungen.aktiveRolleId();
+    return rolle === 'R-03' || rolle === 'R-04';
+  });
+
+  /**
+   * «Absteigen»: Personen, deren persönliches Dashboard die Paketrolle
+   * einsehen kann — R-03 die Koordinatoren und Inventarisierenden,
+   * R-04 die Inventarisierenden.
+   */
+  protected readonly absteigPersonen = computed(() => {
+    const rolle = this.einstellungen.aktiveRolleId();
+    if (rolle === 'R-03') return PERSONEN.filter((p) => p.rolle === 'R-04' || p.rolle === 'R-05');
+    if (rolle === 'R-04') return PERSONEN.filter((p) => p.rolle === 'R-05');
+    return [];
+  });
+
+  /** Gewählte Ansicht: 'eigene' oder der Name einer unterstellten Person. */
+  protected readonly ansichtPerson = signal<'eigene' | string>('eigene');
+
+  /** Zielperson des R-04-Pakets. */
+  protected readonly paketPerson = signal('B. Anderegg');
+  protected readonly paketPersonen = PERSONEN.filter((p) => p.rolle === 'R-05');
+
+  /** Kantone ohne Testdaten — Attrappen im R-03-Paketbereich. */
+  protected readonly kantonAttrappen = ['Wallis', 'Graubünden', 'Tessin'];
+
+  protected readonly streckenGesamt = computed(() => this.store.strecken().length);
+
+  /** Aufgaben der aktiven Sicht nach allen Filtern. */
   private readonly gefiltert = computed(() => {
-    const ich = NAME_FUER_ROLLE[this.einstellungen.aktiveRolleId()];
+    const ansicht = this.ansichtPerson();
+    // Paketrollen sehen alles; das Absteigen zeigt die persönliche Sicht
+    // einer unterstellten Person; alle anderen sehen ihre eigene.
+    const ich =
+      ansicht !== 'eigene'
+        ? ansicht
+        : this.istPaketRolle()
+          ? null
+          : NAME_FUER_ROLLE[this.einstellungen.aktiveRolleId()];
     const begriff = this.suche().trim().toLowerCase();
     const polygon = this.polygonSignaturen();
     const richtung = this.sortAufsteigend() ? 1 : -1;
@@ -171,7 +220,8 @@ export class Dashboard {
         if (o.ebene !== 'strecke') return false;
         // Persönlich: aktuell zugewiesen oder laut Lognotizen einmal
         // beteiligt (gleiche Semantik wie der Kommentar-Filter, Entscheid 56)
-        if (o.zustaendigName !== ich && !o.lognotizen.some((n) => n.autor === ich)) return false;
+        if (ich !== null && o.zustaendigName !== ich && !o.lognotizen.some((n) => n.autor === ich))
+          return false;
         if (this.bedeutungFilter() !== 'alle' && o.nhgWert !== this.bedeutungFilter()) return false;
         if (this.substanzFilter() !== 'alle' && o.substanzgrad !== this.substanzFilter())
           return false;
@@ -270,6 +320,65 @@ export class Dashboard {
 
   protected setzePolygon(signaturen: string[] | null): void {
     this.polygonSignaturen.set(signaturen ? new Set(signaturen) : null);
+  }
+
+  // -------------------------------------------------- Pakete schnüren
+
+  /** R-03: das Kantonspaket Bern an die Regionale Koordination zuweisen. */
+  protected kantonspaketZuweisen(): void {
+    const rolle = this.einstellungen.aktiveRolleId();
+    const ziel = PERSONEN.find((p) => p.rolle === 'R-04');
+    if (!ziel) return;
+    const ids = this.store.strecken().map((o) => o.id);
+    this.store.paketZuweisen(ids, ziel, 'Arbeitspaket «Kanton Bern»', NAME_FUER_ROLLE[rolle], rolle);
+    toast.success(`Arbeitspaket «Kanton Bern» zugewiesen`, {
+      description: `${ids.length} Strecken an ${ziel.name} (${ziel.rolle}) — Status «Zugewiesen».`,
+    });
+  }
+
+  /** R-03: Attrappen-Kantone ohne Testdaten erklären sich beim Klick. */
+  protected kantonAttrappeKlick(kanton: string): void {
+    this.hinweis.zeige(
+      'Keine Daten im Prototyp',
+      `Der Kanton ${kanton} enthält im Prototyp keine Testdaten — nur das Testgebiet ` +
+        'Bern ist mit Objekten hinterlegt (Abschnitt 8 des Fachkontexts).',
+    );
+  }
+
+  /**
+   * R-04: die ausgewählten Strecken (Checkboxen; ersatzweise die aktive
+   * Polygon-Selektion) als Paket einer Inventarisierenden zuweisen.
+   */
+  protected paketZuweisen(): void {
+    const auswahl = this.ausgewaehlt();
+    const polygon = this.polygonSignaturen();
+    const ids = auswahl.size
+      ? [...auswahl]
+      : polygon
+        ? this.gefiltert().map((o) => o.id)
+        : [];
+    if (ids.length === 0) {
+      this.hinweis.zeige(
+        'Keine Strecken ausgewählt',
+        'Wähle die Strecken für das Paket über die Checkboxen in den Status-Gruppen oder ' +
+          'über die Polygon-Selektion auf der Karte aus.',
+      );
+      return;
+    }
+    const ziel = this.paketPersonen.find((p) => p.name === this.paketPerson());
+    if (!ziel) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.store.paketZuweisen(
+      ids,
+      ziel,
+      `Arbeitspaket (${ids.length} Strecken)`,
+      NAME_FUER_ROLLE[rolle],
+      rolle,
+    );
+    this.ausgewaehlt.set(new Set());
+    toast.success('Arbeitspaket zugewiesen', {
+      description: `${ids.length} Strecken an ${ziel.name} (${ziel.rolle}) — Status «Zugewiesen».`,
+    });
   }
 
   protected filterZuruecksetzen(): void {

@@ -408,7 +408,8 @@ export class ObjektDetail implements OnDestroy {
           'Prüfprotokoll vollständig mit Ja beantworten. Enthält es Nein-Befunde, geht das ' +
           'Objekt zur Korrektur zurück an die Inventarisierenden.',
       );
-      this.pruefungOffen.set(true);
+      // die Prüfung gleich öffnen — nur dort, wo sie ausfüllbar ist
+      if (this.darfPruefen()) this.pruefungOffen.set(true);
       return;
     }
     const rolle = this.einstellungen.aktiveRolleId();
@@ -424,6 +425,22 @@ export class ObjektDetail implements OnDestroy {
   protected readonly frageAnzahl = ALLE_PRUEF_FRAGEN.length;
   protected readonly antwortVon = antwortVon;
   protected readonly pruefungOffen = signal(false);
+
+  /**
+   * Der Knopf «Prüfung» erscheint nur im Status «In Prüfung» und nur für
+   * die prüfenden Rollen: Fachlektorat (R-06) und Fachliche Prüfstelle
+   * (R-07 — deren eigenes Protokoll wird später spezifiziert).
+   */
+  protected readonly pruefungSichtbar = computed(() => {
+    const o = this.objekt();
+    const rolle = this.einstellungen.aktiveRolleId();
+    return !!o && o.status === 'in_pruefung' && (rolle === 'R-06' || rolle === 'R-07');
+  });
+
+  /** Die Fachliche Prüfstelle sieht einen Platzhalter statt des Formulars. */
+  protected readonly istPruefstelle = computed(
+    () => this.einstellungen.aktiveRolleId() === 'R-07',
+  );
 
   /** Ausfüllen darf das Fachlektorat, solange das Objekt in Prüfung ist. */
   protected readonly darfPruefen = computed(() => {

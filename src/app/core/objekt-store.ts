@@ -109,6 +109,43 @@ export class ObjektStore {
     this.update(id, { lognotizen: [...objekt.lognotizen, notiz] });
   }
 
+  /**
+   * Arbeitspaket zuweisen (03.02/03.03): setzt alle Objekte in einem Zug
+   * auf «Zugewiesen», trägt die Person als zuständig ein und protokolliert
+   * das Paket je Objekt als Lognotiz.
+   */
+  paketZuweisen(
+    ids: readonly string[],
+    person: { name: string; rolle: RolleId },
+    paket: string,
+    autor: string,
+    autorRolle: RolleId,
+  ): void {
+    const menge = new Set(ids);
+    const datum = new Date().toISOString().slice(0, 10);
+    this.objekte.update((liste) =>
+      liste.map((o) =>
+        menge.has(o.id)
+          ? {
+              ...o,
+              status: 'zugewiesen' as WorkflowStatus,
+              zustaendigRolle: person.rolle,
+              zustaendigName: person.name,
+              lognotizen: [
+                ...o.lognotizen,
+                {
+                  datum,
+                  autor,
+                  rolle: autorRolle,
+                  text: `${paket} zugewiesen an ${person.name} (${person.rolle}).`,
+                },
+              ],
+            }
+          : o,
+      ),
+    );
+  }
+
   /** Löscht ein Objekt mitsamt allen Unterobjekten (07.05). */
   loeschen(id: string): void {
     const objekt = this.byId(id);

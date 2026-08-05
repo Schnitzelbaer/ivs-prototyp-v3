@@ -17,7 +17,7 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 75), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 77), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
@@ -1079,6 +1079,29 @@ Rückfragen in derselben Session geklärt)**
     Prüfung. Persistiert am Objekt (`pruefprotokoll` mit
     Abschluss-Vermerk der letzten Runde); Umsetzungsvermerk der
     Inventarisierenden (4.6) folgt in einer späteren Etappe.
+76. **Prüfungs-Knopf eingeschränkt:** Er erscheint nur im Status
+    **«In Prüfung»** und nur für **R-06 und R-07**; die Einsicht für
+    andere Rollen entfällt (die Befunde stehen als Kommentare am
+    Objekt). R-07 sieht statt des Formulars einen **Platzhalter** — die
+    Fachliche Prüfstelle erhält ein **eigenes Protokoll**, das später
+    spezifiziert wird.
+77. **Arbeitspakete im Dashboard** (03.02/03.03): Für die Paketrollen
+    **R-03 und R-04** liegt über den Status-Gruppen der Bereich
+    «Arbeitspakete». **R-03** schnürt **Kantonspakete** — der Kanton
+    Bern (alle 403 Strecken) lässt sich T. Nyffenegger (R-04) zuweisen;
+    Wallis/Graubünden/Tessin sind Attrappen ohne Daten (Klick erklärt).
+    **R-04** schnürt freie Pakete für die Inventarisierenden: Auswahl
+    über die **Zeilen-Checkboxen** oder ersatzweise die aktive
+    **Polygon-Selektion**, Zielperson wählbar (B. Anderegg, L. Furrer).
+    Eine Zuweisung ist ein **einmaliger Vorgang** (keine persistente
+    Paket-Entität, dadurch exklusiv): alle Objekte des Pakets wechseln
+    in einem Zug auf **«Zugewiesen»**, erhalten die Person als
+    zuständig und je eine Lognotiz (`paketZuweisen` im ObjektStore).
+    **Paketrollen sehen immer alle Objekte** (der persönliche Filter
+    aus Entscheid 70 gilt nur noch für R-05/06/07), und sie können auf
+    unterstellte Personen **absteigen**: Ein Ansicht-Umschalter zeigt
+    deren persönliches Dashboard mit allen Aktionen (R-03 →
+    R-04- und R-05-Personen, R-04 → R-05-Personen).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1153,10 +1176,11 @@ Neu hinzugekommen mit der überarbeiteten User Story Map:
 Aus dem Review-Paket «Neue ToDos» offen geblieben (bewusst so umgesetzt,
 bei Bedarf nachschärfen):
 
-- **Wer weist ToDos zu?** Das Dashboard listet nur noch Strecken
-  (Entscheid 60), weil ToDos auf Strecken-Ebene zugewiesen werden. Wie eine
-  Zuweisung fachlich entsteht (Arbeitspaket, Regionale Koordination) ist
-  noch nicht gebaut — der Nebenblock «Arbeitspakete» steht aus (Abschnitt 14).
+- **Wer weist ToDos zu?** ~~Wie eine Zuweisung fachlich entsteht
+  (Arbeitspaket, Regionale Koordination) ist noch nicht gebaut.~~
+  **Gebaut mit Entscheid 77:** R-03 schnürt Kantonspakete für die
+  Regionale Koordination, R-04 Pakete für die Inventarisierenden;
+  offen bleiben Einsatzlisten (03.04) und persistente Paket-Entitäten.
 - **Substanzstufen der Legende:** Die abgestimmte Taxonomie kennt «Abschnitt
   mit Substanz» und «mit viel Substanz» (Entscheid 48). Die Testdaten führen
   zusätzlich «wenig Substanz» (64 Features); diese laufen unter der dünnen
@@ -1425,13 +1449,21 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
   vorgesehen (`pnpm test` meldet «No tests found»).
 
-- **Prüfprotokoll (4.6, Entscheid 75)**: Seitenleiste «Prüfung» mit
-  Ja/Nein-Fragen in vier Gruppen, Nein-Befunde werden beim Zurückweisen
-  zu Kommentaren, «Geprüft» ist ohne bestandenes Protokoll überall
-  gesperrt (Guard mit Erklär-Modal).
+- **Prüfprotokoll (4.6, Entscheide 75/76)**: Seitenleiste «Prüfung»
+  (nur Status «In Prüfung», Rollen R-06/R-07 — R-07 mit Platzhalter für
+  ihr späteres eigenes Protokoll) mit Ja/Nein-Fragen in vier Gruppen,
+  Nein-Befunde werden beim Zurückweisen zu Kommentaren, «Geprüft» ist
+  ohne bestandenes Protokoll überall gesperrt (Guard mit Erklär-Modal).
+- **Arbeitspakete (03.02/03.03, Entscheid 77)**: Bereich im Dashboard
+  für R-03 (Kantonspakete an die Regionale Koordination) und R-04
+  (freie Auswahl per Checkbox/Polygon an Inventarisierende); Zuweisung
+  setzt Status, Person und Lognotiz in einem Zug. Paketrollen sehen
+  alle Objekte und steigen per Ansicht-Umschalter auf die persönlichen
+  Dashboards der unterstellten Personen ab.
 
-Noch nicht gebaut: Nebenblöcke (Accounts, Arbeitspakete, Reports),
-Umsetzungsvermerk der Inventarisierenden im Prüfprotokoll.
+Noch nicht gebaut: Nebenblöcke (Accounts, Reports; Arbeitspakete-Rest
+wie Einsatzlisten 03.04), Umsetzungsvermerk der Inventarisierenden und
+das eigene Protokoll der Fachlichen Prüfstelle im Prüfprotokoll.
 
 ### 12.6 Fallstricke aus der bisherigen Arbeit
 
@@ -1707,7 +1739,8 @@ Prüfprotokoll); Reihenfolge als Vorschlag.
    echter Maus schadet weiterhin nicht. Dabei auch prüfen, ob der
    Trefferradius von 8 px (Entscheid 46) in der Praxis passt.
 3. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
-   Arbeitspakete (03.01–03.04), Reports (12.01–12.04).
+   Reports (12.01–12.04), Arbeitspakete-Rest (Einsatzlisten 03.04 —
+   die Zuweisung selbst ist mit Entscheid 77 gebaut).
 4. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
    Geometrie-Werkzeuge, Stammdaten-Tabelle) — die Touch-Vergrösserung aus
    Abschnitt 9.6 greift automatisch, das Layout ist aber ungeprüft.
