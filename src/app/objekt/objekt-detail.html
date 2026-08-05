@@ -17,10 +17,6 @@
           <ng-icon name="lucideArrowLeft" />
         </button>
         <h1 class="truncate text-base font-semibold">{{ o.signatur }} – {{ o.name }}</h1>
-        <span hlmBadge variant="secondary">
-          <span class="size-2 rounded-full {{ statusFarbe[o.status] }}"></span>
-          {{ statusLabel[o.status] }}
-        </span>
         @if (o.inexistent) {
           <span hlmBadge variant="destructive">inexistent</span>
         }
@@ -122,7 +118,8 @@
           </hlm-dropdown-menu>
         </ng-template>
 
-        <!-- Status-Dropdown: rollenrelevante Stati, frei wählbar -->
+        <!-- Status-Dropdown: zeigt den aktuellen Status, die setzbaren Stati
+             sind frei wählbar (ersetzt Badge und Beschriftung «Status ändern») -->
         <button
           hlmBtn
           variant="outline"
@@ -130,8 +127,11 @@
           type="button"
           [hlmDropdownMenuTrigger]="statusMenu"
           align="end"
+          hlmTooltip="Status ändern"
+          aria-label="Status ändern"
         >
-          Status ändern
+          <span class="size-2 rounded-full {{ statusFarbe[o.status] }}"></span>
+          {{ statusLabel[o.status] }}
           <ng-icon name="lucideChevronDown" />
         </button>
         <ng-template #statusMenu>
@@ -146,6 +146,38 @@
                 <hlm-dropdown-menu-radio-indicator />
                 <span class="size-2 rounded-full {{ statusFarbe[status] }}"></span>
                 {{ statusLabel[status] }}
+              </button>
+            }
+          </hlm-dropdown-menu>
+        </ng-template>
+
+        <!-- Zuweisung: die zugewiesene Person, per Dropdown wechselbar -->
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [hlmDropdownMenuTrigger]="personMenu"
+          align="end"
+          hlmTooltip="Zugewiesene Person wechseln"
+          aria-label="Zugewiesene Person wechseln"
+        >
+          <ng-icon name="lucideUserRound" />
+          {{ o.zustaendigName }}
+          <ng-icon name="lucideChevronDown" />
+        </button>
+        <ng-template #personMenu>
+          <hlm-dropdown-menu class="w-64">
+            @for (person of personen; track person.name) {
+              <button
+                hlmDropdownMenuRadio
+                [checked]="person.name === o.zustaendigName"
+                [keepOpen]="false"
+                (triggered)="personSetzen(person)"
+              >
+                <hlm-dropdown-menu-radio-indicator />
+                <span class="whitespace-nowrap">{{ person.name }}</span>
+                <span class="ml-auto pl-4 text-xs text-muted-foreground">{{ person.rolle }}</span>
               </button>
             }
           </hlm-dropdown-menu>

@@ -91,6 +91,20 @@ export const NAME_FUER_ROLLE: Record<RolleId, string> = {
   'R-08': 'System',
 };
 
+/**
+ * Personen des Prototyps für die Zuweisung (Personas der wählbaren Rollen
+ * plus L. Furrer als weitere Inventarisierende — ihre Objekte zeigen, dass
+ * das Dashboard persönlich ist).
+ */
+export const PERSONEN: readonly { name: string; rolle: RolleId }[] = [
+  { name: 'K. Aebischer', rolle: 'R-03' },
+  { name: 'T. Nyffenegger', rolle: 'R-04' },
+  { name: 'B. Anderegg', rolle: 'R-05' },
+  { name: 'L. Furrer', rolle: 'R-05' },
+  { name: 'M. Gerber', rolle: 'R-06' },
+  { name: 'S. Koch', rolle: 'R-07' },
+];
+
 function leereBewertung(): Bewertung {
   return {
     geschichte: { punkte: null, text: '' },

@@ -136,10 +136,12 @@ neuen Session weiterzuarbeiten.
   Strecken (ToDos werden auf Strecken-Ebene zugewiesen) — je Status
   erscheinen nur Objekte, die der aktiven Person zugewiesen sind oder
   laut Lognotizen einmal zugewiesen waren; gruppiert **nach allen acht
-  Workflow-Stati**, Volltextsuche, Schnellfilter inkl. Status-Filter,
-  Zeilen-Dropdown mit direktem Statuswechsel unter den von der Rolle
-  setzbaren Stati, Polygon-Selektion auf der Karte als geographischer
-  Filter. Generierte Objekte sind neutral «System» zugewiesen und
+  Workflow-Stati** (leere Gruppen zugeklappt), Volltextsuche,
+  Schnellfilter inkl. Status-Filter, Zeilen-Dropdown mit direktem
+  Statuswechsel unter den von der Rolle setzbaren Stati,
+  Polygon-Selektion auf der Karte als geographischer Filter. Die
+  **Karte zeigt nur die Objekte der Liste**; Suche und Filter dezimieren
+  sie mit. Generierte Objekte sind neutral «System» zugewiesen und
   erscheinen in keinem Dashboard.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
@@ -147,7 +149,8 @@ neuen Session weiterzuarbeiten.
   & Gelände, Anhang, Prüfen/Freigabe, Inexistent mit Pflichtbegründung,
   Lognotizen), **Hierarchie-Menü** mit Legenden-Symbolen, Typ-Tags und
   Umteilen je Child-Zeile («…»-Kontextmenü, öffnet nur per Klick),
-  **Status-Dropdown** mit den rollenrelevanten Stati zur freien Wahl,
+  **Status-Dropdown** (zeigt den aktuellen Status, setzbare Stati zur
+  freien Wahl), **Personen-Dropdown** für die Zuweisung (protokolliert),
   **Back-Button** zur gemerkten Herkunftsseite, **Versionsvergleich**
   IVS 1.0 → 2.0 im Historie-Menü (Wort-Diff mit Änderungsmarkierungen plus
   Vergleichskarte, Deckkraft beider Stände separat regelbar),
@@ -168,7 +171,8 @@ neuen Session weiterzuarbeiten.
   und Kommentieren inklusive), synchronisiert über BroadcastChannel und
   storage-Ereignisse.
 - **Objekte** (`/objekte`): Kartenansicht mit **aufklappbarem
-  Strecken-Baum** (nur Strecken auf erster Ebene), Suche und Filtern;
+  Strecken-Baum** (nur Strecken auf erster Ebene), Suche und Filtern —
+  sobald Filter oder Suche aktiv sind, wird auch die **Karte gefiltert**;
   ein Klick — auch auf der Karte — öffnet zuerst das Side-Panel mit dem
   **vollständigen** Objektinhalt samt Hierarchie-Menü (04.01–04.03),
   Export-Attrappe.

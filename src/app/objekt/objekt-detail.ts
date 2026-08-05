@@ -36,6 +36,7 @@ import {
   lucideTrash2,
   lucideTriangleAlert,
   lucideUpload,
+  lucideUserRound,
 } from '@ng-icons/lucide';
 import { toast } from '@spartan-ng/brain/sonner';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
@@ -69,7 +70,7 @@ import {
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN, darfEditieren } from '../core/rollen';
-import { NAME_FUER_ROLLE, rolleFuerStatus } from '../core/seed-data';
+import { NAME_FUER_ROLLE, PERSONEN, rolleFuerStatus } from '../core/seed-data';
 import { StammdatenStore } from '../core/stammdaten';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { alterStand, wortDiff } from '../core/version-vergleich';
@@ -144,6 +145,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideTrash2,
       lucideTriangleAlert,
       lucideUpload,
+      lucideUserRound,
     }),
   ],
   templateUrl: './objekt-detail.html',
@@ -386,6 +388,26 @@ export class ObjektDetail implements OnDestroy {
     this.store.statusWechseln(o.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
       description: `${o.signatur} — Übergang protokolliert.`,
+    });
+  }
+
+  /** Personen für das Zuweisungs-Dropdown in der Kopfzeile. */
+  protected readonly personen = PERSONEN;
+
+  /** Zuweisung wechseln: jede Rolle darf, der Wechsel wird protokolliert. */
+  protected personSetzen(person: { name: string; rolle: RolleId }): void {
+    const o = this.objekt();
+    if (!o || person.name === o.zustaendigName) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.store.update(o.id, { zustaendigName: person.name, zustaendigRolle: person.rolle });
+    this.store.lognotizHinzufuegen(o.id, {
+      datum: jetztLokal().slice(0, 10),
+      autor: NAME_FUER_ROLLE[rolle],
+      rolle,
+      text: `Zugewiesen an ${person.name} (${person.rolle}), vorher ${o.zustaendigName}.`,
+    });
+    toast.success(`Zugewiesen an ${person.name}`, {
+      description: `${o.signatur} — Zuweisung protokolliert.`,
     });
   }
 

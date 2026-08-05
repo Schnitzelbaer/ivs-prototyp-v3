@@ -42,9 +42,11 @@ import {
   LayerDef,
   OBJEKT_LAYER_IDS,
   OVERLAY_DEFS,
+  ROUTEN_REF_LAYER_IDS,
   erzeugeLayer,
   erzeugeObjektLayer,
   erzeugeWebTileLayer,
+  routenNummernFuerStrecken,
 } from './karten-layer';
 import { TypSymbol } from './typ-symbol';
 
@@ -323,6 +325,12 @@ export class Karte implements AfterViewInit, OnDestroy {
   readonly kommentarPosition = output<{ lon: number; lat: number }>();
   /** Geometrie-Editing (05.05): Signatur des zu bearbeitenden Objekts, null = aus. */
   readonly geometrieEditObjekt = input<string | null>(null);
+  /**
+   * Nur die Objekte dieser Strecken anzeigen (Signaturen, samt allen
+   * Unterobjekten); null = kein Filter. Gedacht für Listen-Synchronisation:
+   * Die Karte zeigt nur, was die Liste daneben aufführt.
+   */
+  readonly streckenFilter = input<readonly string[] | null>(null);
   /** Nach jeder Geometrie-Änderung: aktuelle Anzahl Arbeitsgeometrien. */
   readonly geometrieGeaendert = output<number>();
 
@@ -448,6 +456,45 @@ export class Karte implements AfterViewInit, OnDestroy {
       const signatur = this.geometrieEditObjekt();
       untracked(() => this.geometrieEditStarten(signatur));
     });
+    // Strecken-Filter auf die Objekt-Layer anwenden
+    effect(() => {
+      const filter = this.streckenFilter();
+      untracked(() => this.wendeStreckenFilterAn(filter));
+    });
+  }
+
+  /** Laufnummer gegen überholende asynchrone Filter-Anwendungen. */
+  private streckenFilterLauf = 0;
+
+  /**
+   * definitionExpression je Layer neu setzen: Objekt-Layer über das
+   * gestempelte Feld `strecke`, die routengebundenen Layer (Wegoberflächen,
+   * Böschung, Grenzmarken) über `route_nr` — deren Nummern kommen asynchron
+   * aus der Objekt-Zuordnung. Die Brücken-Detektion hat keine Referenz.
+   */
+  private wendeStreckenFilterAn(filter: readonly string[] | null): void {
+    const lauf = ++this.streckenFilterLauf;
+    const basisVon = (id: string) => LAYER_DEFS.find((d) => d.id === id)?.filter;
+    const setze = (id: string, zusatz: string | null) => {
+      const layer = this.layers.get(id);
+      if (!layer) return;
+      layer.definitionExpression = [basisVon(id), zusatz].filter(Boolean).join(' AND ');
+    };
+
+    for (const id of OBJEKT_LAYER_IDS) {
+      const werte = filter?.length
+        ? filter.map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')
+        : "''";
+      setze(id, filter === null ? null : `strecke IN (${werte})`);
+    }
+
+    void (async () => {
+      const nummern = filter === null ? null : await routenNummernFuerStrecken(filter);
+      if (lauf !== this.streckenFilterLauf || this.zerstoert) return;
+      for (const id of ROUTEN_REF_LAYER_IDS) {
+        setze(id, nummern === null ? null : `route_nr IN (${nummern.join(', ') || '-1'})`);
+      }
+    })();
   }
 
   /** Pins der räumlichen Kommentare auf den Kommentar-Layer zeichnen. */
@@ -512,6 +559,8 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.objektLayers = OBJEKT_LAYER_IDS.map((id) => this.layers.get(id)).filter(
       (l): l is GeoJSONLayer => !!l,
     );
+    // Ein vor dem Layer-Aufbau gesetzter Strecken-Filter greift jetzt
+    this.wendeStreckenFilterAn(this.streckenFilter());
 
     this.skizzenLayer = new GraphicsLayer({ listMode: 'hide' });
     map.add(this.skizzenLayer);

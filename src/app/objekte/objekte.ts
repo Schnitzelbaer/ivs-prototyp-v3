@@ -209,6 +209,21 @@ export class Objekte {
     () => this.store.alle().filter((o) => o.ebene === 'strecke').length,
   );
 
+  /**
+   * Sobald Filter oder Suche aktiv sind, zeigt die Karte nur noch die
+   * Strecken der (reduzierten) Baumliste; ohne Filter alles (null).
+   */
+  protected readonly kartenStrecken = computed<string[] | null>(
+    () => {
+      if (!this.filterAktiv(this.suche().trim().toLowerCase())) return null;
+      return this.baum().map((ast) => ast.strecke.signatur).sort();
+    },
+    {
+      equal: (a, b) =>
+        a === b || (!!a && !!b && a.length === b.length && a.every((s, i) => s === b[i])),
+    },
+  );
+
   /** Bei aktiver Suche sind alle Äste offen, sonst die manuell aufgeklappten. */
   protected istOffen(signatur: string): boolean {
     return this.suche().trim() !== '' || this.aufgeklappt().has(signatur);

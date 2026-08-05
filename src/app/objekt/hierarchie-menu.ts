@@ -1,7 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Directive,
+  ElementRef,
   TemplateRef,
+  afterNextRender,
   computed,
   inject,
   input,
@@ -30,6 +33,26 @@ import { jetztLokal } from '../core/kommentare';
 import { TypSymbol } from '../karte/typ-symbol';
 
 /**
+ * Fokussiert beim Öffnen des Menüs die aktive Zeile (`data-aktiv`) statt
+ * des ersten Eintrags — der CDK-Standardfokus liess sonst zusätzlich zur
+ * Markierung des aktiven Objekts immer die Strecke (erste Zeile) als
+ * ausgewählt erscheinen.
+ */
+@Directive({ selector: '[ivsFokusAktiv]' })
+export class HierarchieMenuFokus {
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  constructor() {
+    afterNextRender(() => {
+      // nach dem CDK-eigenen Fokus auf den ersten Eintrag
+      setTimeout(() => {
+        this.element.nativeElement.querySelector<HTMLElement>('[data-aktiv]')?.focus();
+      });
+    });
+  }
+}
+
+/**
  * Hierarchie-Menü einer Strecke (Objekt-Detail und Objekte-Übersicht):
  * alle Ebenen mit Legenden-Symbol und Typ-Tag, ein Klick wählt das Objekt.
  * Das Umteilen (07.09) hängt je Child-Zeile am «…»-Kontextmenü; der
@@ -50,12 +73,13 @@ import { TypSymbol } from '../karte/typ-symbol';
     HlmDropdownMenuImports,
     HlmLabelImports,
     HlmNativeSelectImports,
+    HierarchieMenuFokus,
     TypSymbol,
   ],
   providers: [provideIcons({ lucideFolderInput })],
   template: `
     <ng-template #menuTpl>
-      <hlm-dropdown-menu class="w-[27rem]">
+      <hlm-dropdown-menu ivsFokusAktiv class="w-[27rem]">
         @for (eintrag of hierarchie(); track eintrag.id) {
           <!-- pr-2: Platz für den Overlay-Scrollbalken des Menüs -->
           <div class="flex items-center pr-2">
@@ -63,6 +87,7 @@ import { TypSymbol } from '../karte/typ-symbol';
               hlmDropdownMenuItem
               class="min-w-0 flex-1"
               (triggered)="gewaehlt.emit(eintrag)"
+              [attr.data-aktiv]="eintrag.id === objekt().id ? '' : null"
               [class.bg-accent]="eintrag.id === objekt().id"
               [class.font-semibold]="eintrag.id === objekt().id"
             >
@@ -120,9 +145,17 @@ import { TypSymbol } from '../karte/typ-symbol';
       </hlm-dropdown-menu>
     </ng-template>
 
-    <!-- Kontextmenü der Zeile (fixed über dem Menü-Overlay, öffnet nur per Klick) -->
-    @if (kontext(); as k) {
-      <div class="fixed inset-0 z-[1200]" (click)="kontext.set(null)">
+    <!-- Kontextmenü der Zeile (öffnet nur per Klick). Als natives Popover,
+         weil das CDK-Menü im Top-Layer des Browsers liegt (popover-Attribut
+         auf dem Overlay) — dort gewinnt kein z-index; nur ein später
+         geöffnetes Popover liegt darüber. -->
+    <div
+      #kontextPopover
+      popover="manual"
+      class="fixed inset-0 m-0 size-auto overflow-visible border-0 bg-transparent p-0"
+      (click)="kontextSchliessen()"
+    >
+      @if (kontext(); as k) {
         <div
           class="absolute w-56 rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
           [style.left.px]="k.x"
@@ -137,8 +170,8 @@ import { TypSymbol } from '../karte/typ-symbol';
             Objekt umteilen …
           </button>
         </div>
-      </div>
-    }
+      }
+    </div>
 
     <!-- Objekt umteilen (07.09) -->
     <hlm-dialog
@@ -196,6 +229,8 @@ export class HierarchieMenu {
   readonly gewaehlt = output<IvsObjekt>();
 
   readonly menuTemplate = viewChild.required<TemplateRef<unknown>>('menuTpl');
+  private readonly kontextPopover =
+    viewChild.required<ElementRef<HTMLElement>>('kontextPopover');
 
   protected readonly typ = objektTyp;
   protected readonly typText = objektTypText;
@@ -239,11 +274,18 @@ export class HierarchieMenu {
     const x = Math.min(ereignis.clientX, window.innerWidth - 240);
     const y = Math.min(ereignis.clientY, window.innerHeight - 60);
     this.kontext.set({ x, y, objekt });
+    // ins Top-Layer heben — nach dem offenen Menü, also über ihm
+    this.kontextPopover().nativeElement.showPopover();
+  }
+
+  protected kontextSchliessen(): void {
+    this.kontext.set(null);
+    this.kontextPopover().nativeElement.hidePopover();
   }
 
   protected umteilenStarten(): void {
     const u = this.kontext()?.objekt;
-    this.kontext.set(null);
+    this.kontextSchliessen();
     if (!u) return;
     const rolle = this.einstellungen.aktiveRolleId();
     if (!darfEditieren(rolle, u.status)) {

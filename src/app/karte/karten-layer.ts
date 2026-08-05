@@ -154,6 +154,10 @@ export const WEGOBERFLAECHEN: { art: WegoberflaechenArt; farbe: number[] }[] = [
   { art: 'Lockermaterial + Schotterung', farbe: [0, 230, 118] },
 ];
 
+function wegoberflaecheLayerId(art: WegoberflaechenArt): string {
+  return `wegoberflaeche-${art.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+}
+
 export interface LayerDef {
   id: string;
   titel: string;
@@ -182,7 +186,7 @@ export const LAYER_DEFS: LayerDef[] = [
     legende: { form: 'flaeche', farbe: [109, 40, 217] },
   },
   ...WEGOBERFLAECHEN.map(({ art, farbe }) => ({
-    id: `wegoberflaeche-${art.toLowerCase().replace(/[^a-z]+/g, '-')}`,
+    id: wegoberflaecheLayerId(art),
     titel: art,
     datei: 'wegoberflaechen_bern_segmentiert',
     sichtbar: true,
@@ -304,6 +308,31 @@ export const OBJEKT_LAYER_IDS = [
   'kunstbauten',
   'punktobjekte',
 ] as const;
+
+/**
+ * Layer, deren Features über `route_nr` an eine Route gebunden sind — für
+ * den Strecken-Filter der Karte (die Brücken-Detektion hat keine Referenz
+ * und bleibt aussen vor).
+ */
+export const ROUTEN_REF_LAYER_IDS: readonly string[] = [
+  ...WEGOBERFLAECHEN.map(({ art }) => wegoberflaecheLayerId(art)),
+  'boeschung',
+  'segmentgrenzen',
+  'routengrenzen',
+];
+
+/** Routen-Nummern aller Routen, deren Objekte zu den Strecken gehören. */
+export async function routenNummernFuerStrecken(
+  strecken: readonly string[],
+): Promise<number[]> {
+  const { zuordnung } = await ladeObjektModell();
+  const menge = new Set(strecken);
+  const nummern: number[] = [];
+  for (const [nr, signatur] of zuordnung.route) {
+    if (menge.has(signaturKette(signatur).strecke)) nummern.push(nr);
+  }
+  return nummern;
+}
 
 /** Quelldateien der Objekt-Features (die Kunstbauten kommen aus der Generierung). */
 const OBJEKT_QUELLDATEIEN = [

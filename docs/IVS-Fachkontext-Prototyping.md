@@ -17,7 +17,7 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 70), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 74), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
@@ -1033,6 +1033,32 @@ Rückfragen in derselben Session geklärt)**
     BE 7/22/23/35, damit jede Rolle (inkl. R-04 T. Nyffenegger und
     R-07 S. Koch) eigene Einträge sieht.
 
+**Review-Paket «Bug-Fixes / Small Changes» (PDF vom 05.08.2026)**
+
+71. **Dashboard-Feinschliff:** Status-Gruppen ohne Objekte starten
+    **zugeklappt**.
+72. **Objekt-Kopfzeile:** Der Status-Badge neben dem Titel ist entfernt —
+    das Dropdown zeigt statt «Status ändern» immer den **aktuellen
+    Status** (Farbpunkt + Label). Daneben ein **Personen-Dropdown** mit
+    der zugewiesenen Person: alle Rollen dürfen wechseln, der Wechsel
+    setzt `zustaendigName`/`zustaendigRolle` und wird als Lognotiz
+    protokolliert. Die Personenliste (`PERSONEN` in seed-data.ts) umfasst
+    die Personas der wählbaren Rollen plus L. Furrer (R-05).
+73. **Karten folgen den Listen:** Die Dashboard-Karte zeigt nur die
+    Objekte der (persönlichen, gefilterten) Strecken-Liste; auf der
+    Objekte-Seite wird die Karte gefiltert, **sobald** Suche oder Filter
+    aktiv sind — sonst zeigt sie alles. Technisch: Karte-Input
+    `streckenFilter` setzt `definitionExpression` auf den Objekt-Layern
+    (`strecke IN (…)`) und auf den routengebundenen Layern
+    (Wegoberflächen, Böschung, Grenzmarken — `route_nr IN (…)` über die
+    Objekt-Zuordnung); die Brücken-Detektion hat keine Routen-Referenz
+    und bleibt ungefiltert.
+74. **Hierarchie-Menü-Fixes:** Das «…»-Umteilen-Kontextmenü liegt als
+    **natives Popover im Top-Layer** über dem Menü (vorher dahinter,
+    siehe Fallstrick in 12.6); beim Öffnen ist nur noch das **aktive
+    Objekt** markiert — der CDK-Fokus wird per Direktive
+    (`ivsFokusAktiv`) vom ersten Eintrag auf die aktive Zeile verschoben.
+
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
 
@@ -1503,6 +1529,21 @@ Fehler, die schon einmal Zeit gekostet haben:
   einem Kontextmenü heraus geöffnet werden. `hlmAlertDialogCancel` schliesst
   das Overlay, setzt aber das eigene Signal nicht zurück — dort ein
   `(click)` ergänzen.
+- **CDK-Overlays liegen im Top-Layer des Browsers.** Der Overlay-Wrapper
+  trägt das native `popover`-Attribut — gegen den Top-Layer gewinnt
+  **kein** `z-index`, ein eigenes fixed-Overlay mit `z-[1200]` bleibt
+  trotzdem hinter dem Menü. Eigene Overlays, die über einem offenen
+  CDK-Menü liegen sollen, müssen selbst per `popover="manual"` +
+  `showPopover()` in den Top-Layer (später gezeigt = weiter oben); die
+  UA-Styles des Popovers (margin auto, border, background, fit-content)
+  sind zurückzusetzen. So gebaut im Umteilen-Kontextmenü des
+  Hierarchie-Menüs.
+- **Der CDK fokussiert beim Öffnen eines Menüs den ersten Eintrag** —
+  mit `focus:bg-accent` sieht der dann wie selektiert aus (im
+  Hierarchie-Menü wirkte so die Strecke stets mitmarkiert). Abhilfe:
+  nach dem Öffnen die gewünschte Zeile fokussieren (`ivsFokusAktiv` in
+  hierarchie-menu.ts, `afterNextRender` + `setTimeout`, nach dem
+  CDK-eigenen Fokus).
 - **Verschachtelte `hlmDropdownMenuTrigger` sind eine Falle.** Das CDK
   behandelt einen Trigger innerhalb eines offenen Menüs als **Submenü**:
   Es öffnet bereits auf Hover. Zudem wird das Menü-Template im

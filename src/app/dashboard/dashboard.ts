@@ -201,6 +201,16 @@ export class Dashboard {
   protected readonly polygonAktiv = computed(() => this.karte()?.polygonAktiv() ?? false);
 
   /**
+   * Die Karte zeigt nur die Strecken der Liste (samt Unterobjekten);
+   * Suche und Filter dezimieren sie mit. Wertvergleich: die Layer-Filter
+   * sollen nur bei echten Änderungen neu gesetzt werden.
+   */
+  protected readonly kartenStrecken = computed(
+    () => this.gefiltert().map((o) => o.signatur).sort(),
+    { equal: (a, b) => a.length === b.length && a.every((s, i) => s === b[i]) },
+  );
+
+  /**
    * Workflow-Status-Optionen der Zeile: die von der Rolle setzbaren Stati
    * (plus der aktuelle), direkt wählbar — in der Reihenfolge des Workflows.
    */
