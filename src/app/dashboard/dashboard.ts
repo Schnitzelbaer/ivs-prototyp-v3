@@ -262,7 +262,8 @@ export class Dashboard {
   }
 
   protected inNeuemTabOeffnen(): void {
-    window.open('/karte', '_blank', 'noopener');
+    // Rolle mitgeben: das Kartenfenster erbt die Perspektive dieses Tabs
+    window.open(`/karte?rolle=${this.einstellungen.aktiveRolleId()}`, '_blank', 'noopener');
   }
 
   // ----------------------------------------------------------- Kommentare

@@ -549,7 +549,13 @@ export class ObjektDetail implements OnDestroy {
 
   protected inNeuemTabOeffnen(): void {
     const o = this.objekt();
-    window.open(o ? `/karte?sig=${encodeURIComponent(o.id)}` : '/karte', '_blank', 'noopener');
+    // Rolle mitgeben: das Kartenfenster erbt die Perspektive dieses Tabs
+    const rolle = `rolle=${this.einstellungen.aktiveRolleId()}`;
+    window.open(
+      o ? `/karte?sig=${encodeURIComponent(o.id)}&${rolle}` : `/karte?${rolle}`,
+      '_blank',
+      'noopener',
+    );
   }
 
   // ------------------------------------------------------ Rich-Text-Anzeige

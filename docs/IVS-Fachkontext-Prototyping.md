@@ -17,7 +17,7 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 66), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 67), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
@@ -942,9 +942,10 @@ Rückfragen in derselben Session geklärt)**
     setzt); das Dropdown erlaubt den direkten Wechsel.
 58. **Kartenfenster `/karte` mit Panel-Kopf:** Tabs (Karte, 360° Bilder
     mit Begehungsplanung, Kommentare) und Werkzeuge inklusive Zeichnen;
-    Arbeitsgeometrien, Kommentare und Rollenwechsel synchronisieren über
+    Arbeitsgeometrien und Kommentare synchronisieren über
     `storage`-Ereignisse live mit dem Hauptfenster, die Selektion weiter
-    über den BroadcastChannel.
+    über den BroadcastChannel (die Rolle seit Entscheid 67 nicht mehr —
+    sie gilt pro Tab).
 
 **Fünfte Ausbaustufe — Review-Paket «Neue ToDos» (PDF vom 02.08.2026,
 Rückfragen in derselben Session geklärt)**
@@ -993,6 +994,20 @@ Rückfragen in derselben Session geklärt)**
     abweichende Eckdaten, versetzter und vereinfachter Verlauf);
     Schlüsselobjekte der Seed-Strecken haben kuratierte Erstbeschriebe
     (`core/version-vergleich.ts`).
+
+**Weitere Entscheide (05.08.2026)**
+
+67. **Rolle pro Tab:** Die aktive Rolle liegt im sessionStorage
+    (`ivs-prototyp-v3.rolle`) — jeder Tab kann eine eigene Perspektive
+    haben (z. B. R-05 und R-06 nebeneinander für den Prüf-Workflow). Der
+    localStorage hält nur noch die zuletzt gewählte Rolle als Standard
+    für neue Tabs; die Rollen-Synchronisation über `storage`-Ereignisse
+    (Teil von Entscheid 58) entfällt. Das separate Kartenfenster `/karte`
+    erbt die Rolle seines Ursprungs-Tabs über den URL-Parameter `rolle`
+    (mit `noopener` wird der sessionStorage nicht kopiert); Vorrang:
+    URL-Parameter > Tab-eigener Stand > localStorage-Standard > R-05.
+    Der Account-Button unten links zeigt die aktive Rollen-Nummer statt
+    des Personen-Icons. Dark-Mode bleibt fensterübergreifend synchron.
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1167,7 +1182,7 @@ src/app/
     seed-data.ts       48 kuratierte Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
     objekt-generierung.ts  Vollabdeckung: Objekte, Kunstbauten, Feature-Zuordnung
     objekt-store.ts    Objekte, statusWechseln, ergänzt generierte idempotent
-    einstellungen-store.ts  aktive Rolle, Dark-Mode (storage-Sync für Fenster)
+    einstellungen-store.ts  Rolle pro Tab (sessionStorage), Dark-Mode (storage-Sync)
     kommentare.ts      Kommentar-Modell, parseKommentarText, jetztLokal, Store
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
     geometrie-store.ts Arbeitsgeometrien je Signatur (storage-Sync)
@@ -1212,7 +1227,7 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen           | Konstante in `begehungen.ts`      |
 | `ivs-prototyp-v3.stammdaten`    | Auswahllisten                 | Konstante in `stammdaten.ts`      |
-| `ivs-prototyp-v3.einstellungen` | aktive Rolle, Dark-Mode       | —                                 |
+| `ivs-prototyp-v3.einstellungen` | Standard-Rolle neuer Tabs, Dark-Mode | —                          |
 
 Passt die gespeicherte Version nicht zur Konstante, wird der Stand verworfen
 und neu geseedet. **Nach jeder Seed-Änderung die Version erhöhen**, sonst
@@ -1222,6 +1237,10 @@ Account-Menü leert alle Stores auf einmal.
 Drei Stores (`kommentare`, `geometrien`, `einstellungen`) hören zusätzlich
 auf das `storage`-Ereignis und übernehmen Änderungen aus anderen Fenstern —
 so bleibt das separate Kartenfenster `/karte` live synchron (Entscheid 58).
+Die **aktive Rolle gilt seit Entscheid 67 pro Tab** (sessionStorage
+`ivs-prototyp-v3.rolle`) und synchronisiert nicht mehr; der localStorage
+hält nur die Standard-Rolle für neue Tabs, das Kartenfenster erbt die
+Rolle seines Ursprungs-Tabs über den URL-Parameter `rolle`.
 Nicht persistiert sind `HerkunftStore` und `HinweisStore` (reiner
 Sitzungszustand) sowie der IVS-1.0-Stand des Versionsvergleichs, der
 deterministisch aus dem aktuellen Objekt abgeleitet wird.
@@ -1278,8 +1297,8 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   **Kartenbild-Panel** steuert Hintergründe additiv samt Deckkraft je
   Eintrag (Entscheid 50). Separates Kartenfenster `/karte` mit Panel-Kopf
   (Tabs und Werkzeuge, Entscheid 58) und bidirektionaler Synchronisation
-  (BroadcastChannel für die Selektion, storage-Ereignisse für Geometrien,
-  Kommentare und Rolle).
+  (BroadcastChannel für die Selektion, storage-Ereignisse für Geometrien
+  und Kommentare; die Rolle gilt pro Tab, Entscheid 67).
 - **Mock-Daten**: 48 kuratierte Objekte im Testgebiet Bern — BE 7
   (Murtenstrasse, publiziert/freigegeben), BE 21 (Frauenkappelen–Gümmenen,
   in Arbeit, enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse, in

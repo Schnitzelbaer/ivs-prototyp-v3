@@ -121,7 +121,9 @@ neuen Session weiterzuarbeiten.
 
 - **Shell** (`src/app/shell/`): Icon-Leiste; das IVS-Logo führt zum
   Dashboard, «Perspektive wechseln» liegt im **Account-Menü** unten links
-  (R-03…R-07 wählbar) zusammen mit Profil und «Demodaten zurücksetzen»;
+  (R-03…R-07 wählbar, der Button zeigt die aktive Rollen-Nummer) zusammen
+  mit Profil und «Demodaten zurücksetzen»; die **Rolle gilt pro Tab**
+  (sessionStorage) — mehrere Perspektiven lassen sich nebeneinander öffnen;
   Dark-Mode, Sprachwechsler (Attrappe). Es gibt keine ausgegrauten
   Bedienelemente: Gesperrte Aktionen bleiben aktiv und erklären sich beim
   Klick in einem Modal (**nie-disabled-Regel**).
