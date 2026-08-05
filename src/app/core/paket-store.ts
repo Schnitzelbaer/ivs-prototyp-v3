@@ -156,6 +156,19 @@ export class PaketStore {
     this.stand.update((s) => ({ ...s, pakete: s.pakete.filter((p) => p.id !== paketId) }));
   }
 
+  /** Gelöschte Objekte aus allen Paketen austragen (Aufräumen nach 07.05). */
+  objekteAustragen(objektIds: Iterable<string>): void {
+    const menge = new Set(objektIds);
+    this.stand.update((s) => ({
+      ...s,
+      pakete: s.pakete.map((p) =>
+        p.objektIds.some((id) => menge.has(id))
+          ? { ...p, objektIds: p.objektIds.filter((id) => !menge.has(id)) }
+          : p,
+      ),
+    }));
+  }
+
   /** Paket-Zugehörigkeit je Objekt-Id (für Filter und Exklusivität). */
   readonly paketProObjekt = computed<ReadonlyMap<string, Arbeitspaket>>(() => {
     const karte = new Map<string, Arbeitspaket>();

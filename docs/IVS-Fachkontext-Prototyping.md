@@ -806,7 +806,8 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
 
 **Daten und Modell**
 
-18. **Stati:** Die acht Stati aus Abschnitt 7 werden geführt. ~~Fürs
+18. **Stati:** Die acht Stati aus Abschnitt 7 werden geführt (seit
+    Entscheid 79 sind es neun — «Offen» kam dazu). ~~Fürs
     Dashboard werden sie auf drei Gruppen gemappt (Backlog / In Arbeit /
     Done).~~ **Aufgehoben durch Entscheid 68** — das Dashboard gruppiert
     nach den echten Stati.
@@ -835,7 +836,7 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
     ihren Bearbeitungsstati) und R-03 vorbehalten. ~~Jede Rolle hat
     eigene Dashboard-Stati; die Statusübergänge sind je Rolle
     definiert.~~ **Überholt durch die Entscheide 69/70** — das Dashboard
-    zeigt allen Rollen alle acht Stati, und statt einer Übergangstabelle
+    zeigt allen Rollen alle Stati (seit Entscheid 79 neun), und statt einer Übergangstabelle
     gibt es die frei wählbaren `setzbareStati`.
 25. **Hierarchie-Dropdown:** Klick auf ein Objekt wechselt die Detailansicht,
     behält den Modus (View/Edit) bei und **wechselt die Kartenselektion mit**.
@@ -987,7 +988,8 @@ Rückfragen in derselben Session geklärt)**
 Rückfragen in derselben Session geklärt)**
 
 59. **Status-Dropdown frei wählbar:** Das «Status ändern»-Dropdown in der
-    Kopfzeile und das Workflow-Select im Formular bieten die
+    Kopfzeile und ~~das Workflow-Select im Formular~~ (mit Entscheid 80
+    entfernt) bieten die
     **rollenrelevanten Stati zur freien Wahl** (aktueller markiert) —
     dieselbe Semantik wie das Dashboard-Zeilen-Dropdown. Ersetzt die
     Weiter/Zurück-Logik samt Berechtigungs-Modal aus Entscheid 51.
@@ -1056,20 +1058,22 @@ _Perspektiven und Dashboard_
     der Gruppen-Filter wurde zum Status-Filter mit den Stati der Rolle.
 69. **Setzbare Stati je Rolle** (`setzbareStati` in rollen.ts, von
     `relevanteStati` getrennt): Die Status-Dropdowns (Dashboard-Zeile,
-    Objekt-Kopfzeile, Formular) bieten nur noch die von der Rolle
+    Objekt-Kopfzeile, ~~Formular~~ — das Formular-Select ist mit
+    Entscheid 80 entfernt) bieten nur noch die von der Rolle
     setzbaren Stati an. **«Korrektur» leitet allein das Fachlektorat
     (R-06) ein** — R-04 und R-05 sehen den Status weiterhin, setzen ihn
     aber nicht. Die **Fachliche Prüfstelle (R-07) darf «Publiziert»
     setzen**. Die seit Entscheid 59 tote Übergangs-Tabelle
     (`UEBERGAENGE` in status.ts) ist entfernt.
 70. **Dashboard ist persönlich, alle Stati:** Für jede Rolle erscheinen
-    **alle acht Stati** als Gruppen (präzisiert Entscheid 68); je Status
+    **alle Stati** als Gruppen (präzisiert Entscheid 68; seit
+    Entscheid 79 sind es neun); je Status
     stehen nur Objekte, die der **aktiven Person** zugewiesen sind oder
     laut Lognotizen einmal zugewiesen waren (gleiche Semantik wie der
     Kommentar-Filter, Entscheid 56). `relevanteStati` ist damit entfernt
     (ersetzt den Dashboard-Teil von Entscheid 57). Generierte Objekte
     sind neutral **«System» (R-08)** zugewiesen und erscheinen in keinem
-    persönlichen Dashboard; der Status-Filter bietet alle acht Stati.
+    persönlichen Dashboard; der Status-Filter bietet alle Stati.
     Seed-Ergänzung: Zuweisungs- und Prüf-Lognotizen auf den Strecken
     BE 7/22/23/35, damit jede Rolle (inkl. R-04 T. Nyffenegger und
     R-07 S. Koch) eigene Einträge sieht.
@@ -1195,6 +1199,12 @@ Arbeitspakete und echte Filter.
     «offenes» Objekt wechselt mit der Zuweisung automatisch auf
     «Zugewiesen». Das Objekt-Detail zeigt die Person nur noch
     **read-only** (ersetzt das Personen-Dropdown aus Entscheid 72).
+    Umgekehrt führen **Statuswechsel** die Zuständigkeit als
+    **Rollen-Übergabe** nach (08.03): Die Person bleibt, wenn sie der
+    neu zuständigen Rolle bereits angehört — explizite Zuweisungen
+    gehen nicht verloren —, sonst übernimmt die Persona der Rolle,
+    und der Wechsel steht mit in der Status-Lognotiz (Präzisierung
+    aus dem Review der siebten Ausbaustufe).
 82. **Kantonspakete echt** (ersetzt den R-03-Teil von Entscheid 77):
     Der Arbeitspakete-Bereich von R-03 listet **alle 26 Kantone**; jeder
     — auch ohne Testdaten, testweise — lässt sich per Dropdown einer
@@ -1205,9 +1215,10 @@ Arbeitspakete und echte Filter.
     Person setzt «Zugewiesen» (Entscheid 79). Dafür gibt es **zwei
     weitere R-04-Personen** (A. Vaucher, G. Bernasconi). Grenzfälle:
     R-03 kann ausgewählte Strecken (Checkboxen oder Polygon) **einem
-    anderen Kanton zuordnen** (`kantonZuordnen` im ObjektStore) — die
-    Signatur bleibt unverändert, nur das `kanton`-Attribut wechselt,
-    Nachkommen ziehen still mit (Lognotiz an der Strecke).
+    anderen Kanton zuordnen** (`kantonZuordnen` im ObjektStore; im UI
+    heisst die Aktion «In Kanton verschieben») — die Signatur bleibt
+    unverändert, nur das `kanton`-Attribut wechselt, Nachkommen ziehen
+    still mit (Lognotiz an der Strecke).
 83. **Arbeitspakete als Entitäten** (ersetzt den R-04-Teil von
     Entscheid 77): Die Regionale Koordination erstellt **benannte,
     gespeicherte, löschbare Pakete** (Name frei wählbar; Strecken über
@@ -1674,16 +1685,19 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–84 in
   ihr späteres eigenes Protokoll) mit Ja/Nein-Fragen in vier Gruppen,
   Nein-Befunde werden beim Zurückweisen zu Kommentaren, «Geprüft» ist
   ohne bestandenes Protokoll überall gesperrt (Guard mit Erklär-Modal).
-- **Arbeitspakete (03.02/03.03, Entscheid 77)**: Bereich im Dashboard
-  für R-03 (Kantonspakete an die Regionale Koordination) und R-04
-  (freie Auswahl per Checkbox/Polygon an Inventarisierende); Zuweisung
-  setzt Status, Person und Lognotiz in einem Zug. Paketrollen sehen
-  alle Objekte und steigen per Ansicht-Umschalter auf die persönlichen
-  Dashboards der unterstellten Personen ab.
+- **Arbeitspakete (03.02/03.03, Entscheide 77/82/83)**: Bereich im
+  Dashboard für R-03 (alle 26 Kantone an die Regionale Koordination —
+  persistent, änderbar, ohne Statuswechsel; Grenzfall-Strecken einem
+  anderen Kanton zuordenbar) und R-04 (benannte, gespeicherte,
+  löschbare Pakete mit änderbarem Inhalt); erst die Zuweisung eines
+  Pakets an eine Inventarisierende setzt Status, Person und Lognotiz
+  in einem Zug. R-03 sieht alle Objekte, R-04 nur die ihr
+  zugewiesenen Kantone; statt des Ansicht-Umschalters filtert
+  «Zuständige Person» (Entscheid 84).
 
 **Personen im Prototyp** (`NAME_FUER_ROLLE` und `PERSONEN` in
 `seed-data.ts`). Sie tragen das persönliche Dashboard (Entscheid 70), die
-Zuweisung (Entscheide 72/77) und die `@`-Erwähnungen:
+Zuweisung (Entscheide 81/82/83) und die `@`-Erwähnungen:
 
 | Person          | Rolle | Bemerkung                                        |
 | --------------- | ----- | ------------------------------------------------ |

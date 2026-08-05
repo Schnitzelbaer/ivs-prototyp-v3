@@ -53,7 +53,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* Signalfarben der acht Workflow-Stati (Status-Punkte in Listen). */
+  /* Signalfarben der Workflow-Stati (Status-Punkte in Listen). */
   --status-offen: oklch(0.63 0.012 285.8);
   --status-zugewiesen: oklch(0.704 0.04 256.788);
   --status-in-bearbeitung: oklch(0.623 0.214 259.815);

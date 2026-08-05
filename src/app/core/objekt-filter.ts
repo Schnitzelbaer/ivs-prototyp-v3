@@ -102,8 +102,12 @@ export function passtAttributFilter(
       if (o.kanton !== f.paket.slice('kanton:'.length)) return false;
     } else if (f.paket.startsWith('paket:')) {
       const ids = paketInhalt(f.paket.slice('paket:'.length));
-      const strecke = signaturKette(o.signatur).strecke || o.signatur;
-      if (!ids?.includes(idAusSignatur(strecke))) return false;
+      // Unbekanntes Paket (z. B. soeben gelöscht): Kriterium ignorieren,
+      // statt still jedes Objekt auszuschliessen
+      if (ids) {
+        const strecke = signaturKette(o.signatur).strecke || o.signatur;
+        if (!ids.includes(idAusSignatur(strecke))) return false;
+      }
     }
   }
   return true;

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -110,6 +117,17 @@ export class Objekte {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly einstellungen = inject(EinstellungenStore);
   private readonly paketStore = inject(PaketStore);
+
+  constructor() {
+    // Rollenwechsel: Person- und Paket-Filter zurücksetzen — die beiden
+    // Selects sind nur für die Paketrollen sichtbar und dürfen für
+    // andere Rollen nicht unsichtbar weiterwirken (Entscheid 84)
+    effect(() => {
+      this.einstellungen.aktiveRolleId();
+      this.personFilter.set('alle');
+      this.paketFilter.set('alle');
+    });
+  }
 
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly statusFarbe = STATUS_FARBE;

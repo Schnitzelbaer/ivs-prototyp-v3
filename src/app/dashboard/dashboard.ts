@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -136,6 +137,17 @@ export class Dashboard {
   private readonly hinweis = inject(HinweisStore);
 
   private readonly karte = viewChild(Karte);
+
+  constructor() {
+    // Rollenwechsel: Person- und Paket-Filter zurücksetzen — die beiden
+    // Selects sind nur für die Paketrollen sichtbar und dürfen für
+    // andere Rollen nicht unsichtbar weiterwirken (Entscheid 84)
+    effect(() => {
+      this.einstellungen.aktiveRolleId();
+      this.personFilter.set('alle');
+      this.paketFilter.set('alle');
+    });
+  }
 
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly statusFarbe = STATUS_FARBE;
@@ -446,19 +458,21 @@ export class Dashboard {
       return;
     }
     const kanton = this.zielKanton();
+    const kantonName = KANTONE.find((k) => k.kuerzel === kanton)?.name ?? kanton;
     const rolle = this.einstellungen.aktiveRolleId();
     const anzahl = this.store.kantonZuordnen(ids, kanton, NAME_FUER_ROLLE[rolle], rolle);
     this.ausgewaehlt.set(new Set());
     if (anzahl === 0) {
       this.hinweis.zeige(
         'Nichts zu verschieben',
-        `Alle ausgewählten Strecken liegen bereits im Kanton ${kanton}.`,
+        `Alle ausgewählten Strecken liegen bereits im Kanton ${kantonName}.`,
       );
       return;
     }
-    toast.success(`${anzahl} Strecke${anzahl === 1 ? '' : 'n'} in den Kanton ${kanton} verschoben`, {
-      description: 'Die Signaturen bleiben unverändert; Nachkommen ziehen mit.',
-    });
+    toast.success(
+      `${anzahl} Strecke${anzahl === 1 ? '' : 'n'} in den Kanton ${kantonName} verschoben`,
+      { description: 'Die Signaturen bleiben unverändert; Nachkommen ziehen mit.' },
+    );
   }
 
   /** Auswahl für Paket-Operationen: Checkboxen, ersatzweise Polygon-Selektion. */
@@ -515,6 +529,9 @@ export class Dashboard {
   }
 
   protected paketLoeschen(paket: Arbeitspaket): void {
+    // Zeigt der Arbeitspaket-Filter auf dieses Paket, würde er sonst als
+    // toter Wert weiterwirken und die Liste leeren (Review-Befund)
+    if (this.paketFilter() === `paket:${paket.id}`) this.paketFilter.set('alle');
     this.paketStore.paketLoeschen(paket.id);
     toast.success(`Arbeitspaket «${paket.name}» gelöscht`, {
       description: 'Die Strecken selbst bleiben unverändert.',

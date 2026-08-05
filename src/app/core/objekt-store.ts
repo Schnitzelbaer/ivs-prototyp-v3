@@ -1,6 +1,8 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { jetztLokal } from './kommentare';
 import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus } from './model';
 import { ladeObjektModell } from './objekt-generierung';
+import { KANTONE, PaketStore } from './paket-store';
 import {
   SEED_OBJEKTE,
   SEED_VERSION,
@@ -23,6 +25,8 @@ const STORAGE_KEY = 'ivs-prototyp-v3.objekte';
  */
 @Injectable({ providedIn: 'root' })
 export class ObjektStore {
+  private readonly paketStore = inject(PaketStore);
+
   private readonly objekte = signal<IvsObjekt[]>(laden());
 
   readonly alle = this.objekte.asReadonly();
@@ -104,9 +108,13 @@ export class ObjektStore {
   }
 
   /**
-   * Statuswechsel als fachliche Operation: setzt den Status, führt die
-   * Zuständigkeit nach (wer ist am Zug — gleiche Ableitung wie im Seed)
-   * und protokolliert den Übergang als Lognotiz. Der Status wird auf
+   * Statuswechsel als fachliche Operation: setzt den Status und
+   * protokolliert den Übergang als Lognotiz. Die Zuständigkeit wird als
+   * Rollen-Übergabe nachgeführt (08.03): Die Person bleibt, wenn sie der
+   * neu zuständigen Rolle bereits angehört — explizite Zuweisungen
+   * (Entscheid 81) gehen nicht verloren —, sonst übernimmt die Persona
+   * der Rolle und der Wechsel steht mit in der Lognotiz. «Offen»
+   * entzieht die Zuweisung (Entscheid 79). Der Status wird auf
    * Strecken-Ebene geführt (Entscheid 78) — bei Strecken erben alle
    * Nachkommen Status und Zuständigkeit still (Lognotiz nur am Objekt
    * selbst). So bleibt die Historisierung unabhängig vom Einstiegspunkt
@@ -115,17 +123,23 @@ export class ObjektStore {
   statusWechseln(id: string, status: WorkflowStatus, autor: string, autorRolle: RolleId): void {
     const objekt = this.byId(id);
     if (!objekt || objekt.status === status) return;
-    // «Offen» entzieht die Zuweisung — das Objekt gehört wieder niemandem
-    const { rolle: zustaendigRolle, name: zustaendigName } = zustaendigkeitFuerStatus(status);
+    const ziel = zustaendigkeitFuerStatus(status);
+    const behalten =
+      status !== 'offen' && objekt.zustaendigRolle === ziel.rolle && !!objekt.zustaendigName;
+    const zustaendigRolle = behalten ? objekt.zustaendigRolle : ziel.rolle;
+    const zustaendigName = behalten ? objekt.zustaendigName : ziel.name;
+    const personWechselt = zustaendigName !== objekt.zustaendigName;
     const betroffene =
       objekt.ebene === 'strecke'
         ? this.mitNachkommen([objekt.signatur])
         : new Set([objekt.signatur]);
     const notiz: Lognotiz = {
-      datum: new Date().toISOString().slice(0, 10),
+      datum: jetztLokal().slice(0, 10),
       autor,
       rolle: autorRolle,
-      text: `Status: ${STATUS_LABEL[objekt.status]} → ${STATUS_LABEL[status]}`,
+      text:
+        `Status: ${STATUS_LABEL[objekt.status]} → ${STATUS_LABEL[status]}` +
+        (personWechselt ? `, zuständig neu ${zustaendigName || '—'}` : ''),
     };
     this.objekte.update((liste) =>
       liste.map((o) => {
@@ -162,7 +176,7 @@ export class ObjektStore {
         ? this.mitNachkommen([objekt.signatur])
         : new Set([objekt.signatur]);
     const notiz: Lognotiz = {
-      datum: new Date().toISOString().slice(0, 10),
+      datum: jetztLokal().slice(0, 10),
       autor,
       rolle: autorRolle,
       text: objekt.zustaendigName
@@ -208,7 +222,7 @@ export class ObjektStore {
         .filter((o) => menge.has(o.id))
         .map((o) => o.signatur),
     );
-    const datum = new Date().toISOString().slice(0, 10);
+    const datum = jetztLokal().slice(0, 10);
     this.objekte.update((liste) =>
       liste.map((o) =>
         signaturen.has(o.signatur)
@@ -253,7 +267,8 @@ export class ObjektStore {
     if (!wechselnde.length) return 0;
     const notizIds = new Set(wechselnde.map((o) => o.id));
     const signaturen = this.mitNachkommen(wechselnde.map((o) => o.signatur));
-    const datum = new Date().toISOString().slice(0, 10);
+    const datum = jetztLokal().slice(0, 10);
+    const kantonName = KANTONE.find((k) => k.kuerzel === kanton)?.name ?? kanton;
     this.objekte.update((liste) =>
       liste.map((o) =>
         signaturen.has(o.signatur)
@@ -267,7 +282,7 @@ export class ObjektStore {
                       datum,
                       autor,
                       rolle: autorRolle,
-                      text: `In den Kanton ${kanton} verschoben.`,
+                      text: `In den Kanton ${kantonName} (${kanton}) verschoben.`,
                     },
                   ]
                 : o.lognotizen,
@@ -282,18 +297,14 @@ export class ObjektStore {
   loeschen(id: string): void {
     const objekt = this.byId(id);
     if (!objekt) return;
-    const zuLoeschen = new Set<string>([objekt.signatur]);
-    let gewachsen = true;
-    while (gewachsen) {
-      gewachsen = false;
-      for (const o of this.objekte()) {
-        if (o.parent && zuLoeschen.has(o.parent) && !zuLoeschen.has(o.signatur)) {
-          zuLoeschen.add(o.signatur);
-          gewachsen = true;
-        }
-      }
-    }
+    const zuLoeschen = this.mitNachkommen([objekt.signatur]);
+    // Gelöschte Objekte auch aus den Arbeitspaketen austragen — sonst
+    // zählen und zeigen die Pakete tote Ids (Review-Befund zu E83)
+    const geloeschteIds = this.objekte()
+      .filter((o) => zuLoeschen.has(o.signatur))
+      .map((o) => o.id);
     this.objekte.update((liste) => liste.filter((o) => !zuLoeschen.has(o.signatur)));
+    this.paketStore.objekteAustragen(geloeschteIds);
   }
 
   /** Setzt alles auf den Seed zurück (Werkzeug für Demos). */

@@ -31,12 +31,12 @@
     </div>
 
     <!-- «Alle Filter»: die weiteren Attributfilter (Entscheid 84) -->
-    <hlm-popover sideOffset="6">
+    <hlm-popover align="start" sideOffset="6">
       <button hlmPopoverTrigger hlmBtn variant="outline" size="sm" type="button">
         <ng-icon name="lucideListFilter" />
         Alle Filter
       </button>
-      <hlm-popover-content *hlmPopoverPortal align="start" class="w-80">
+      <hlm-popover-content *hlmPopoverPortal class="w-80">
         <hlm-popover-header>
           <div hlmPopoverTitle>Alle Filter</div>
           <p hlmPopoverDescription>Weitere Attribute der Objekte.</p>
@@ -307,7 +307,8 @@
                         {{ paket.objektIds.length }} Strecken
                       </span>
                       @if (paket.zugewiesenAn) {
-                        <span hlmBadge>zugewiesen an {{ paket.zugewiesenAn }}</span>
+                        <!-- «zuletzt»: der Inhalt kann seit der Zuweisung geändert haben -->
+                        <span hlmBadge>zuletzt zugewiesen an {{ paket.zugewiesenAn }}</span>
                       }
                       <div class="ml-auto flex items-center gap-1.5">
                         <hlm-native-select
@@ -505,6 +506,9 @@
                               >
                                 @if (!o.zustaendigName) {
                                   <option hlmNativeSelectOption value="">—</option>
+                                }
+                                @if (o.zustaendigName === 'System') {
+                                  <option hlmNativeSelectOption value="System">System (R-08)</option>
                                 }
                                 @for (person of allePersonen; track person.name) {
                                   <option hlmNativeSelectOption [value]="person.name">
