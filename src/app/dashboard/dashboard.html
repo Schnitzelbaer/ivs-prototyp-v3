@@ -157,24 +157,66 @@
             </button>
             <div hlmCollapsibleContent>
               @if (einstellungen.aktiveRolleId() === 'R-03') {
-                <!-- R-03: Kantonspakete für die Regionale Koordination -->
-                <div class="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-                  <p class="text-sm">
-                    Kanton Bern
-                    <span class="text-muted-foreground">· {{ streckenGesamt() }} Strecken</span>
-                  </p>
-                  <button hlmBtn variant="outline" size="sm" type="button" (click)="kantonspaketZuweisen()">
-                    An T. Nyffenegger (R-04) zuweisen
-                  </button>
+                <!-- R-03: Kantonspakete — alle 26 Kantone, Zuweisung an die
+                     Regionale Koordination persistent und änderbar; der
+                     Status der Objekte bleibt unberührt (Entscheid 82) -->
+                <div class="max-h-64 overflow-y-auto border-b border-border">
+                  @for (kanton of kantone; track kanton.kuerzel) {
+                    <div
+                      class="flex items-center justify-between gap-2 border-b border-border px-3 py-1.5 last:border-b-0"
+                    >
+                      <p class="text-sm">
+                        {{ kanton.name }}
+                        @if (streckenProKanton()[kanton.kuerzel]; as anzahl) {
+                          <span class="text-muted-foreground">· {{ anzahl }} Strecken</span>
+                        } @else {
+                          <span class="text-muted-foreground">· keine Daten</span>
+                        }
+                      </p>
+                      <hlm-native-select
+                        size="sm"
+                        class="w-56"
+                        [ngModel]="paketStore.kantonZuweisungen()[kanton.kuerzel] ?? ''"
+                        (ngModelChange)="kantonZuweisen(kanton, $event)"
+                        [attr.aria-label]="'Kanton ' + kanton.name + ' zuweisen'"
+                      >
+                        <option hlmNativeSelectOption value="">— nicht zugewiesen</option>
+                        @for (person of koordinationPersonen; track person.name) {
+                          <option hlmNativeSelectOption [value]="person.name">
+                            {{ person.name }} (R-04)
+                          </option>
+                        }
+                      </hlm-native-select>
+                    </div>
+                  }
                 </div>
-                @for (kanton of kantonAttrappen; track kanton) {
-                  <div class="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-                    <p class="text-sm text-muted-foreground">Kanton {{ kanton }} · keine Daten</p>
-                    <button hlmBtn variant="outline" size="sm" type="button" (click)="kantonAttrappeKlick(kanton)">
-                      Zuweisen …
+                <!-- Grenzfälle: ausgewählte Strecken in einen anderen Kanton
+                     verschieben — die Signatur bleibt (Entscheid 82) -->
+                <div class="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+                  <p class="text-sm">
+                    {{ ausgewaehlt().size }} Strecken ausgewählt
+                    <span class="text-muted-foreground">
+                      · Auswahl über die Checkboxen unten oder die Polygon-Selektion
+                    </span>
+                  </p>
+                  <div class="ml-auto flex items-center gap-2">
+                    <hlm-native-select
+                      size="sm"
+                      [ngModel]="zielKanton()"
+                      (ngModelChange)="zielKanton.set($event)"
+                      aria-label="Zielkanton"
+                    >
+                      @for (kanton of kantone; track kanton.kuerzel) {
+                        <option hlmNativeSelectOption [value]="kanton.kuerzel">
+                          {{ kanton.name }}
+                        </option>
+                      }
+                    </hlm-native-select>
+                    <button hlmBtn variant="outline" size="sm" type="button" (click)="inKantonVerschieben()">
+                      In Kanton verschieben
                     </button>
                   </div>
-                }
+                </div>
               } @else {
                 <!-- R-04: freie Auswahl (Checkboxen/Polygon) für Inventarisierende -->
                 <div class="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">

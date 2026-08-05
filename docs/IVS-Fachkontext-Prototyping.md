@@ -1132,16 +1132,18 @@ _Prüfprotokoll, Arbeitspakete und Status-Vererbung_
     spezifiziert wird.
 77. **Arbeitspakete im Dashboard** (03.02/03.03): Für die Paketrollen
     **R-03 und R-04** liegt über den Status-Gruppen der Bereich
-    «Arbeitspakete». **R-03** schnürt **Kantonspakete** — der Kanton
+    «Arbeitspakete». ~~**R-03** schnürt **Kantonspakete** — der Kanton
     Bern (alle 403 Strecken) lässt sich T. Nyffenegger (R-04) zuweisen;
-    Wallis/Graubünden/Tessin sind Attrappen ohne Daten (Klick erklärt).
-    **R-04** schnürt freie Pakete für die Inventarisierenden: Auswahl
-    über die **Zeilen-Checkboxen** oder ersatzweise die aktive
-    **Polygon-Selektion**, Zielperson wählbar (B. Anderegg, L. Furrer).
-    Eine Zuweisung ist ein **einmaliger Vorgang** (keine persistente
-    Paket-Entität, dadurch exklusiv): alle Objekte des Pakets wechseln
-    in einem Zug auf **«Zugewiesen»**, erhalten die Person als
-    zuständig und je eine Lognotiz (`paketZuweisen` im ObjektStore).
+    Wallis/Graubünden/Tessin sind Attrappen ohne Daten (Klick
+    erklärt).~~ **Überholt durch Entscheid 82** — alle 26 Kantone sind
+    echt zuweisbar, ohne Statuswechsel. **R-04** schnürt freie Pakete
+    für die Inventarisierenden: Auswahl über die **Zeilen-Checkboxen**
+    oder ersatzweise die aktive **Polygon-Selektion**, Zielperson
+    wählbar (B. Anderegg, L. Furrer). Eine Zuweisung ist ein
+    **einmaliger Vorgang** (keine persistente Paket-Entität, dadurch
+    exklusiv): alle Objekte des Pakets wechseln in einem Zug auf
+    **«Zugewiesen»**, erhalten die Person als zuständig und je eine
+    Lognotiz (`paketZuweisen` im ObjektStore).
     **Paketrollen sehen immer alle Objekte** (der persönliche Filter
     aus Entscheid 70 gilt nur noch für R-05/06/07), und sie können auf
     unterstellte Personen **absteigen**: Ein Ansicht-Umschalter zeigt
@@ -1190,6 +1192,19 @@ Arbeitspakete und echte Filter.
     «offenes» Objekt wechselt mit der Zuweisung automatisch auf
     «Zugewiesen». Das Objekt-Detail zeigt die Person nur noch
     **read-only** (ersetzt das Personen-Dropdown aus Entscheid 72).
+82. **Kantonspakete echt** (ersetzt den R-03-Teil von Entscheid 77):
+    Der Arbeitspakete-Bereich von R-03 listet **alle 26 Kantone**; jeder
+    — auch ohne Testdaten, testweise — lässt sich per Dropdown einer
+    **Regionalen Koordination** zuweisen. Die Zuweisung ist
+    **persistent und änderbar** (`PaketStore`, localStorage-Schlüssel
+    `ivs-prototyp-v3.pakete`; Seed: Bern → T. Nyffenegger) und
+    **verändert den Objekt-Status nicht** — erst die Zuweisung an eine
+    Person setzt «Zugewiesen» (Entscheid 79). Dafür gibt es **zwei
+    weitere R-04-Personen** (A. Vaucher, G. Bernasconi). Grenzfälle:
+    R-03 kann ausgewählte Strecken (Checkboxen oder Polygon) **einem
+    anderen Kanton zuordnen** (`kantonZuordnen` im ObjektStore) — die
+    Signatur bleibt unverändert, nur das `kanton`-Attribut wechselt,
+    Nachkommen ziehen still mit (Lognotiz an der Strecke).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1411,6 +1426,7 @@ src/app/
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
     geometrie-store.ts Arbeitsgeometrien je Signatur (storage-Sync)
     begehungen.ts      Begehungsplanung, darfBegehungPlanen (R-03/04/06/07)
+    paket-store.ts     KANTONE und Kanton→Koordination-Zuweisungen (Entscheid 82)
     herkunft-store.ts  Herkunft des Objekt-Details (Back-Button)
     pruefprotokoll.ts  Fragenkatalog und Regeln des Prüfprotokolls (Entscheid 75)
     hinweis-store.ts   zentraler «Warum nicht?»-Hinweis (nie-disabled-Regel)
@@ -1456,14 +1472,16 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen           | Konstante in `begehungen.ts`      |
 | `ivs-prototyp-v3.stammdaten`    | Auswahllisten                 | Konstante in `stammdaten.ts`      |
+| `ivs-prototyp-v3.pakete`        | Kanton→Koordination-Zuweisungen | Konstante in `paket-store.ts`   |
 | `ivs-prototyp-v3.einstellungen` | Standard-Rolle neuer Tabs, Dark-Mode | —                          |
 | `ivs-prototyp-v3.rolle` (**sessionStorage**) | Rolle dieses Tabs (Entscheid 67) | —                  |
 
 Passt die gespeicherte Version nicht zur Konstante, wird der Stand verworfen
 und neu geseedet. **Nach jeder Seed-Änderung die Version erhöhen**, sonst
 sehen bestehende Browser die Änderung nie. «Demodaten zurücksetzen» im
-Account-Menü setzt Objekte, Kommentare, Geometrien, Begehungen und
-Stammdaten zurück — die Einstellungen (Rolle, Dark-Mode) bleiben.
+Account-Menü setzt Objekte, Kommentare, Geometrien, Begehungen,
+Stammdaten und Arbeitspakete zurück — die Einstellungen (Rolle,
+Dark-Mode) bleiben.
 
 Drei Stores (`kommentare`, `geometrien`, `einstellungen`) hören zusätzlich
 auf das `storage`-Ereignis und übernehmen Änderungen aus anderen Fenstern —
@@ -1509,11 +1527,13 @@ die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
   Filter (05.03).
   Die **Karte zeigt nur die Objekte der Liste** und wird von Suche und
   Filtern mitgezogen (Entscheid 73). Für die **Paketrollen R-03/R-04**
-  liegt darüber der Bereich **Arbeitspakete** (Entscheid 77): R-03 weist
-  Kantonspakete der Regionalen Koordination zu, R-04 schnürt per
-  Checkbox- oder Polygon-Auswahl Pakete für die Inventarisierenden; beide
-  sehen alle Objekte und steigen per Ansicht-Umschalter auf die
-  persönlichen Dashboards ihrer Personen ab.
+  liegt darüber der Bereich **Arbeitspakete** (Entscheide 77/82): R-03
+  weist alle 26 Kantone der Regionalen Koordination zu (persistent und
+  änderbar, ohne Statuswechsel) und ordnet Grenzfall-Strecken einem
+  anderen Kanton zu; R-04 schnürt per Checkbox- oder Polygon-Auswahl
+  Pakete für die Inventarisierenden; beide sehen alle Objekte und
+  steigen per Ansicht-Umschalter auf die persönlichen Dashboards ihrer
+  Personen ab.
 - **Objektbearbeitung (07)**: View-/Edit-Modus mit automatischem Speichern
   und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
   Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
@@ -1624,8 +1644,10 @@ Zuweisung (Entscheide 72/77) und die `@`-Erwähnungen:
 
 | Person          | Rolle | Bemerkung                                        |
 | --------------- | ----- | ------------------------------------------------ |
-| K. Aebischer    | R-03  | Fachliche Administration, schnürt Kantonspakete  |
-| T. Nyffenegger  | R-04  | Regionale Koordination, schnürt Objekt-Pakete    |
+| K. Aebischer    | R-03  | Fachliche Administration, weist Kantone zu       |
+| T. Nyffenegger  | R-04  | Regionale Koordination (Persona), Kanton Bern    |
+| A. Vaucher      | R-04  | weitere Regionale Koordination (Entscheid 82)    |
+| G. Bernasconi   | R-04  | weitere Regionale Koordination (Entscheid 82)    |
 | B. Anderegg     | R-05  | Inventarisierende (Persona der Rolle)            |
 | L. Furrer       | R-05  | zweite Inventarisierende, ohne eigene Perspektive |
 | M. Gerber       | R-06  | Fachlektorat, führt das Prüfprotokoll            |
@@ -1967,11 +1989,12 @@ an den Seed-Daten, sonst zeigt der Browser den alten Stand (oder
 **Der Kern-Workflow zum Durchspielen** (jeweils Rolle im Account-Menü
 wechseln, oder `?rolle=R-06` an die URL hängen — die Rolle gilt pro Tab):
 
-1. **R-03** weist im Dashboard das Kantonspaket Bern der Regionalen
-   Koordination zu → alle Strecken stehen auf «Zugewiesen».
+1. **R-03** weist im Dashboard einen Kanton der Regionalen Koordination
+   zu (persistent, ohne Statuswechsel — die Objekte bleiben «Offen»
+   bzw. in ihrem Status).
 2. **R-04** wählt im Dashboard einige Strecken (Checkboxen oder Polygon)
-   und weist sie einer Inventarisierenden zu; über «Ansicht» steigt sie
-   auf deren Dashboard ab.
+   und weist sie einer Inventarisierenden zu → erst jetzt stehen sie
+   auf «Zugewiesen»; über «Ansicht» steigt sie auf deren Dashboard ab.
 3. **R-05** (B. Anderegg) nimmt BE 21 in Bearbeitung, bearbeitet den
    Beschrieb und gibt die Strecke «Bereit zur Prüfung».
 4. **R-06** (M. Gerber) setzt «In Prüfung», öffnet «Prüfung», beantwortet

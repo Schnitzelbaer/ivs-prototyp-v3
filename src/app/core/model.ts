@@ -111,7 +111,12 @@ export interface IvsObjekt {
   bauzeit: string;
   bauherrschaft: string;
   planer: string;
-  kanton: 'BE';
+  /**
+   * Kantonszugehörigkeit (Kantonspaket). Grenzfälle können von R-03 einem
+   * anderen Kanton zugeordnet werden (Entscheid 82) — die Signatur bleibt
+   * dabei unverändert, nur dieses Attribut wechselt.
+   */
+  kanton: string;
   gemeinden: string;
   aufnahmejahr: number | null;
   /** Objektart bei Wegbegleitern (Kirche, Distanzstein, …). */

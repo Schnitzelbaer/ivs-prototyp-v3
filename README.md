@@ -149,13 +149,16 @@ neuen Session weiterzuarbeiten.
   automatisch auf «Zugewiesen»), Polygon-Selektion auf der Karte als
   geographischer Filter. Die
   **Karte zeigt nur die Objekte der Liste**; Suche und Filter dezimieren
-  sie mit. Generierte Objekte sind neutral «System» zugewiesen und
-  erscheinen in keinem Dashboard. **Arbeitspakete** für R-03
-  (Kantonspakete an die Regionale Koordination) und R-04 (freie Auswahl
-  per Checkbox/Polygon an Inventarisierende) — die Zuweisung setzt
-  Status «Zugewiesen», Person und Lognotiz in einem Zug; Paketrollen
-  sehen alle Objekte und können per Ansicht-Umschalter auf die
-  persönlichen Dashboards ihrer Personen **absteigen**.
+  sie mit. Generierte Objekte sind «offen» (ohne zuständige Person)
+  oder neutral «System» zugewiesen und erscheinen in keinem
+  persönlichen Dashboard. **Arbeitspakete** für R-03 (alle 26 Kantone
+  an die Regionale Koordination — persistent, änderbar und ohne
+  Statuswechsel; Grenzfall-Strecken lassen sich einem anderen Kanton
+  zuordnen) und R-04 (freie Auswahl per Checkbox/Polygon an
+  Inventarisierende — erst diese Zuweisung setzt Status «Zugewiesen»,
+  Person und Lognotiz in einem Zug); Paketrollen sehen alle Objekte
+  und können per Ansicht-Umschalter auf die persönlichen Dashboards
+  ihrer Personen **absteigen**.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
   via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte

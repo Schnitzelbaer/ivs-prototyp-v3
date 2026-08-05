@@ -235,6 +235,49 @@ export class ObjektStore {
     );
   }
 
+  /**
+   * Strecken einem anderen Kanton zuordnen (Entscheid 82): Grenzfälle
+   * können vom einen Kantonspaket ins andere wandern. Die Signatur bleibt
+   * unverändert — nur das Kanton-Attribut wechselt; Nachkommen ziehen
+   * still mit (Lognotiz an der Strecke). Gibt die Zahl der tatsächlich
+   * verschobenen Strecken zurück.
+   */
+  kantonZuordnen(
+    ids: readonly string[],
+    kanton: string,
+    autor: string,
+    autorRolle: RolleId,
+  ): number {
+    const menge = new Set(ids);
+    const wechselnde = this.objekte().filter((o) => menge.has(o.id) && o.kanton !== kanton);
+    if (!wechselnde.length) return 0;
+    const notizIds = new Set(wechselnde.map((o) => o.id));
+    const signaturen = this.mitNachkommen(wechselnde.map((o) => o.signatur));
+    const datum = new Date().toISOString().slice(0, 10);
+    this.objekte.update((liste) =>
+      liste.map((o) =>
+        signaturen.has(o.signatur)
+          ? {
+              ...o,
+              kanton,
+              lognotizen: notizIds.has(o.id)
+                ? [
+                    ...o.lognotizen,
+                    {
+                      datum,
+                      autor,
+                      rolle: autorRolle,
+                      text: `In den Kanton ${kanton} verschoben.`,
+                    },
+                  ]
+                : o.lognotizen,
+            }
+          : o,
+      ),
+    );
+    return wechselnde.length;
+  }
+
   /** Löscht ein Objekt mitsamt allen Unterobjekten (07.05). */
   loeschen(id: string): void {
     const objekt = this.byId(id);

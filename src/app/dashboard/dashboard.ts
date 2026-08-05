@@ -54,6 +54,7 @@ import {
   SUBSTANZGRAD_LABEL,
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
+import { KANTONE, PaketStore } from '../core/paket-store';
 import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte } from '../karte/karte';
@@ -120,6 +121,7 @@ interface StatusOption {
 export class Dashboard {
   protected readonly einstellungen = inject(EinstellungenStore);
   private readonly store = inject(ObjektStore);
+  protected readonly paketStore = inject(PaketStore);
   private readonly kommentarStore = inject(KommentarStore);
   private readonly router = inject(Router);
   private readonly herkunft = inject(HerkunftStore);
@@ -214,10 +216,21 @@ export class Dashboard {
     });
   }
 
-  /** Kantone ohne Testdaten — Attrappen im R-03-Paketbereich. */
-  protected readonly kantonAttrappen = ['Wallis', 'Graubünden', 'Tessin'];
+  /** Alle 26 Kantone — auch ohne Testdaten testweise zuweisbar (Entscheid 82). */
+  protected readonly kantone = KANTONE;
 
-  protected readonly streckenGesamt = computed(() => this.store.strecken().length);
+  /** Regionale Koordinationen für die Kantonszuweisung. */
+  protected readonly koordinationPersonen = PERSONEN.filter((p) => p.rolle === 'R-04');
+
+  /** Zielkanton für das Umteilen ausgewählter Strecken (Entscheid 82). */
+  protected readonly zielKanton = signal('FR');
+
+  /** Strecken-Zahl je Kanton (für die Kantonsliste im Paketbereich). */
+  protected readonly streckenProKanton = computed<Record<string, number>>(() => {
+    const zaehler: Record<string, number> = {};
+    for (const s of this.store.strecken()) zaehler[s.kanton] = (zaehler[s.kanton] ?? 0) + 1;
+    return zaehler;
+  });
 
   /** Aufgaben der aktiven Sicht nach allen Filtern. */
   private readonly gefiltert = computed(() => {
@@ -346,25 +359,57 @@ export class Dashboard {
 
   // -------------------------------------------------- Pakete schnüren
 
-  /** R-03: das Kantonspaket Bern an die Regionale Koordination zuweisen. */
-  protected kantonspaketZuweisen(): void {
+  /**
+   * R-03: Kanton einer Regionalen Koordination zuweisen (Entscheid 82).
+   * Persistent und änderbar; der Workflow-Status der Objekte bleibt
+   * unberührt — erst die Zuweisung an eine Person setzt «Zugewiesen».
+   */
+  protected kantonZuweisen(kanton: { kuerzel: string; name: string }, personName: string): void {
+    this.paketStore.kantonZuweisen(kanton.kuerzel, personName);
+    if (personName) {
+      toast.success(`Kanton ${kanton.name} zugewiesen an ${personName}`, {
+        description: 'Zuweisung gespeichert — der Status der Objekte bleibt unberührt.',
+      });
+    } else {
+      toast.success(`Zuweisung für den Kanton ${kanton.name} entfernt`);
+    }
+  }
+
+  /**
+   * R-03: die ausgewählten Strecken (Checkboxen; ersatzweise die aktive
+   * Polygon-Selektion) einem anderen Kanton zuordnen (Entscheid 82).
+   */
+  protected inKantonVerschieben(): void {
+    const ids = this.ausgewaehlteIds();
+    if (ids.length === 0) {
+      this.hinweis.zeige(
+        'Keine Strecken ausgewählt',
+        'Wähle die Strecken über die Checkboxen in den Status-Gruppen oder über die ' +
+          'Polygon-Selektion auf der Karte aus.',
+      );
+      return;
+    }
+    const kanton = this.zielKanton();
     const rolle = this.einstellungen.aktiveRolleId();
-    const ziel = PERSONEN.find((p) => p.rolle === 'R-04');
-    if (!ziel) return;
-    const ids = this.store.strecken().map((o) => o.id);
-    this.store.paketZuweisen(ids, ziel, 'Arbeitspaket «Kanton Bern»', NAME_FUER_ROLLE[rolle], rolle);
-    toast.success(`Arbeitspaket «Kanton Bern» zugewiesen`, {
-      description: `${ids.length} Strecken an ${ziel.name} (${ziel.rolle}) — Status «Zugewiesen».`,
+    const anzahl = this.store.kantonZuordnen(ids, kanton, NAME_FUER_ROLLE[rolle], rolle);
+    this.ausgewaehlt.set(new Set());
+    if (anzahl === 0) {
+      this.hinweis.zeige(
+        'Nichts zu verschieben',
+        `Alle ausgewählten Strecken liegen bereits im Kanton ${kanton}.`,
+      );
+      return;
+    }
+    toast.success(`${anzahl} Strecke${anzahl === 1 ? '' : 'n'} in den Kanton ${kanton} verschoben`, {
+      description: 'Die Signaturen bleiben unverändert; Nachkommen ziehen mit.',
     });
   }
 
-  /** R-03: Attrappen-Kantone ohne Testdaten erklären sich beim Klick. */
-  protected kantonAttrappeKlick(kanton: string): void {
-    this.hinweis.zeige(
-      'Keine Daten im Prototyp',
-      `Der Kanton ${kanton} enthält im Prototyp keine Testdaten — nur das Testgebiet ` +
-        'Bern ist mit Objekten hinterlegt (Abschnitt 8 des Fachkontexts).',
-    );
+  /** Auswahl für Paket-Operationen: Checkboxen, ersatzweise Polygon-Selektion. */
+  private ausgewaehlteIds(): string[] {
+    const auswahl = this.ausgewaehlt();
+    if (auswahl.size) return [...auswahl];
+    return this.polygonSignaturen() ? this.gefiltert().map((o) => o.id) : [];
   }
 
   /**
@@ -372,13 +417,7 @@ export class Dashboard {
    * Polygon-Selektion) als Paket einer Inventarisierenden zuweisen.
    */
   protected paketZuweisen(): void {
-    const auswahl = this.ausgewaehlt();
-    const polygon = this.polygonSignaturen();
-    const ids = auswahl.size
-      ? [...auswahl]
-      : polygon
-        ? this.gefiltert().map((o) => o.id)
-        : [];
+    const ids = this.ausgewaehlteIds();
     if (ids.length === 0) {
       this.hinweis.zeige(
         'Keine Strecken ausgewählt',

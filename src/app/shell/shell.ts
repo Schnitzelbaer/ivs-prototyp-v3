@@ -24,6 +24,7 @@ import { EinstellungenStore } from '../core/einstellungen-store';
 import { GeometrieStore } from '../core/geometrie-store';
 import { KommentarStore } from '../core/kommentare';
 import { StammdatenStore } from '../core/stammdaten';
+import { PaketStore } from '../core/paket-store';
 import { RolleId } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN } from '../core/rollen';
@@ -77,6 +78,7 @@ export class Shell {
   private readonly geometrieStore = inject(GeometrieStore);
   private readonly begehungsStore = inject(BegehungsStore);
   private readonly stammdatenStore = inject(StammdatenStore);
+  private readonly paketStore = inject(PaketStore);
   private readonly sync = inject(KarteSync);
   private readonly router = inject(Router);
   private readonly hinweis = inject(HinweisStore);
@@ -114,8 +116,10 @@ export class Shell {
     this.geometrieStore.zuruecksetzen();
     this.begehungsStore.zuruecksetzen();
     this.stammdatenStore.zuruecksetzen();
+    this.paketStore.zuruecksetzen();
     toast.success('Demodaten zurückgesetzt', {
-      description: 'Alle Objekte, Kommentare, Geometrien und Begehungen wieder im Ausgangszustand.',
+      description:
+        'Alle Objekte, Kommentare, Geometrien, Begehungen und Arbeitspakete wieder im Ausgangszustand.',
     });
   }
 }

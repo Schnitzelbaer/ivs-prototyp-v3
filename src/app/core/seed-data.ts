@@ -110,11 +110,15 @@ export const NAME_FUER_ROLLE: Record<RolleId, string> = {
 /**
  * Personen des Prototyps für die Zuweisung (Personas der wählbaren Rollen
  * plus L. Furrer als weitere Inventarisierende — ihre Objekte zeigen, dass
- * das Dashboard persönlich ist).
+ * das Dashboard persönlich ist — sowie A. Vaucher und G. Bernasconi als
+ * weitere Regionale Koordinationen, damit sich Kantonszuweisungen ändern
+ * lassen, Entscheid 82).
  */
 export const PERSONEN: readonly { name: string; rolle: RolleId }[] = [
   { name: 'K. Aebischer', rolle: 'R-03' },
   { name: 'T. Nyffenegger', rolle: 'R-04' },
+  { name: 'A. Vaucher', rolle: 'R-04' },
+  { name: 'G. Bernasconi', rolle: 'R-04' },
   { name: 'B. Anderegg', rolle: 'R-05' },
   { name: 'L. Furrer', rolle: 'R-05' },
   { name: 'M. Gerber', rolle: 'R-06' },
