@@ -7,11 +7,17 @@ export interface Rolle {
   waehlbar: boolean;
   /**
    * Rollenrelevante Stati: Objekte in diesen Stati erscheinen im Dashboard
-   * der Rolle, und das Status-Dropdown der Zeilen bietet sie zur Wahl an —
-   * die Stati, in denen die Rolle arbeitet, plus jene, die sie über ihre
-   * Übergänge setzt (Ergebnis ihrer Arbeit).
+   * der Rolle (als Status-Gruppen) — die Stati, in denen die Rolle
+   * arbeitet, plus jene, die sie selbst setzt (Ergebnis ihrer Arbeit).
    */
   relevanteStati: readonly WorkflowStatus[];
+  /**
+   * Stati, welche die Rolle über die Status-Dropdowns setzen darf —
+   * Teilmenge der relevanten Stati. «Korrektur» leitet allein das
+   * Fachlektorat ein; die Inventarisierenden arbeiten zwar darin,
+   * setzen den Status aber nicht selbst.
+   */
+  setzbareStati: readonly WorkflowStatus[];
   /** Stati, in denen die Rolle Formularfelder bearbeiten darf. */
   editStati: readonly WorkflowStatus[];
 }
@@ -22,6 +28,7 @@ export const ROLLEN: readonly Rolle[] = [
     name: 'Alle Benutzer',
     waehlbar: false,
     relevanteStati: [],
+    setzbareStati: [],
     editStati: [],
   },
   {
@@ -29,6 +36,7 @@ export const ROLLEN: readonly Rolle[] = [
     name: 'Technische Administration',
     waehlbar: false,
     relevanteStati: [],
+    setzbareStati: [],
     editStati: [],
   },
   {
@@ -37,6 +45,7 @@ export const ROLLEN: readonly Rolle[] = [
     waehlbar: true,
     // Freigabeprozess plus die Zuweisung neuer Arbeit
     relevanteStati: ['zugewiesen', 'in_bearbeitung', 'geprueft', 'freigegeben', 'publiziert'],
+    setzbareStati: ['zugewiesen', 'in_bearbeitung', 'geprueft', 'freigegeben', 'publiziert'],
     editStati: [],
   },
   {
@@ -46,6 +55,8 @@ export const ROLLEN: readonly Rolle[] = [
     // koordiniert die Erfassung: alles, was bei den Inventarisierenden liegt,
     // plus deren Abgaben an die Prüfung
     relevanteStati: ['zugewiesen', 'in_bearbeitung', 'korrektur', 'bereit_zur_pruefung'],
+    // «Korrektur» leitet das Fachlektorat ein
+    setzbareStati: ['zugewiesen', 'in_bearbeitung', 'bereit_zur_pruefung'],
     editStati: [],
   },
   {
@@ -54,6 +65,8 @@ export const ROLLEN: readonly Rolle[] = [
     waehlbar: true,
     // eigene Arbeit plus die Abgabe an die Prüfung
     relevanteStati: ['zugewiesen', 'in_bearbeitung', 'korrektur', 'bereit_zur_pruefung'],
+    // «Korrektur» leitet das Fachlektorat ein — R-05 arbeitet nur darin
+    setzbareStati: ['zugewiesen', 'in_bearbeitung', 'bereit_zur_pruefung'],
     editStati: ['zugewiesen', 'in_bearbeitung', 'korrektur'],
   },
   {
@@ -62,6 +75,7 @@ export const ROLLEN: readonly Rolle[] = [
     waehlbar: true,
     // Prüfarbeit plus deren Ergebnis
     relevanteStati: ['bereit_zur_pruefung', 'in_pruefung', 'korrektur', 'geprueft'],
+    setzbareStati: ['bereit_zur_pruefung', 'in_pruefung', 'korrektur', 'geprueft'],
     // darf während der Prüfung editieren (Rollenbeschrieb: «Editieren»)
     editStati: ['bereit_zur_pruefung', 'in_pruefung'],
   },
@@ -69,8 +83,10 @@ export const ROLLEN: readonly Rolle[] = [
     id: 'R-07',
     name: 'Fachliche Prüfstelle',
     waehlbar: true,
-    // übergreifende Prüfung während des Genehmigungsverfahrens
-    relevanteStati: ['in_pruefung', 'geprueft', 'freigegeben'],
+    // übergreifende Prüfung während des Genehmigungsverfahrens plus die
+    // Publikation als deren Abschluss
+    relevanteStati: ['in_pruefung', 'geprueft', 'freigegeben', 'publiziert'],
+    setzbareStati: ['in_pruefung', 'geprueft', 'freigegeben', 'publiziert'],
     editStati: [],
   },
   {
@@ -78,6 +94,7 @@ export const ROLLEN: readonly Rolle[] = [
     name: 'System',
     waehlbar: false,
     relevanteStati: [],
+    setzbareStati: [],
     editStati: [],
   },
 ];

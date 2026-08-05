@@ -58,15 +58,15 @@
     </hlm-popover>
 
     <hlm-native-select
-      class="w-36"
+      class="w-44"
       size="sm"
-      [ngModel]="gruppenFilter()"
-      (ngModelChange)="gruppenFilter.set($event)"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
     >
-      <option hlmNativeSelectOption value="alle">Alle Gruppen</option>
-      <option hlmNativeSelectOption value="backlog">Backlog</option>
-      <option hlmNativeSelectOption value="in_arbeit">In Arbeit</option>
-      <option hlmNativeSelectOption value="done">Done</option>
+      <option hlmNativeSelectOption value="alle">Alle Stati</option>
+      @for (status of rollenStati(); track status) {
+        <option hlmNativeSelectOption [value]="status">{{ statusLabel[status] }}</option>
+      }
     </hlm-native-select>
 
     <hlm-native-select
@@ -136,7 +136,7 @@
     <!-- Aufgabenliste -->
     <section class="min-w-0 flex-1 overflow-y-auto px-4 py-3">
       <div class="flex flex-col gap-4">
-        @for (block of bloecke(); track block.gruppe) {
+        @for (block of bloecke(); track block.status) {
           <div
             hlmCollapsible
             [expanded]="true"
@@ -152,6 +152,7 @@
                 class="text-muted-foreground transition-transform"
                 [class.-rotate-90]="!gruppeAuf.expanded()"
               />
+              <span class="inline-block size-2 rounded-full {{ statusFarbe[block.status] }}"></span>
               {{ block.label }}
               <span hlmBadge class="ml-auto">{{ block.objekte.length }}</span>
             </button>
@@ -163,7 +164,7 @@
                     <div hlmEmptyMedia variant="icon">
                       <ng-icon name="lucideInbox" />
                     </div>
-                    <div hlmEmptyTitle>Keine Objekte in dieser Gruppe</div>
+                    <div hlmEmptyTitle>Keine Objekte in diesem Status</div>
                     <div hlmEmptyDescription>
                       Für die aktive Rolle und die gesetzten Filter liegt hier nichts an.
                     </div>

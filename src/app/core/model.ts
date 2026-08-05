@@ -27,9 +27,6 @@ export type WorkflowStatus =
   | 'freigegeben'
   | 'publiziert';
 
-/** Dashboard-Gruppen: die acht Stati werden auf drei Gruppen gemappt. */
-export type StatusGruppe = 'backlog' | 'in_arbeit' | 'done';
-
 export type RolleId = 'R-01' | 'R-02' | 'R-03' | 'R-04' | 'R-05' | 'R-06' | 'R-07' | 'R-08';
 
 export type NhgWert = 'national' | 'regional' | 'lokal';

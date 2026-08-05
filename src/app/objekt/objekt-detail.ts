@@ -226,15 +226,15 @@ export class ObjektDetail implements OnDestroy {
   });
 
   /**
-   * Einträge des Status-Dropdowns in der Kopfzeile: alle rollenrelevanten
-   * Stati (plus der aktuelle), frei wählbar — dieselbe Semantik wie das
-   * Zeilen-Dropdown im Dashboard.
+   * Einträge des Status-Dropdowns in der Kopfzeile: die von der Rolle
+   * setzbaren Stati (plus der aktuelle), frei wählbar — dieselbe Semantik
+   * wie das Zeilen-Dropdown im Dashboard.
    */
   protected readonly statusWahl = computed<WorkflowStatus[]>(() => {
     const o = this.objekt();
     if (!o) return [];
-    const relevante = this.einstellungen.aktiveRolle().relevanteStati;
-    return ALLE_STATI.filter((s) => s === o.status || relevante.includes(s));
+    const setzbare = this.einstellungen.aktiveRolle().setzbareStati;
+    return ALLE_STATI.filter((s) => s === o.status || setzbare.includes(s));
   });
 
   /** Optionen des Workflow-Status-Selects im Formular — gleiche Liste. */

@@ -133,10 +133,11 @@ neuen Session weiterzuarbeiten.
   MapTip, Side-Panel): Strecke/Linienführung orange gleich dick, Abschnitte
   blau durchgezogen in drei Dicken, Wegbegleiter rot.
 - **Dashboard** (`/dashboard`): Aufgabenliste **nur mit Strecken** (ToDos
-  werden auf Strecken-Ebene zugewiesen) in den rollenrelevanten Stati,
-  gruppiert nach Backlog / In Arbeit / Done (Mapping der acht
-  Workflow-Stati), Volltextsuche, Schnellfilter, Zeilen-Dropdown mit
-  direktem Statuswechsel, Polygon-Selektion auf der Karte als
+  werden auf Strecken-Ebene zugewiesen), gruppiert **nach den
+  rollenrelevanten Workflow-Stati** (echte Stati statt
+  Backlog/In Arbeit/Done), Volltextsuche, Schnellfilter inkl.
+  Status-Filter, Zeilen-Dropdown mit direktem Statuswechsel unter den
+  von der Rolle setzbaren Stati, Polygon-Selektion auf der Karte als
   geographischer Filter.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt

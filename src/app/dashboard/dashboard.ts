@@ -44,7 +44,6 @@ import { KommentarStore, jetztLokal } from '../core/kommentare';
 import {
   IvsObjekt,
   NhgWert,
-  StatusGruppe,
   Substanzgrad,
   WorkflowStatus,
   bewertungText,
@@ -53,19 +52,12 @@ import {
 } from '../core/model';
 import { ObjektStore } from '../core/objekt-store';
 import { NAME_FUER_ROLLE } from '../core/seed-data';
-import {
-  ALLE_GRUPPEN,
-  ALLE_STATI,
-  GRUPPE_LABEL,
-  STATUS_FARBE,
-  STATUS_GRUPPE,
-  STATUS_LABEL,
-} from '../core/status';
+import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte } from '../karte/karte';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
 
-interface GruppenBlock {
-  gruppe: StatusGruppe;
+interface StatusBlock {
+  status: WorkflowStatus;
   label: string;
   objekte: IvsObjekt[];
 }
@@ -77,8 +69,8 @@ interface StatusOption {
 
 /**
  * Dashboard (04): rollenspezifisch vorgefilterte Aufgabenliste, gruppiert
- * nach Backlog / In Arbeit / Done, daneben die Karte. Die vollständige,
- * ungefilterte Übersicht liegt unter «Objekte».
+ * nach den rollenrelevanten Workflow-Stati, daneben die Karte. Die
+ * vollständige, ungefilterte Übersicht liegt unter «Objekte».
  */
 @Component({
   selector: 'ivs-dashboard',
@@ -138,7 +130,7 @@ export class Dashboard {
 
   // Filterzustand
   protected readonly suche = signal('');
-  protected readonly gruppenFilter = signal<'alle' | StatusGruppe>('alle');
+  protected readonly statusFilter = signal<'alle' | WorkflowStatus>('alle');
   protected readonly bedeutungFilter = signal<'alle' | NhgWert>('alle');
   protected readonly substanzFilter = signal<'alle' | Substanzgrad>('alle');
   protected readonly regionFilter = signal<'alle' | 'bern_mittelland'>('alle');
@@ -189,26 +181,32 @@ export class Dashboard {
       .sort((a, b) => richtung * a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
   });
 
-  protected readonly bloecke = computed<GruppenBlock[]>(() => {
+  /** Stati der aktiven Rolle in Workflow-Reihenfolge (Gruppen und Filter). */
+  protected readonly rollenStati = computed<WorkflowStatus[]>(() => {
+    const relevante = this.einstellungen.aktiveRolle().relevanteStati;
+    return ALLE_STATI.filter((s) => relevante.includes(s));
+  });
+
+  protected readonly bloecke = computed<StatusBlock[]>(() => {
     const objekte = this.gefiltert();
-    return ALLE_GRUPPEN.filter(
-      (g) => this.gruppenFilter() === 'alle' || this.gruppenFilter() === g,
-    ).map((gruppe) => ({
-      gruppe,
-      label: GRUPPE_LABEL[gruppe],
-      objekte: objekte.filter((o) => STATUS_GRUPPE[o.status] === gruppe),
-    }));
+    return this.rollenStati()
+      .filter((s) => this.statusFilter() === 'alle' || this.statusFilter() === s)
+      .map((status) => ({
+        status,
+        label: STATUS_LABEL[status],
+        objekte: objekte.filter((o) => o.status === status),
+      }));
   });
 
   protected readonly polygonAktiv = computed(() => this.karte()?.polygonAktiv() ?? false);
 
   /**
-   * Workflow-Status-Optionen der Zeile: alle rollenrelevanten Stati (plus
-   * der aktuelle), direkt wählbar — in der Reihenfolge des Workflows.
+   * Workflow-Status-Optionen der Zeile: die von der Rolle setzbaren Stati
+   * (plus der aktuelle), direkt wählbar — in der Reihenfolge des Workflows.
    */
   protected statusOptionen(objekt: IvsObjekt): StatusOption[] {
-    const relevante = this.einstellungen.aktiveRolle().relevanteStati;
-    return ALLE_STATI.filter((s) => s === objekt.status || relevante.includes(s)).map((s) => ({
+    const setzbare = this.einstellungen.aktiveRolle().setzbareStati;
+    return ALLE_STATI.filter((s) => s === objekt.status || setzbare.includes(s)).map((s) => ({
       wert: s,
       label: STATUS_LABEL[s],
     }));
@@ -248,7 +246,7 @@ export class Dashboard {
 
   protected filterZuruecksetzen(): void {
     this.suche.set('');
-    this.gruppenFilter.set('alle');
+    this.statusFilter.set('alle');
     this.bedeutungFilter.set('alle');
     this.substanzFilter.set('alle');
     this.regionFilter.set('alle');

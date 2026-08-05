@@ -17,7 +17,7 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 67), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 69), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
@@ -593,7 +593,8 @@ Zuständigkeiten pro Übergang (aus den Rollen abgeleitet):
   `korrektur` und übergeben an die Prüfung
 - **R-06 Fachlektorat** bearbeitet in `bereit_zur_pruefung`, `in_pruefung`,
   setzt `geprueft` oder weist nach `korrektur` zurück
-- **R-07 Fachliche Prüfstelle** kommentiert, prüft übergreifend
+- **R-07 Fachliche Prüfstelle** kommentiert, prüft übergreifend und darf
+  `publiziert` setzen (Entscheid 69)
 - **R-03 Fachliche Administration** gibt frei (`freigegeben`) und setzt die
   Publikationsversion
 - **R-04 Regionale Koordination** weist Objekte innerhalb ihres Gebiets zu
@@ -772,12 +773,10 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
 
 **Daten und Modell**
 
-18. **Stati:** Die acht Stati aus Abschnitt 7 werden geführt; fürs Dashboard
-    werden sie auf drei Gruppen gemappt — `zugewiesen` → Backlog ·
-    `in_bearbeitung`, `bereit_zur_pruefung`, `in_pruefung`, `korrektur` →
-    In Arbeit · `geprueft`, `freigegeben`, `publiziert` → Done. Ein Objekt gilt
-    als «in Arbeit», solange es im Prozess unterwegs ist, unabhängig davon,
-    welche Rolle gerade am Zug ist.
+18. **Stati:** Die acht Stati aus Abschnitt 7 werden geführt. ~~Fürs
+    Dashboard werden sie auf drei Gruppen gemappt (Backlog / In Arbeit /
+    Done).~~ **Aufgehoben durch Entscheid 68** — das Dashboard gruppiert
+    nach den echten Stati.
 19. **Kennung:** Führend ist allein die **IVS-Signatur** (`BE 21.1.2`,
     Wegbegleiter `BE 21 W1`). Keine zweite technische Objekt-ID in der
     Oberfläche; für URLs wird aus der Signatur eine Id abgeleitet
@@ -1008,6 +1007,20 @@ Rückfragen in derselben Session geklärt)**
     URL-Parameter > Tab-eigener Stand > localStorage-Standard > R-05.
     Der Account-Button unten links zeigt die aktive Rollen-Nummer statt
     des Personen-Icons. Dark-Mode bleibt fensterübergreifend synchron.
+68. **Dashboard-Gruppen sind die echten Stati:** Die Aufgabenliste
+    gruppiert nach den **rollenrelevanten Workflow-Stati** (in
+    Workflow-Reihenfolge, mit Status-Farbpunkt im Gruppenkopf); das
+    Mapping auf Backlog / In Arbeit / Done (Entscheid 18) ist entfernt,
+    der Gruppen-Filter wurde zum Status-Filter mit den Stati der Rolle.
+69. **Setzbare Stati je Rolle** (`setzbareStati` in rollen.ts, von
+    `relevanteStati` getrennt): Die Status-Dropdowns (Dashboard-Zeile,
+    Objekt-Kopfzeile, Formular) bieten nur noch die von der Rolle
+    setzbaren Stati an. **«Korrektur» leitet allein das Fachlektorat
+    (R-06) ein** — R-04 und R-05 sehen den Status weiterhin, setzen ihn
+    aber nicht. Die **Fachliche Prüfstelle (R-07) darf «Publiziert»
+    setzen**; `publiziert` gehört neu auch zu ihren relevanten Stati
+    (eigene Dashboard-Gruppe). Die seit Entscheid 59 tote
+    Übergangs-Tabelle (`UEBERGAENGE` in status.ts) ist entfernt.
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1177,8 +1190,8 @@ src/app/
   app.routes.ts        Routen inkl. Guard für /stammdaten (nur R-03)
   core/                Modell, Stati, Rollen, Seed-Daten, Stores
     model.ts           IvsObjekt, ObjektTyp/objektTypText, WorkflowStatus, …
-    status.ts          Status-Labels, -Farben, Gruppen-Mapping, Übergänge je Rolle
-    rollen.ts          Rollen mit relevanteStati und editStati, darfEditieren
+    status.ts          Status-Labels und -Farben
+    rollen.ts          Rollen mit relevanteStati, setzbareStati und editStati
     seed-data.ts       48 kuratierte Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
     objekt-generierung.ts  Vollabdeckung: Objekte, Kunstbauten, Feature-Zuordnung
     objekt-store.ts    Objekte, statusWechseln, ergänzt generierte idempotent
@@ -1266,11 +1279,11 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   Sprachwechsler als Attrappe, zentraler Hinweis-Dialog (nie-disabled).
 - **Dashboard (04)**: **nur Strecken** (ToDos auf Strecken-Ebene,
   Entscheid 60) in den **rollenrelevanten Stati** (Entscheid 57),
-  gruppiert Backlog / In Arbeit / Done (Mapping der acht Stati:
-  zugewiesen → Backlog · in Bearbeitung, Korrektur, bereit zur Prüfung,
-  in Prüfung → In Arbeit · geprüft, freigegeben, publiziert → Done),
-  Suche, Schnellfilter, Zeilen-Dropdown mit direktem Wechsel unter den
-  relevanten Stati, Polygon-Selektion als geographischer Filter (05.03).
+  gruppiert **nach den echten Workflow-Stati** in Workflow-Reihenfolge
+  (Entscheid 68, mit Status-Farbpunkt), Suche, Schnellfilter inkl.
+  Status-Filter, Zeilen-Dropdown mit direktem Wechsel unter den
+  **setzbaren Stati** (Entscheid 69), Polygon-Selektion als
+  geographischer Filter (05.03).
 - **Objektbearbeitung (07)**: View-/Edit-Modus mit automatischem Speichern
   und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
   Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
