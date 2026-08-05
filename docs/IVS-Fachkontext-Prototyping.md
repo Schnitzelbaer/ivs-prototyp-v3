@@ -21,9 +21,11 @@
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
-> **Stand:** 02.08.2026, fünfte Ausbaustufe (Review-Paket «Neue ToDos»).
-> Repository auf `main`. Live unter <https://ivs-prototyp-v3.vercel.app>,
-> Auto-Deploy aus `main` aktiv (12.7).
+> **Stand:** 05.08.2026, sechste Ausbaustufe (Rolle pro Tab, Dashboard nach
+> echten Stati und persönlich, Review-Paket «Bug-Fixes / Small Changes»,
+> Prüfprotokoll, Arbeitspakete, Status auf Strecken-Ebene — Entscheide
+> 67–78). Repository auf `main`. Live unter
+> <https://ivs-prototyp-v3.vercel.app>, Auto-Deploy aus `main` aktiv (12.7).
 >
 > **Ein spartan/ui-Skill liegt im Repo** (`.claude/skills/spartan/`, per
 > Symlink auf `.agents/skills/spartan/`) und wird von Claude Code automatisch
@@ -374,7 +376,22 @@ Das Verhältnis zwischen «Prüfprotokoll» (aus der Arbeitshilfe) und
 «Prüfregister QS wie SBB Tool» (aus dem Workshop) ist auf dem Board nicht
 aufgelöst — siehe Abschnitt 10.
 
+> **Gebaut (Entscheide 75/76, 05.08.2026).** Das Prüfprotokoll des
+> Fachlektorats liegt als Seitenleiste im Objekt-Detail (Knopf «Prüfung»,
+> nur auf Strecken im Status «In Prüfung»). Massgebend ist der
+> **Fragenkatalog der Review-Vorlage vom 05.08.2026** (vier Gruppen,
+> 8 Fragen mit Ja/Nein und Pflichtbegründung bei Nein) — er ersetzt im
+> Prototyp die Checkliste 1 aus 4.7. Nein-Befunde werden beim
+> Zurückweisen zu Kommentaren am Objekt, das Objekt geht in «Korrektur»;
+> ohne durchwegs Ja ist «Geprüft» gesperrt. Die Fachliche Prüfstelle
+> erhält ein eigenes Protokoll (noch zu spezifizieren).
+
 ### 4.7 Checkliste 1
+
+> **Hinweis zum Stand:** Im Prototyp ist stattdessen der Fragenkatalog der
+> Review-Vorlage vom 05.08.2026 gebaut (Entscheid 75, Wortlaut in
+> `core/pruefprotokoll.ts`). Die folgende Checkliste bleibt als fachliche
+> Grundlage der Arbeitshilfe dokumentiert.
 
 Die Checkliste, auf der das Prüfprotokoll aufbaut. Neun Prüffragen, jede als
 **binärer Schalter** (Toggle, erfüllt / nicht erfüllt) — keine Dreiwertigkeit,
@@ -650,7 +667,9 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
 ### 9.2 Rollen und Berechtigungen
 
 4. **Rollen-Umschalter** ist gewünscht (Wechsel der Perspektive im Prototyp).
-   Er liegt seit Entscheid 61 im **Account-Menü** unten links.
+   Er liegt seit Entscheid 61 im **Account-Menü** unten links; der Button
+   zeigt die aktive Rollen-Nummer, und die Rolle gilt **pro Tab**
+   (Entscheid 67).
 5. Wählbar sind die **fünf fachlich relevanten Rollen** R-03 bis R-07. R-01,
    R-02 und R-08 werden aufgelistet, aber nicht gewählt — seit der
    nie-disabled-Regel (Entscheid 52) sind sie nicht mehr ausgegraut,
@@ -675,7 +694,9 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
     plus Geometrie-Overlay alt/neu auf der Karte. **Gebaut** — Ausgestaltung
     siehe Entscheid 66 (Wort-Diff, Overlay in normaler Darstellung mit je
     eigenem Deckkraft-Regler).
-11. **Prüfregister:** frei zu entwerfen — für die in der Story Map erwähnte
+11. **Prüfregister:** ~~frei zu entwerfen~~ — **gebaut** als Prüfprotokoll
+    des Fachlektorats (Entscheide 75/76, Fragenkatalog aus der
+    Review-Vorlage). Für die in der Story Map erwähnte
     SBB-Referenz existiert keine Vorlage. Die überarbeitete Story Map gibt
     inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
     Fachlektorats, Umsetzungsvermerk der Inventarisierenden, begründete
@@ -998,7 +1019,12 @@ Rückfragen in derselben Session geklärt)**
     Schlüsselobjekte der Seed-Strecken haben kuratierte Erstbeschriebe
     (`core/version-vergleich.ts`).
 
-**Weitere Entscheide (05.08.2026)**
+**Sechste Ausbaustufe — Arbeitssitzung vom 05.08.2026 (Entscheide 67–78).**
+Zuerst Perspektiven und Dashboard (67–70), dann das Review-Paket
+«Bug-Fixes / Small Changes» (71–74), zuletzt Prüfprotokoll, Arbeitspakete
+und die Status-Vererbung (75–78).
+
+_Perspektiven und Dashboard_
 
 67. **Rolle pro Tab:** Die aktive Rolle liegt im sessionStorage
     (`ivs-prototyp-v3.rolle`) — jeder Tab kann eine eigene Perspektive
@@ -1037,7 +1063,7 @@ Rückfragen in derselben Session geklärt)**
     BE 7/22/23/35, damit jede Rolle (inkl. R-04 T. Nyffenegger und
     R-07 S. Koch) eigene Einträge sieht.
 
-**Review-Paket «Bug-Fixes / Small Changes» (PDF vom 05.08.2026)**
+_Review-Paket «Bug-Fixes / Small Changes» (PDF vom 05.08.2026)_
 
 71. **Dashboard-Feinschliff:** Status-Gruppen ohne Objekte starten
     **zugeklappt**.
@@ -1062,6 +1088,8 @@ Rückfragen in derselben Session geklärt)**
     siehe Fallstrick in 12.6); beim Öffnen ist nur noch das **aktive
     Objekt** markiert — der CDK-Fokus wird per Direktive
     (`ivsFokusAktiv`) vom ersten Eintrag auf die aktive Zeile verschoben.
+_Prüfprotokoll, Arbeitspakete und Status-Vererbung_
+
 75. **Prüfprotokoll gebaut** (Abschnitt 4.6; Vorlage vom 05.08.2026):
     Knopf **«Prüfung»** neben dem Stift öffnet eine **Seitenleiste** mit
     vier Fragegruppen (Allgemein, Gelände-, Geschichtsbeschrieb,
@@ -1207,6 +1235,27 @@ bei Bedarf nachschärfen):
   deterministisch generiert (Entscheid 66). Ob und in welcher Form echte
   1.0-Daten für die Umsetzung vorliegen, ist nicht geklärt.
 
+Aus der sechsten Ausbaustufe (05.08.2026) offen geblieben:
+
+- **Protokoll der Fachlichen Prüfstelle:** R-07 hat laut Abstimmung ein
+  **eigenes** Prüfprotokoll; sein Inhalt ist noch nicht spezifiziert
+  (heute Platzhalter, Entscheid 76). Ebenso offen: der
+  Umsetzungsvermerk der Inventarisierenden (4.6).
+- **Fragenkatalog vs. Checkliste 1:** Der gebaute Katalog stammt aus der
+  Review-Vorlage (vier Gruppen, 8 Fragen) und **ersetzt im Prototyp** die
+  neun Fragen der Checkliste 1 aus der Arbeitshilfe (4.7). Ob die
+  Arbeitshilfe nachgeführt wird oder beide Kataloge nebeneinander
+  bestehen, ist nicht geklärt.
+- **Arbeitspakete ohne Entität:** Eine Zuweisung ist ein einmaliger
+  Vorgang (Entscheid 77) — es gibt keine benannten, nachträglich
+  änderbaren Pakete und keine Einsatzlisten (03.04). Der Kanton als
+  Paketkriterium ist im Prototyp nur mit Bern belegt; die übrigen
+  Kantone sind Attrappen.
+- **Zuweisen darf jede Rolle:** Das Personen-Dropdown im Objekt-Detail
+  (Entscheid 72) ist bewusst für alle Rollen offen. Ob die Zuweisung
+  fachlich auf R-03/R-04 zu beschränken wäre, ist nicht abschliessend
+  geklärt.
+
 ---
 
 ## 11. Quellen
@@ -1218,6 +1267,8 @@ bei Bedarf nachschärfen):
 | Objektbeschrieb Strecke (VS 1, 19 Seiten)                     | `~/Downloads/Strecke.pdf`                                     |
 | Objektbeschrieb Linienführung (VS 1.2)                        | `~/Downloads/Linienführung.pdf`                               |
 | Objektbeschrieb Abschnitt (VS 1.2.14)                         | `~/Downloads/Abschnitt.pdf`                                   |
+| Review «Bug-Fixes / Small Changes» (05.08.2026, Entscheide 71–74) | `~/Downloads/Bug-Fixes : Small Changes.pdf`                |
+| Vorlage Prüfprotokoll (05.08.2026, Entscheid 75)              | Screenshots der Fragegruppen, in der Sitzung eingespielt      |
 | Testdaten und Referenz-Kartenimplementation                   | `/Users/wis/claude/ivs-map`                                   |
 | Älterer Prototyp (begrenzte Inspiration)                      | <https://ivs-prototyp-variant-b.vercel.app/>                  |
 | Repository                                                    | <https://github.com/Schnitzelbaer/ivs-prototyp-v3> (privat)   |
@@ -1291,9 +1342,11 @@ src/app/
     model.ts           IvsObjekt, ObjektTyp/objektTypText, WorkflowStatus, …
     status.ts          Status-Labels und -Farben
     rollen.ts          Rollen mit setzbareStati und editStati, darfEditieren
-    seed-data.ts       48 kuratierte Mock-Objekte, NAME_FUER_ROLLE, SEED_VERSION
+    seed-data.ts       48 kuratierte Mock-Objekte, NAME_FUER_ROLLE, PERSONEN,
+                       statusVonStreckeErben, SEED_VERSION
     objekt-generierung.ts  Vollabdeckung: Objekte, Kunstbauten, Feature-Zuordnung
-    objekt-store.ts    Objekte, statusWechseln, ergänzt generierte idempotent
+    objekt-store.ts    Objekte, statusWechseln (vererbt auf Nachkommen),
+                       paketZuweisen, ergänzt generierte idempotent
     einstellungen-store.ts  Rolle pro Tab (sessionStorage), Dark-Mode (storage-Sync)
     kommentare.ts      Kommentar-Modell, parseKommentarText, jetztLokal, Store
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
@@ -1304,12 +1357,14 @@ src/app/
     hinweis-store.ts   zentraler «Warum nicht?»-Hinweis (nie-disabled-Regel)
     version-vergleich.ts  IVS-1.0-Ableitung, kuratierte Alttexte, Wort-Diff
     stammdaten.ts      Auswahllisten DE/FR/IT
-  shell/               Icon-Leiste, Account-Menü (Perspektive + Profil),
-                       Hinweis-Dialog, Toaster
-  dashboard/           Aufgabenliste (nur Strecken) + Kartenpanel + Kommentare
+  shell/               Icon-Leiste, Account-Menü (Rollen-Nummer als Button,
+                       Perspektive + Profil), Hinweis-Dialog, Toaster
+  dashboard/           Arbeitspakete + Aufgabenliste (nur Strecken, persönlich)
+                       + Kartenpanel + Kommentare
   objekte/             Strecken-Baum, Karte und Side-Panel
   objekt/              Objektbearbeitung
-    objekt-detail.*    Formular, Statusfluss, Dialoge, Versionsvergleich
+    objekt-detail.*    Formular, Statusfluss, Personen-Zuweisung, Dialoge,
+                       Prüfprotokoll-Sheet, Versionsvergleich
     hierarchie-menu.ts Hierarchie-Menü mit Typ-Tags und Umteilen je Zeile
     versions-karte.ts  Vergleichskarte IVS 1.0/2.0 (zwei Deckkraft-Layer)
     text-editor.ts     Rich-Text-Editor (contenteditable, 07.17)
@@ -1335,7 +1390,7 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 
 | Schlüssel                       | Inhalt                        | Version                           |
 | ------------------------------- | ----------------------------- | --------------------------------- |
-| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen       | `SEED_VERSION` in `seed-data.ts`  |
+| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 10) |
 | `ivs-prototyp-v3.kommentare`    | Kommentare und Antworten      | Konstante in `kommentare.ts`      |
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen           | Konstante in `begehungen.ts`      |
@@ -1369,22 +1424,31 @@ Seed-Strecken sind dort als Tabellen hinterlegt. Das Dufour-Situierungsbild
 
 ### 12.5 Stand der Arbeit
 
-Gebaut ist die **fünfte Ausbaustufe des Kern-Workflows** (Stand 02.08.2026;
-die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
-48–66 in 9.8 dokumentiert):
+Gebaut ist die **sechste Ausbaustufe des Kern-Workflows** (Stand 05.08.2026;
+die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
+9.8 dokumentiert):
 
 - **Shell**: Das IVS-Logo führt zum Dashboard; «Perspektive wechseln» liegt
   im Account-Menü unten links (R-03…R-07 wählbar, übrige erklären sich per
-  Modal), zusammen mit Profil und «Demodaten zurücksetzen». Dark-Mode,
-  Sprachwechsler als Attrappe, zentraler Hinweis-Dialog (nie-disabled).
+  Modal), zusammen mit Profil und «Demodaten zurücksetzen». Der
+  Account-Button zeigt die **aktive Rollen-Nummer**; die Rolle gilt **pro
+  Tab** (Entscheid 67). Dark-Mode, Sprachwechsler als Attrappe, zentraler
+  Hinweis-Dialog (nie-disabled).
 - **Dashboard (04)**: **nur Strecken** (ToDos auf Strecken-Ebene,
   Entscheid 60), **persönlich** — je Status nur Objekte, die der aktiven
   Person zugewiesen sind oder einmal zugewiesen waren (Entscheid 70) —,
   gruppiert **nach allen acht Workflow-Stati** in Workflow-Reihenfolge
-  (Entscheide 68/70, mit Status-Farbpunkt), Suche, Schnellfilter inkl.
-  Status-Filter, Zeilen-Dropdown mit direktem Wechsel unter den
-  **setzbaren Stati** (Entscheid 69), Polygon-Selektion als
-  geographischer Filter (05.03).
+  (Entscheide 68/70, mit Status-Farbpunkt; leere Gruppen starten
+  zugeklappt, Entscheid 71), Suche, Schnellfilter inkl. Status-Filter,
+  Zeilen-Dropdown mit direktem Wechsel unter den **setzbaren Stati**
+  (Entscheid 69), Polygon-Selektion als geographischer Filter (05.03).
+  Die **Karte zeigt nur die Objekte der Liste** und wird von Suche und
+  Filtern mitgezogen (Entscheid 73). Für die **Paketrollen R-03/R-04**
+  liegt darüber der Bereich **Arbeitspakete** (Entscheid 77): R-03 weist
+  Kantonspakete der Regionalen Koordination zu, R-04 schnürt per
+  Checkbox- oder Polygon-Auswahl Pakete für die Inventarisierenden; beide
+  sehen alle Objekte und steigen per Ansicht-Umschalter auf die
+  persönlichen Dashboards ihrer Personen ab.
 - **Objektbearbeitung (07)**: View-/Edit-Modus mit automatischem Speichern
   und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
   Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
@@ -1392,13 +1456,16 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   (3000-Zeichen-Limite), Anhang, Prüfen/Freigabe, Inexistent (07.16, mit
   Pflichtbegründung), Lognotizen; **Hierarchie-Menü** (Entscheid 54) mit
   Legenden-Symbolen, Typ-Tags und Umteilen je Child-Zeile (Kontextmenü
-  nur per Klick, Entscheid 63); **Status-Dropdown** mit den
-  rollenrelevanten Stati zur freien Wahl (Entscheid 59); **Back-Button**
-  zur gemerkten Herkunftsseite (Entscheid 62); **Versionsvergleich** im
-  Historie-Menü (Entscheid 66); Begehungs-Einplanung sichtbar (Badge und
-  360°-Bereich, Entscheid 65); Bearbeitungslog als Sheet; Löschen immer
-  aktiv mit Warn- bzw. Erklär-Modal (07.05, nie-disabled-Regel,
-  Entscheid 52).
+  nur per Klick, Entscheide 63/74); **Status-Dropdown**, das den
+  aktuellen Status zeigt und die setzbaren zur Wahl stellt (Entscheide
+  59/69/72) — Statuswechsel nur auf Strecken, Nachkommen erben ihn
+  (Entscheid 78); **Personen-Dropdown** für die Zuweisung (Entscheid 72);
+  **Prüfprotokoll** als Seitenleiste hinter dem Knopf «Prüfung»
+  (Entscheide 75/76); **Back-Button** zur gemerkten Herkunftsseite
+  (Entscheid 62); **Versionsvergleich** im Historie-Menü (Entscheid 66);
+  Begehungs-Einplanung sichtbar (Badge und 360°-Bereich, Entscheid 65);
+  Bearbeitungslog als Sheet; Löschen immer aktiv mit Warn- bzw.
+  Erklär-Modal (07.05, nie-disabled-Regel, Entscheid 52).
 - **Karte**: ArcGIS Maps SDK mit swisstopo-WMTS und den Layern aus
   `ivs-map` — die Objekte liegen AUF diesen Layern (Anreicherung beim
   Laden, Entscheid 40); die **Symbolik folgt der einheitlichen Legende**
@@ -1414,20 +1481,25 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   (BroadcastChannel für die Selektion, storage-Ereignisse für Geometrien
   und Kommentare; die Rolle gilt pro Tab, Entscheid 67).
 - **Mock-Daten**: 48 kuratierte Objekte im Testgebiet Bern — BE 7
-  (Murtenstrasse, publiziert/freigegeben), BE 21 (Frauenkappelen–Gümmenen,
-  in Arbeit, enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse, in
-  Prüfung), BE 23 (Kirchweg, Backlog), BE 35 (Freiburgstrasse, geprüft),
-  inkl. zwei kuratierter Kunstbauten — plus generierte **Vollabdeckung**
-  aller Testgeometrien (Entscheide 44/48): insgesamt ~3742 Objekte
-  (403 Strecken, 862 Linienführungen, 2301 Abschnitte inkl. 148
-  Kunstbauten, 176 Wegbegleiter), generierte im Status «publiziert» mit aus
-  `ivs_signatur` abgeleiteter Bedeutung/Substanz und Wegbegleiter-Namen aus
-  dem `easyocr`-Feld. Persistenz im localStorage (~3.9 MB), `SEED_VERSION`
+  (Murtenstrasse, publiziert), BE 21 (Frauenkappelen–Gümmenen, in
+  Bearbeitung, enthält alle Wegoberflächen-Routen), BE 22 (Wohleistrasse,
+  in Prüfung), BE 23 (Kirchweg, zugewiesen an L. Furrer), BE 35
+  (Freiburgstrasse, geprüft), inkl. zwei kuratierter Kunstbauten — plus
+  generierte **Vollabdeckung** aller Testgeometrien (Entscheide 44/48):
+  insgesamt ~3742 Objekte (403 Strecken, 862 Linienführungen, 2301
+  Abschnitte inkl. 148 Kunstbauten, 176 Wegbegleiter), generierte im
+  Status «publiziert» und neutral «System» zugewiesen (Entscheid 70), mit
+  aus `ivs_signatur` abgeleiteter Bedeutung/Substanz und
+  Wegbegleiter-Namen aus dem `easyocr`-Feld. **Der Status gilt je
+  Strecke** — alle Nachkommen tragen den Status ihrer Strecke
+  (Entscheid 78). Persistenz im localStorage (~3.9 MB), `SEED_VERSION`
   erhöhen verwirft Stände.
 - **Objekte-Übersicht (04.01)** unter `/objekte`: Kartenansicht — Karte im
   Vordergrund, links der **aufklappbare Strecken-Baum** (Entscheid 64), ein
   Klick (Liste oder Karte) öffnet rechts das Side-Panel mit dem
-  **vollständigen** Objektinhalt und dem Hierarchie-Menü (Entscheid 55).
+  **vollständigen** Objektinhalt und dem Hierarchie-Menü (Entscheid 55);
+  sobald Suche oder Filter aktiv sind, wird auch die **Karte gefiltert**
+  (Entscheid 73).
 - **360°-Aufnahmen (06, Vorgabe 9)** unter `/panorama`: Galerie der
   Befahrung mit drehbarem Platzhalter-Panorama (generierte, nahtlose SVGs),
   Vor-/Zurück-Navigation, Karte mit Standortpunkt und live mitdrehendem
@@ -1465,7 +1537,6 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
 - **Kitchen Sink** unter `/kitchen-sink` als Nachschlagewerk;
   **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
   vorgesehen (`pnpm test` meldet «No tests found»).
-
 - **Prüfprotokoll (4.6, Entscheide 75/76)**: Seitenleiste «Prüfung»
   (nur Status «In Prüfung», Rollen R-06/R-07 — R-07 mit Platzhalter für
   ihr späteres eigenes Protokoll) mit Ja/Nein-Fragen in vier Gruppen,
@@ -1477,6 +1548,23 @@ die Review-Anpassungen «Changes IVS» und «Neue ToDos» sind als Entscheide
   setzt Status, Person und Lognotiz in einem Zug. Paketrollen sehen
   alle Objekte und steigen per Ansicht-Umschalter auf die persönlichen
   Dashboards der unterstellten Personen ab.
+
+**Personen im Prototyp** (`NAME_FUER_ROLLE` und `PERSONEN` in
+`seed-data.ts`). Sie tragen das persönliche Dashboard (Entscheid 70), die
+Zuweisung (Entscheide 72/77) und die `@`-Erwähnungen:
+
+| Person          | Rolle | Bemerkung                                        |
+| --------------- | ----- | ------------------------------------------------ |
+| K. Aebischer    | R-03  | Fachliche Administration, schnürt Kantonspakete  |
+| T. Nyffenegger  | R-04  | Regionale Koordination, schnürt Objekt-Pakete    |
+| B. Anderegg     | R-05  | Inventarisierende (Persona der Rolle)            |
+| L. Furrer       | R-05  | zweite Inventarisierende, ohne eigene Perspektive |
+| M. Gerber       | R-06  | Fachlektorat, führt das Prüfprotokoll            |
+| S. Koch         | R-07  | Fachliche Prüfstelle                             |
+
+Beim Rollenwechsel schlüpft man in die Persona der Rolle; L. Furrer ist
+bewusst niemandes Perspektive — ihre Objekte zeigen, dass das Dashboard
+persönlich filtert. Generierte Objekte sind «System» (R-08) zugewiesen.
 
 Noch nicht gebaut: Nebenblöcke (Accounts, Reports; Arbeitspakete-Rest
 wie Einsatzlisten 03.04), Umsetzungsvermerk der Inventarisierenden und
@@ -1605,6 +1693,23 @@ Fehler, die schon einmal Zeit gekostet haben:
   einem Kontextmenü heraus geöffnet werden. `hlmAlertDialogCancel` schliesst
   das Overlay, setzt aber das eigene Signal nicht zurück — dort ein
   `(click)` ergänzen.
+- **`hlm-native-select` behält seine Anzeige nach einem abgelehnten
+  Wechsel.** Wird ein `(ngModelChange)` durch einen Guard abgefangen (z. B.
+  «Geprüft» ohne Prüfprotokoll), zeigt das Select trotzdem den neuen Wert —
+  das Signal hat sich ja nicht geändert, Angular schreibt nichts zurück.
+  Abhilfe: Template-Referenz auf das Select mitgeben und im Guard
+  `select.writeValue(alterWert)` aufrufen (so in Objekt-Detail und
+  Dashboard-Zeile).
+- **Abgeleitete Zustände gehören in EINE Funktion.** Der Status vererbt sich
+  auf die Nachkommen (Entscheid 78) — das muss an allen Erzeugungspfaden
+  passieren: kuratierter Seed **und** nachgeladene Vollabdeckung. Beim
+  ersten Anlauf war nur der Seed normalisiert, worauf generierte
+  Linienführungen unter kuratierten Strecken (BE 35.2 «publiziert» unter
+  der geprüften BE 35) quer standen. Jetzt läuft beides über
+  `statusVonStreckeErben`.
+- **`inject(ElementRef<HTMLElement>)` kompiliert nicht** («Untyped function
+  calls may not accept type arguments») — der Typparameter gehört an
+  `inject`, nicht an das Token: `inject<ElementRef<HTMLElement>>(ElementRef)`.
 - **CDK-Overlays liegen im Top-Layer des Browsers.** Der Overlay-Wrapper
   trägt das native `popover`-Attribut — gegen den Top-Layer gewinnt
   **kein** `z-index`, ein eigenes fixed-Overlay mit `z-[1200]` bleibt
@@ -1740,13 +1845,15 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach den Review-Paketen vom 05.08.2026 (Entscheide 67–75, inkl.
-Prüfprotokoll); Reihenfolge als Vorschlag.
+Stand nach der sechsten Ausbaustufe (05.08.2026, Entscheide 67–78);
+Reihenfolge als Vorschlag.
 
 1. **Prüfprotokoll ausbauen (Abschnitt 4.6).** Der Fragenteil ist gebaut
    (Entscheid 75, Katalog der Review-Vorlage statt Checkliste 1). Offen
-   bleiben: **Umsetzungsvermerk der Inventarisierenden** (welche Befunde
-   umgesetzt, Abweichungen begründet), freie Befunde für
+   bleiben: das **eigene Protokoll der Fachlichen Prüfstelle** (R-07
+   sieht heute einen Platzhalter, Entscheid 76 — Inhalt wird noch
+   spezifiziert), der **Umsetzungsvermerk der Inventarisierenden**
+   (welche Befunde umgesetzt, Abweichungen begründet), freie Befunde für
    Kartenkorrekturen und das Verhältnis zum «Prüfregister QS»
    (Abschnitt 10).
 2. **Manuelle Prüfung der Karten-Interaktionen.** Hover-MapTip, Direktklick,
@@ -1773,7 +1880,26 @@ Prüfprotokoll); Reihenfolge als Vorschlag.
 **Wo es weitergeht.** `pnpm start`, dann `/dashboard` — oder direkt
 <https://ivs-prototyp-v3.vercel.app>. Die Rolle wechselt man im
 **Account-Menü unten links** (Button mit der Rollen-Nummer, Rolle gilt
-pro Tab); als R-03 erscheint zusätzlich
-die Stammdatenverwaltung. «Demodaten zurücksetzen» liegt im selben Menü —
-nötig nach jeder Änderung an den Seed-Daten, sonst zeigt der Browser den
-alten Stand (oder `SEED_VERSION` erhöhen).
+pro Tab); als R-03 erscheint zusätzlich die Stammdatenverwaltung.
+«Demodaten zurücksetzen» liegt im selben Menü — nötig nach jeder Änderung
+an den Seed-Daten, sonst zeigt der Browser den alten Stand (oder
+`SEED_VERSION` erhöhen).
+
+**Der Kern-Workflow zum Durchspielen** (jeweils Rolle im Account-Menü
+wechseln, oder `?rolle=R-06` an die URL hängen — die Rolle gilt pro Tab):
+
+1. **R-03** weist im Dashboard das Kantonspaket Bern der Regionalen
+   Koordination zu → alle Strecken stehen auf «Zugewiesen».
+2. **R-04** wählt im Dashboard einige Strecken (Checkboxen oder Polygon)
+   und weist sie einer Inventarisierenden zu; über «Ansicht» steigt sie
+   auf deren Dashboard ab.
+3. **R-05** (B. Anderegg) nimmt BE 21 in Bearbeitung, bearbeitet den
+   Beschrieb und gibt die Strecke «Bereit zur Prüfung».
+4. **R-06** (M. Gerber) setzt «In Prüfung», öffnet «Prüfung», beantwortet
+   den Katalog — bei einem Nein mit Begründung geht die Strecke mit
+   Kommentaren zurück in «Korrektur», sonst auf «Geprüft».
+5. **R-03** gibt frei und publiziert; **R-07** kommentiert und darf
+   ebenfalls publizieren.
+
+Zum Anschauen ohne Zuweisen eignet sich BE 22 (steht auf «In Prüfung»,
+zuständig M. Gerber) — dort ist der Prüfungs-Knopf sofort sichtbar.
