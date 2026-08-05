@@ -55,7 +55,7 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
-import { BegehungsStore, darfBegehungPlanen } from '../core/begehungen';
+import { BegehungsStore, darfBegehungAnfordern, darfBegehungPlanen } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
 import { HerkunftStore } from '../core/herkunft-store';
 import { HinweisStore } from '../core/hinweis-store';
@@ -90,7 +90,7 @@ import { Karte, KartenSelektion } from '../karte/karte';
 import { KarteSync } from '../karte/karte-sync';
 import { ObjektGeo } from '../karte/objekt-geo';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
-import { BegehungDialog } from '../panorama/begehung-dialog';
+import { BegehungDialog } from '../begehungen/begehung-dialog';
 import { BewertungsPunkte } from './bewertungs-punkte';
 import { HierarchieMenu } from './hierarchie-menu';
 import { TextEditor } from './text-editor';
@@ -285,8 +285,20 @@ export class ObjektDetail implements OnDestroy {
     if (!signatur) return [];
     return this.begehungsStore
       .alle()
-      .filter((b) => b.objekte.includes(signatur))
-      .map((b) => ({ ...b, position: b.objekte.indexOf(signatur) + 1 }));
+      .filter((b) => b.ziele.some((z) => z.signatur === signatur))
+      .map((b) => ({
+        ...b,
+        position: b.ziele.findIndex((z) => z.signatur === signatur) + 1,
+      }));
+  });
+
+  /** Offene Begehungs-Anforderungen zu diesem Objekt (Entscheid 89). */
+  protected readonly objektAnforderungen = computed(() => {
+    const signatur = this.objekt()?.signatur;
+    if (!signatur) return [];
+    return this.begehungsStore
+      .anforderungen()
+      .filter((a) => a.signatur === signatur && a.begehungId === null);
   });
 
   // Dialog «Kommentar auf Karte» (05.11)
@@ -617,18 +629,54 @@ export class ObjektDetail implements OnDestroy {
     void this.router.navigate(['/dashboard']);
   }
 
-  /** «Begehung planen»: nur R-03/04/06/07 — sonst erklärt ein Modal (nie-disabled). */
+  /** «Begehung planen»: nur R-03 — sonst erklärt ein Modal (nie-disabled). */
   protected begehungPlanenKlick(): void {
     if (!darfBegehungPlanen(this.einstellungen.aktiveRolleId())) {
       this.hinweis.zeige(
         'Begehungsplanung nicht möglich',
-        `Begehungen planen können die Fachliche Administration (R-03), die Regionale ` +
-          `Koordination (R-04), das Fachlektorat (R-06) und die Fachliche Prüfstelle (R-07) — ` +
-          `nicht die Rolle «${this.einstellungen.aktiveRolle().name}».`,
+        `Begehungen fix planen kann nur die Fachliche Administration (R-03) — nicht die ` +
+          `Rolle «${this.einstellungen.aktiveRolle().name}». Über «Begehung anfordern» ` +
+          'lässt sich der Bedarf melden.',
       );
       return;
     }
     this.begehungOffen.set(true);
+  }
+
+  // Begehung anfordern (Entscheid 89): für dieses Objekt, mit Begründung
+  protected readonly anfordernOffen = signal(false);
+  protected readonly anfordernBegruendung = signal('');
+
+  protected begehungAnfordernKlick(): void {
+    if (!darfBegehungAnfordern(this.einstellungen.aktiveRolleId())) {
+      this.hinweis.zeige(
+        'Anfordern nicht möglich',
+        'Begehungen anfordern können die fachlichen Rollen R-03 bis R-07.',
+      );
+      return;
+    }
+    this.anfordernBegruendung.set('');
+    this.anfordernOffen.set(true);
+  }
+
+  protected anforderungSpeichern(): void {
+    const o = this.objekt();
+    const begruendung = this.anfordernBegruendung().trim();
+    if (!o || !begruendung) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.begehungsStore.anfordern({
+      signatur: o.signatur,
+      position: null,
+      bezeichnung: '',
+      begruendung,
+      autor: NAME_FUER_ROLLE[rolle],
+      rolle,
+      datum: jetztLokal().slice(0, 10),
+    });
+    this.anfordernOffen.set(false);
+    toast.success('Begehung angefordert', {
+      description: `${o.signatur} — die Fachliche Administration plant sie ein.`,
+    });
   }
 
   // ---------------------------------------------- Versionsvergleich (08.05)

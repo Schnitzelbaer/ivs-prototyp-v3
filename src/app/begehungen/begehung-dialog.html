@@ -3,11 +3,12 @@
     <hlm-dialog-header>
       <h3 hlmDialogTitle>Begehung planen</h3>
       <p hlmDialogDescription>
-        Reihenfolge der Objekte und Logistik für den Feldeinsatz festlegen.
+        Reihenfolge der Ziele und Logistik für den Feldeinsatz festlegen — offene Anforderungen
+        lassen sich direkt übernehmen.
       </p>
     </hlm-dialog-header>
 
-    <div class="grid gap-3 py-2">
+    <div class="grid max-h-[70vh] gap-3 overflow-y-auto py-2">
       <div class="grid gap-1.5">
         <label hlmLabel for="bg-titel">Titel <span class="text-destructive">*</span></label>
         <input hlmInput id="bg-titel" [ngModel]="titel()" (ngModelChange)="titel.set($event)" />
@@ -61,18 +62,55 @@
         </div>
       </div>
 
+      <!-- Offene Anforderungen übernehmen (Entscheid 89) -->
+      @if (offeneAnforderungen().length) {
+        <div class="grid gap-1.5">
+          <span class="text-sm font-medium">Offene Anforderungen</span>
+          <ul class="flex flex-col gap-1">
+            @for (anforderung of offeneAnforderungen(); track anforderung.id) {
+              <li
+                class="flex items-center gap-2 rounded-md border border-border px-2 py-1 text-sm"
+              >
+                <ng-icon name="lucideMapPin" class="shrink-0 text-muted-foreground" />
+                <span class="min-w-0 flex-1 truncate">
+                  {{ anforderung.signatur ?? anforderung.bezeichnung }}
+                  <span class="text-xs text-muted-foreground">
+                    — {{ anforderung.autor }} ({{ anforderung.rolle }})
+                  </span>
+                </span>
+                @if (uebernommen().has(anforderung.id)) {
+                  <span hlmBadge variant="secondary">übernommen</span>
+                } @else {
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    size="sm"
+                    class="h-6 px-2 text-xs"
+                    type="button"
+                    (click)="anforderungUebernehmen(anforderung.id)"
+                  >
+                    <ng-icon name="lucidePlus" />
+                    Übernehmen
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
       <div class="grid gap-1.5">
         <span class="text-sm font-medium"
-          >Objekte in Begehungs-Reihenfolge <span class="text-destructive">*</span></span
+          >Ziele in Begehungs-Reihenfolge <span class="text-destructive">*</span></span
         >
-        @if (objekte().length === 0) {
-          <p class="text-sm text-muted-foreground">Noch keine Objekte auf der Liste.</p>
+        @if (ziele().length === 0) {
+          <p class="text-sm text-muted-foreground">Noch keine Ziele auf der Liste.</p>
         }
         <ul class="flex flex-col gap-1">
-          @for (signatur of objekte(); track signatur) {
+          @for (ziel of ziele(); track $index) {
             <li class="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-sm">
               <span class="w-5 text-xs text-muted-foreground">{{ $index + 1 }}.</span>
-              <span class="min-w-0 flex-1 truncate">{{ objektName(signatur) }}</span>
+              <span class="min-w-0 flex-1 truncate">{{ zielName(ziel) }}</span>
               <button
                 hlmBtn
                 variant="ghost"
@@ -91,7 +129,7 @@
                 size="icon"
                 class="size-6"
                 type="button"
-                [disabled]="$index === objekte().length - 1"
+                [disabled]="$index === ziele().length - 1"
                 (click)="verschieben($index, 1)"
                 aria-label="Nach unten"
               >
@@ -103,7 +141,7 @@
                 size="icon"
                 class="size-6"
                 type="button"
-                (click)="objektEntfernen($index)"
+                (click)="zielEntfernen($index)"
                 aria-label="Entfernen"
               >
                 <ng-icon name="lucideX" />
@@ -145,7 +183,7 @@
       <button
         hlmBtn
         type="button"
-        [disabled]="!titel().trim() || objekte().length === 0"
+        [disabled]="!titel().trim() || ziele().length === 0"
         (click)="speichern()"
       >
         Begehung speichern

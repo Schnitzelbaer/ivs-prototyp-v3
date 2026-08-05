@@ -27,7 +27,7 @@
             variant="outline"
             routerLink="/begehungen"
             [hlmTooltip]="
-              begehung.titel + ' — Position ' + begehung.position + ' von ' + begehung.objekte.length
+              begehung.titel + ' — Position ' + begehung.position + ' von ' + begehung.ziele.length
             "
           >
             <ng-icon name="lucideCalendarPlus" size="12" />
@@ -163,6 +163,33 @@
             <span class="text-xs">({{ o.zustaendigRolle }})</span>
           }
         </span>
+
+        <!-- Begehung: anfordern (alle fachlichen Rollen) oder fix planen
+             (nur R-03) — Entscheid 89, verlegt aus dem 360°-Bereich -->
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          type="button"
+          [hlmDropdownMenuTrigger]="begehungMenu"
+          align="end"
+          hlmTooltip="Begehung anfordern oder planen"
+          aria-label="Begehung anfordern oder planen"
+        >
+          <ng-icon name="lucideCalendarPlus" />
+        </button>
+        <ng-template #begehungMenu>
+          <hlm-dropdown-menu class="w-64">
+            <button hlmDropdownMenuItem (triggered)="begehungAnfordernKlick()">
+              Begehung anfordern
+              <span class="ml-auto text-xs text-muted-foreground">R-03–R-07</span>
+            </button>
+            <button hlmDropdownMenuItem (triggered)="begehungPlanenKlick()">
+              Begehung planen
+              <span class="ml-auto text-xs text-muted-foreground">R-03</span>
+            </button>
+          </hlm-dropdown-menu>
+        </ng-template>
 
         <!-- Prüfprotokoll (4.6): nur im Status «In Prüfung» und nur für die
              prüfenden Rollen (R-06 füllt aus, R-07 hat später ein eigenes) -->
@@ -770,6 +797,61 @@
             </div>
           </section>
 
+          <!-- ==================================================== Begehung -->
+          <!-- Entscheid 89: geplante Begehungen und offene Anforderungen zum
+               Objekt — die Aktionen liegen in der Kopfzeile (Kalender-Menü) -->
+          <section
+            hlmCollapsible
+            [expanded]="true"
+            #abBegehung="brnCollapsible"
+            class="rounded-md border border-border"
+          >
+            <button
+              hlmCollapsibleTrigger
+              class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold"
+            >
+              <ng-icon
+                name="lucideChevronDown"
+                class="text-muted-foreground transition-transform"
+                [class.-rotate-90]="!abBegehung.expanded()"
+              />
+              Begehung
+            </button>
+            <div hlmCollapsibleContent class="p-4">
+              @if (geplanteBegehungen().length) {
+                <p class="text-sm font-medium">Dieses Objekt ist eingeplant in:</p>
+                <ul class="mt-1 flex flex-col gap-1 text-sm text-muted-foreground">
+                  @for (begehung of geplanteBegehungen(); track begehung.id) {
+                    <li>
+                      {{ begehung.titel }} — {{ formatDatum(begehung.datum) }}, Position
+                      {{ begehung.position }} von {{ begehung.ziele.length }}
+                    </li>
+                  }
+                </ul>
+              }
+              @if (objektAnforderungen().length) {
+                <p class="mt-2 text-sm font-medium">Offene Anforderungen:</p>
+                <ul class="mt-1 flex flex-col gap-1 text-sm text-muted-foreground">
+                  @for (anforderung of objektAnforderungen(); track anforderung.id) {
+                    <li>
+                      {{ anforderung.begruendung }} — {{ anforderung.autor }}
+                      ({{ anforderung.rolle }}), {{ formatDatum(anforderung.datum) }}
+                    </li>
+                  }
+                </ul>
+              }
+              @if (!geplanteBegehungen().length && !objektAnforderungen().length) {
+                <p class="text-sm text-muted-foreground">
+                  Für dieses Objekt ist keine Begehung geplant oder angefordert — beides geht
+                  über das Kalender-Menü in der Kopfzeile.
+                </p>
+              }
+              <a hlmBtn variant="outline" size="sm" class="mt-3" routerLink="/begehungen">
+                Zu den Begehungen
+              </a>
+            </div>
+          </section>
+
           <!-- ============================================== Prüfen / Freigabe -->
           <section
             hlmCollapsible
@@ -1143,38 +1225,6 @@
                 Für dieses Objekt sind keine 360°-Aufnahmen verknüpft.
               </p>
             }
-            <div class="mt-4 border-t border-border pt-4">
-              @if (geplanteBegehungen().length) {
-                <p class="text-sm font-medium">Dieses Objekt ist eingeplant in:</p>
-                <ul class="mt-1 flex flex-col gap-1 text-sm text-muted-foreground">
-                  @for (begehung of geplanteBegehungen(); track begehung.id) {
-                    <li>
-                      {{ begehung.titel }} — {{ formatDatum(begehung.datum) }}, Position
-                      {{ begehung.position }} von {{ begehung.objekte.length }}
-                    </li>
-                  }
-                </ul>
-                <a hlmBtn variant="outline" size="sm" class="mt-2" routerLink="/begehungen">
-                  Zu den Begehungen
-                </a>
-              } @else {
-                <p class="text-sm text-muted-foreground">
-                  Für dieses Objekt ist keine Begehung geplant. Eine Begehung lässt sich direkt
-                  von hier planen — das Objekt steht bereits auf der Liste.
-                </p>
-              }
-              <button
-                hlmBtn
-                variant="outline"
-                size="sm"
-                class="mt-2"
-                type="button"
-                (click)="begehungPlanenKlick()"
-              >
-                <ng-icon name="lucideCalendarPlus" />
-                Begehung planen
-              </button>
-            </div>
           </div>
           <div hlmTabsContent="kommentare" class="min-h-0 flex-1">
             <ivs-kommentar-panel
@@ -1188,6 +1238,47 @@
       </aside>
     </div>
   </div>
+
+  <!-- Begehung anfordern (Entscheid 89): für dieses Objekt, mit Begründung -->
+  <hlm-dialog
+    [state]="anfordernOffen() ? 'open' : 'closed'"
+    (stateChanged)="anfordernOffen.set($event === 'open')"
+  >
+    <hlm-dialog-content *hlmDialogPortal>
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>Begehung anfordern</h3>
+        <p hlmDialogDescription>
+          Für {{ o.signatur }} {{ o.name }} — die Fachliche Administration plant die Begehung
+          anschliessend fix ein.
+        </p>
+      </hlm-dialog-header>
+      <div class="grid gap-1.5 py-2">
+        <label hlmLabel for="od-ba-begruendung">
+          Begründung <span class="text-destructive">*</span>
+        </label>
+        <textarea
+          hlmTextarea
+          id="od-ba-begruendung"
+          class="min-h-20 w-full"
+          [ngModel]="anfordernBegruendung()"
+          (ngModelChange)="anfordernBegruendung.set($event)"
+        ></textarea>
+      </div>
+      <hlm-dialog-footer>
+        <button hlmBtn variant="outline" type="button" (click)="anfordernOffen.set(false)">
+          Abbrechen
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          [disabled]="!anfordernBegruendung().trim()"
+          (click)="anforderungSpeichern()"
+        >
+          Anfordern
+        </button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
 
   <!-- Person zuweisen: Offen → Zugewiesen verlangt eine Person (Entscheid 86) -->
   <hlm-dialog

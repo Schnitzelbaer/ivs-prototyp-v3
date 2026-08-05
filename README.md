@@ -204,9 +204,13 @@ neuen Session weiterzuarbeiten.
 - **360°-Aufnahmen** (`/panorama`): Galerie der Befahrung mit echt drehbarem
   Platzhalter-Panorama (generierte, nahtlose SVGs), Vor-/Zurück-Navigation,
   Karte mit Standort und live mitdrehendem Blickrichtungskegel.
-- **Begehungen** (`/begehungen`, eigener Tab): Reihenfolge, Verkehrsmittel,
-  Unterkunft und Zeitbedarf der Feldeinsätze; planen dürfen R-03/04/06/07
-  (auch aus der Objektbearbeitung heraus), andere Rollen sehen alles.
+- **Begehungen** (`/begehungen`, eigener Tab): zweistufig — anfordern
+  können alle fachlichen Rollen (für ein Objekt oder einen frei
+  gewählten Kartenpunkt, mit Begründung), fix planen nur die Fachliche
+  Administration (Titel, Datum, Logistik, Reihenfolge der Ziele; offene
+  Anforderungen werden dabei übernommen). Die gewählte Begehung liegt
+  als nummerierte Route auf der Karte; im Objekt-Detail über das
+  Kalender-Menü der Kopfzeile und den Formular-Abschnitt «Begehung».
 - **Kommentare** (09/10): Panel mit Threads, Erledigt-Kennzeichnung, Suche,
   Filtern (Standard «Offene»; objektübergreifende Listen zeigen nur die
   eigenen — zugewiesen, mal zugewiesen oder erwähnt), `@`-Erwähnungen und

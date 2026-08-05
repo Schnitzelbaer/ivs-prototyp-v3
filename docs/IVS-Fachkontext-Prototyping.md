@@ -1016,11 +1016,13 @@ Rückfragen in derselben Session geklärt)**
     jedem Fall zuerst die Preview im Side-Panel**, nie direkt die
     Detail-Ansicht.
 65. **Begehungen als eigener Tab** (`/begehungen`, losgelöst von den
-    360°-Aufnahmen): Planen, Umstellen und Löschen nur für **R-03, R-04,
-    R-06 und R-07** — andere Rollen sehen alles, der Klick erklärt die
-    Sperre. Im Objekt-Detail ist die Einplanung sichtbar: Badge mit Datum
-    in der Kopfzeile, Details (Begehung, Position) im 360°-Bereich des
-    Kartenpanels.
+    360°-Aufnahmen): ~~Planen, Umstellen und Löschen nur für **R-03,
+    R-04, R-06 und R-07**~~ — **seit Entscheid 89 plant nur noch R-03
+    fix, alle fachlichen Rollen können anfordern**; andere sehen alles,
+    der Klick erklärt die Sperre. Im Objekt-Detail ist die Einplanung
+    sichtbar: Badge mit Datum in der Kopfzeile, ~~Details (Begehung,
+    Position) im 360°-Bereich des Kartenpanels~~ Details im eigenen
+    Formular-Abschnitt «Begehung» (Entscheid 89).
 66. **Versionsvergleich (08.05, Vorgabe 10) gebaut:** Einstieg im
     Historie-Menü; wortweiser Diff (LCS) der Beschriebe — Gestrichenes rot
     durchgestrichen, Neues markiert — plus Eckdaten-Änderungen und die
@@ -1294,6 +1296,24 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     ein Pflicht-Select. Modell: `objektSignatur` ist nicht mehr
     nullable; der freie Seed-Kommentar ist BE 21.1.3 zugeordnet
     (Kommentar-Seed-Version 2).
+89. **Begehungen zweistufig** (baut Entscheid 65 um): **Anfordern**
+    dürfen alle fachlichen Rollen R-03–R-07 — für ein Objekt (auch eine
+    ganze Strecke) oder einen **frei gewählten Kartenpunkt** (Klick auf
+    die Begehungs-Karte), mit Pflicht-Begründung, ohne Datum und
+    Logistik. **Fix planen, umstellen und löschen kann nur noch die
+    Fachliche Administration (R-03)**; im Plan-Dialog lassen sich
+    offene Anforderungen übernehmen — sie gelten danach als eingeplant
+    (Löschen der Begehung macht sie wieder offen). Eine Begehung
+    besteht aus **Zielen** (Objekt oder Kartenpunkt) statt nur
+    Objekten. Der Tab `/begehungen` zeigt rechts eine **Karte**, auf
+    der die gewählte Begehung als **nummerierte Route** mit
+    Verbindungslinie liegt (Karten-Input `begehungsPunkte`;
+    Objekt-Ziele über das Bbox-Zentrum aus `ObjektGeo`), gefiltert auf
+    die betroffenen Strecken. Im Objekt-Detail liegt beides im
+    **Kalender-Menü der Kopfzeile** (verlegt aus dem 360°-Bereich —
+    der war der falsche Ort), die Einplanung und offene Anforderungen
+    stehen im neuen Formular-Abschnitt **«Begehung»**; der Dialog
+    wohnt neu unter `begehungen/`. Begehungs-Seed-Version 2.
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1518,7 +1538,8 @@ src/app/
     kommentare.ts      Kommentar-Modell, parseKommentarText, jetztLokal, Store
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
     geometrie-store.ts Arbeitsgeometrien je Signatur (storage-Sync)
-    begehungen.ts      Begehungsplanung, darfBegehungPlanen (R-03/04/06/07)
+    begehungen.ts      Begehungen und Anforderungen (anfordern R-03–R-07,
+                       fix planen nur R-03 — Entscheid 89)
     paket-store.ts     KANTONE und Kanton→Koordination-Zuweisungen
                        (Entscheide 82/85)
     herkunft-store.ts  Herkunft des Objekt-Details (Back-Button)
@@ -1553,7 +1574,8 @@ src/app/
     typ-symbol.ts      Legenden-Symbol eines Objekttyps (überall gleich)
   kommentare/          Kommentar-Panel (Threads, @/#, Filter)
   panorama/            360°-Galerie und Viewer
-  begehungen/          Begehungsplanung (eigener Tab)
+  begehungen/          Begehungen: Anforderungen, Planung samt Dialog und
+                       Routen-Karte (eigener Tab)
   stammdaten/          Auswahllisten-Verwaltung (R-03)
   kitchen-sink/        Referenzseite, ein Abschnitt je Themengruppe
 ```
@@ -1691,9 +1713,14 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–84 in
   Befahrung mit drehbarem Platzhalter-Panorama (generierte, nahtlose SVGs),
   Vor-/Zurück-Navigation, Karte mit Standortpunkt und live mitdrehendem
   Blickrichtungskegel (07.08).
-- **Begehungen** unter `/begehungen` (eigener Tab, Entscheid 65):
-  Reihenfolge der Objekte, Verkehrsmittel, Unterkunft, Zeitbedarf; planbar
-  nur für R-03/04/06/07, auch direkt aus der Objektbearbeitung.
+- **Begehungen** unter `/begehungen` (eigener Tab, Entscheide 65/89):
+  zweistufig — **anfordern** können alle fachlichen Rollen (Objekt oder
+  freier Kartenpunkt, mit Begründung), **fix planen** nur R-03 (Titel,
+  Datum, Logistik, Reihenfolge der Ziele; offene Anforderungen werden
+  dabei übernommen). Die gewählte Begehung liegt als **nummerierte
+  Route** auf der Karte rechts. Aus der Objektbearbeitung über das
+  Kalender-Menü der Kopfzeile; Einplanung und Anforderungen im
+  Formular-Abschnitt «Begehung».
 - **Versionsvergleich (08.05, Vorgabe 10)**: Wort-Diff der Beschriebe und
   Eckdaten-Änderungen IVS 1.0 → 2.0 plus Vergleichskarte mit separat
   regelbarer Deckkraft beider Stände (Entscheid 66).

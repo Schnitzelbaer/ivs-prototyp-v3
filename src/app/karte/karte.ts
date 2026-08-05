@@ -15,7 +15,7 @@ import {
 import EsriMap from '@arcgis/core/Map.js';
 import * as geometryEngine from '@arcgis/core/geometry/geometryEngine.js';
 import type Polygon from '@arcgis/core/geometry/Polygon.js';
-import type Polyline from '@arcgis/core/geometry/Polyline.js';
+import Polyline from '@arcgis/core/geometry/Polyline.js';
 import * as geometryJsonUtils from '@arcgis/core/geometry/support/jsonUtils.js';
 import { GeometrieStore } from '../core/geometrie-store';
 import { KommentarStore } from '../core/kommentare';
@@ -35,6 +35,7 @@ import Extent from '@arcgis/core/geometry/Extent.js';
 import Point from '@arcgis/core/geometry/Point.js';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils.js';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol.js';
+import TextSymbol from '@arcgis/core/symbols/TextSymbol.js';
 import { Ebene, ObjektTyp, objektTyp } from '../core/model';
 import {
   BASEMAP_DEFS,
@@ -336,6 +337,14 @@ export class Karte implements AfterViewInit, OnDestroy {
    * Die Karte zeigt nur, was die Liste daneben aufführt.
    */
   readonly streckenFilter = input<readonly string[] | null>(null);
+
+  /**
+   * Begehungs-Route (Entscheid 89): nummerierte Ziele in Reihenfolge,
+   * verbunden mit einer gestrichelten Linie; die Karte zoomt darauf.
+   */
+  readonly begehungsPunkte = input<
+    readonly { lon: number; lat: number; nummer: number; titel: string }[] | null
+  >(null);
   /** Nach jeder Geometrie-Änderung: aktuelle Anzahl Arbeitsgeometrien. */
   readonly geometrieGeaendert = output<number>();
 
@@ -388,6 +397,7 @@ export class Karte implements AfterViewInit, OnDestroy {
   private skizzenLayer: GraphicsLayer | null = null;
   private markerLayer: GraphicsLayer | null = null;
   private kommentarLayer: GraphicsLayer | null = null;
+  private begehungsLayer: GraphicsLayer | null = null;
   private kegelGraphic: Graphic | null = null;
   private sketch: SketchViewModel | null = null;
   private erstZoomErledigt = false;
@@ -466,6 +476,78 @@ export class Karte implements AfterViewInit, OnDestroy {
       const filter = this.streckenFilter();
       untracked(() => this.wendeStreckenFilterAn(filter));
     });
+    // Begehungs-Route zeichnen (Entscheid 89)
+    effect(() => {
+      const punkte = this.begehungsPunkte();
+      untracked(() => this.zeichneBegehungsRoute(punkte));
+    });
+  }
+
+  /**
+   * Nummerierte Begehungs-Ziele samt Verbindungslinie zeichnen und den
+   * Ausschnitt darauf einpassen.
+   */
+  private zeichneBegehungsRoute(
+    punkte: readonly { lon: number; lat: number; nummer: number; titel: string }[] | null,
+  ): void {
+    const layer = this.begehungsLayer;
+    if (!layer) return;
+    layer.removeAll();
+    if (!punkte || punkte.length === 0) return;
+    if (punkte.length > 1) {
+      layer.add(
+        new Graphic({
+          geometry: new Polyline({
+            paths: [punkte.map((p) => [p.lon, p.lat])],
+            spatialReference: { wkid: 4326 },
+          }),
+          symbol: new SimpleLineSymbol({
+            color: [79, 70, 229, 0.7],
+            width: 2,
+            style: 'short-dash',
+          }),
+        }),
+      );
+    }
+    for (const punkt of punkte) {
+      const position = new Point({ longitude: punkt.lon, latitude: punkt.lat });
+      layer.add(
+        new Graphic({
+          geometry: position,
+          symbol: new SimpleMarkerSymbol({
+            color: [79, 70, 229],
+            size: 22,
+            outline: { color: [255, 255, 255], width: 2 },
+          }),
+          attributes: { titel: punkt.titel },
+        }),
+      );
+      layer.add(
+        new Graphic({
+          geometry: position,
+          symbol: new TextSymbol({
+            text: String(punkt.nummer),
+            color: [255, 255, 255],
+            font: { size: 11, weight: 'bold' },
+            yoffset: -5,
+          }),
+        }),
+      );
+    }
+    // Ausschnitt auf die Route einpassen
+    const lons = punkte.map((p) => p.lon);
+    const lats = punkte.map((p) => p.lat);
+    const rand = 0.004;
+    void this.view?.goTo(
+      new Extent({
+        xmin: Math.min(...lons) - rand,
+        ymin: Math.min(...lats) - rand,
+        xmax: Math.max(...lons) + rand,
+        ymax: Math.max(...lats) + rand,
+        spatialReference: { wkid: 4326 },
+      }),
+      { animate: false },
+    );
   }
 
   /** Laufnummer gegen überholende asynchrone Filter-Anwendungen. */
@@ -576,6 +658,11 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.kommentarLayer = new GraphicsLayer({ listMode: 'hide' });
     map.add(this.kommentarLayer);
     this.zeichneKommentarPins();
+
+    // Begehungs-Route (Entscheid 89)
+    this.begehungsLayer = new GraphicsLayer({ listMode: 'hide' });
+    map.add(this.begehungsLayer);
+    this.zeichneBegehungsRoute(this.begehungsPunkte());
 
     // Arbeitsgeometrien des Geometrie-Editings (05.05)
     this.editLayer = new GraphicsLayer({ listMode: 'hide' });

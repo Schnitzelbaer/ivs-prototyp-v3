@@ -31,7 +31,6 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
-import { darfBegehungPlanen } from '../core/begehungen';
 import { EinstellungenStore } from '../core/einstellungen-store';
 import { HinweisStore } from '../core/hinweis-store';
 import { KommentarStore, jetztLokal } from '../core/kommentare';
@@ -40,7 +39,6 @@ import { darfEditieren } from '../core/rollen';
 import { NAME_FUER_ROLLE, rolleFuerStatus } from '../core/seed-data';
 import { STATUS_LABEL } from '../core/status';
 import { KommentarPanel } from '../kommentare/kommentar-panel';
-import { BegehungDialog } from '../panorama/begehung-dialog';
 import { HinweisDialog } from '../shell/hinweis-dialog';
 import { Karte, KartenSelektion } from './karte';
 import { KarteSync } from './karte-sync';
@@ -70,7 +68,6 @@ import { KarteSync } from './karte-sync';
     HlmTabsImports,
     HlmToasterImports,
     HlmTooltipImports,
-    BegehungDialog,
     HinweisDialog,
     Karte,
     KommentarPanel,
@@ -244,21 +241,12 @@ import { KarteSync } from './karte-sync';
             </p>
           }
           <div class="mt-4 border-t border-border pt-4">
+            <!-- Anfordern/Planen liegt im Begehungen-Tab bzw. in der
+                 Objekt-Kopfzeile (Entscheid 89) -->
             <p class="text-sm text-muted-foreground">
-              Eine Begehung lässt sich direkt von hier planen — das Objekt steht bereits auf der
-              Liste.
+              Begehungen werden im Begehungen-Tab angefordert und von der Fachlichen
+              Administration fix geplant.
             </p>
-            <button
-              hlmBtn
-              variant="outline"
-              size="sm"
-              class="mt-2"
-              type="button"
-              (click)="begehungPlanenKlick()"
-            >
-              <ng-icon name="lucideCalendarPlus" />
-              Begehung planen
-            </button>
           </div>
         </div>
         <div hlmTabsContent="kommentare" class="min-h-0 flex-1">
@@ -280,7 +268,7 @@ import { KarteSync } from './karte-sync';
         <hlm-dialog-header>
           <h3 hlmDialogTitle>Kommentar auf der Karte</h3>
           <p hlmDialogDescription>
-            Räumliche Notiz an der gewählten Position — die Zuweisung zu einem Objekt ist optional.
+            Räumliche Notiz an der gewählten Position — jeder Kommentar gehört zu einem Objekt.
           </p>
         </hlm-dialog-header>
         <div class="grid gap-3 py-2">
@@ -336,7 +324,6 @@ import { KarteSync } from './karte-sync';
     </hlm-dialog>
 
     <!-- Begehung planen (07.08) -->
-    <ivs-begehung-dialog [(offen)]="begehungOffen" [vorauswahl]="selektion()?.signatur ?? null" />
 
     <hlm-toaster />
     <ivs-hinweis-dialog />
@@ -357,7 +344,6 @@ export class KarteFenster {
   protected readonly selektion = signal<KartenSelektion | null>(null);
   protected readonly kartenTab = signal('karte');
   protected readonly pinKommentarId = signal<string | null>(null);
-  protected readonly begehungOffen = signal(false);
 
   // Geometrie-Editing (05.05)
   protected readonly geometrieModus = signal(false);
@@ -466,20 +452,6 @@ export class KarteFenster {
   protected geometrieGeaendert(anzahl: number): void {
     this.geometrieAnzahl.set(anzahl);
     this.geometrieGeaendertFlag = true;
-  }
-
-  /** «Begehung planen»: nur R-03/04/06/07 — sonst erklärt ein Modal. */
-  protected begehungPlanenKlick(): void {
-    if (!darfBegehungPlanen(this.einstellungen.aktiveRolleId())) {
-      this.hinweis.zeige(
-        'Begehungsplanung nicht möglich',
-        `Begehungen planen können die Fachliche Administration (R-03), die Regionale ` +
-          `Koordination (R-04), das Fachlektorat (R-06) und die Fachliche Prüfstelle (R-07) — ` +
-          `nicht die Rolle «${this.einstellungen.aktiveRolle().name}».`,
-      );
-      return;
-    }
-    this.begehungOffen.set(true);
   }
 
   // ------------------------------------------------------------- Kommentare

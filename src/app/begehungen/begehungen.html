@@ -6,93 +6,264 @@
     <h1 class="text-base font-semibold">
       Begehungen
       <span class="ml-1 text-sm font-normal text-muted-foreground">
-        Reihenfolge und Logistik der Feldeinsätze
+        Anforderungen, Reihenfolge und Logistik der Feldeinsätze
       </span>
     </h1>
-    <button hlmBtn size="sm" type="button" (click)="begehungPlanen()">
-      <ng-icon name="lucideCalendarPlus" />
-      Begehung planen
-    </button>
+    <div class="flex items-center gap-2">
+      <button hlmBtn variant="outline" size="sm" type="button" (click)="begehungAnfordern()">
+        <ng-icon name="lucideMapPinPlus" />
+        Begehung anfordern
+      </button>
+      <button hlmBtn size="sm" type="button" (click)="begehungPlanen()">
+        <ng-icon name="lucideCalendarPlus" />
+        Begehung planen
+      </button>
+    </div>
   </header>
 
-  <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-    <div class="mx-auto flex max-w-3xl flex-col gap-4">
-      @for (begehung of begehungsStore.alle(); track begehung.id) {
-        <article class="rounded-md border border-border">
-          <header class="flex items-start gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
-            <div class="min-w-0 flex-1">
-              <h2 class="text-sm font-semibold">{{ begehung.titel }}</h2>
-              <p class="text-xs text-muted-foreground">
-                {{ formatDatum(begehung.datum) }} ·
-                {{ verkehrsmittelLabel[begehung.verkehrsmittel] }} · Unterkunft:
-                {{ begehung.unterkunft }}
-                @if (begehung.zeitbedarfStunden !== null) {
-                  · Zeitbedarf {{ begehung.zeitbedarfStunden }} h
-                }
-              </p>
-            </div>
-            <span hlmBadge variant="secondary">{{ begehung.objekte.length }} Objekte</span>
-            <button
-              hlmBtn
-              variant="ghost"
-              size="icon"
-              class="size-7"
-              type="button"
-              (click)="loeschen(begehung.id)"
-              hlmTooltip="Begehung löschen"
-              aria-label="Begehung löschen"
-            >
-              <ng-icon name="lucideTrash2" />
-            </button>
-          </header>
-          <ol class="px-4 py-2">
-            @for (signatur of begehung.objekte; track signatur) {
-              <li
-                class="flex items-center gap-1.5 border-b border-border/60 py-1.5 text-sm last:border-b-0"
+  <div class="flex min-h-0 flex-1">
+    <!-- Linke Spalte: Anforderungen und Begehungen -->
+    <div class="min-w-0 flex-1 overflow-y-auto px-4 py-3">
+      <div class="flex flex-col gap-4">
+        <!-- Offene Anforderungen (Entscheid 89) -->
+        @if (offeneAnforderungen().length) {
+          <section class="rounded-md border border-border">
+            <header class="border-b border-border bg-muted/40 px-4 py-2">
+              <h2 class="text-sm font-semibold">
+                Offene Anforderungen
+                <span class="ml-1 font-normal text-muted-foreground">
+                  — werden von der Fachlichen Administration eingeplant
+                </span>
+              </h2>
+            </header>
+            <ul class="px-4 py-1">
+              @for (anforderung of offeneAnforderungen(); track anforderung.id) {
+                <li class="flex items-start gap-2 border-b border-border/60 py-2 last:border-b-0">
+                  <ng-icon name="lucideMapPin" class="mt-0.5 shrink-0 text-muted-foreground" />
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium">{{ anforderungsZiel(anforderung) }}</p>
+                    <p class="text-sm text-muted-foreground">{{ anforderung.begruendung }}</p>
+                    <p class="text-xs text-muted-foreground">
+                      {{ anforderung.autor }} ({{ anforderung.rolle }}) ·
+                      {{ formatDatum(anforderung.datum) }}
+                    </p>
+                  </div>
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    class="size-7"
+                    type="button"
+                    (click)="anforderungLoeschen(anforderung.id)"
+                    hlmTooltip="Anforderung löschen"
+                    aria-label="Anforderung löschen"
+                  >
+                    <ng-icon name="lucideTrash2" />
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        @for (begehung of begehungsStore.alle(); track begehung.id) {
+          <article
+            class="rounded-md border"
+            [class.border-primary]="aktiveBegehung()?.id === begehung.id"
+            [class.border-border]="aktiveBegehung()?.id !== begehung.id"
+          >
+            <header class="flex items-start gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
+              <button
+                type="button"
+                class="min-w-0 flex-1 text-left pointer-coarse:min-h-11"
+                (click)="aktiveBegehungId.set(begehung.id)"
               >
-                <span class="w-5 text-xs text-muted-foreground">{{ $index + 1 }}.</span>
-                <button
-                  type="button"
-                  class="min-w-0 flex-1 truncate text-left hover:underline pointer-coarse:min-h-11"
-                  (click)="oeffneObjekt(signatur)"
+                <h2 class="text-sm font-semibold">{{ begehung.titel }}</h2>
+                <p class="text-xs text-muted-foreground">
+                  {{ formatDatum(begehung.datum) }} ·
+                  {{ verkehrsmittelLabel[begehung.verkehrsmittel] }} · Unterkunft:
+                  {{ begehung.unterkunft }}
+                  @if (begehung.zeitbedarfStunden !== null) {
+                    · Zeitbedarf {{ begehung.zeitbedarfStunden }} h
+                  }
+                </p>
+              </button>
+              @if (aktiveBegehung()?.id === begehung.id) {
+                <span hlmBadge>auf der Karte</span>
+              }
+              <span hlmBadge variant="secondary">{{ begehung.ziele.length }} Ziele</span>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                class="size-7"
+                type="button"
+                (click)="loeschen(begehung.id)"
+                hlmTooltip="Begehung löschen"
+                aria-label="Begehung löschen"
+              >
+                <ng-icon name="lucideTrash2" />
+              </button>
+            </header>
+            <ol class="px-4 py-2">
+              @for (ziel of begehung.ziele; track $index) {
+                <li
+                  class="flex items-center gap-1.5 border-b border-border/60 py-1.5 text-sm last:border-b-0"
                 >
-                  {{ objektName(signatur) }}
-                </button>
-                <button
-                  hlmBtn
-                  variant="ghost"
-                  size="icon"
-                  class="size-6"
-                  type="button"
-                  [disabled]="$index === 0"
-                  (click)="verschieben(begehung.id, $index, -1)"
-                  aria-label="Nach oben"
-                >
-                  <ng-icon name="lucideArrowUp" />
-                </button>
-                <button
-                  hlmBtn
-                  variant="ghost"
-                  size="icon"
-                  class="size-6"
-                  type="button"
-                  [disabled]="$index === begehung.objekte.length - 1"
-                  (click)="verschieben(begehung.id, $index, 1)"
-                  aria-label="Nach unten"
-                >
-                  <ng-icon name="lucideArrowDown" />
-                </button>
-              </li>
-            }
-          </ol>
-        </article>
-      } @empty {
-        <p class="py-8 text-center text-sm text-muted-foreground">
-          Noch keine Begehungen geplant — «Begehung planen» startet die erste.
+                  <span class="w-5 text-xs text-muted-foreground">{{ $index + 1 }}.</span>
+                  @if (ziel.signatur) {
+                    <button
+                      type="button"
+                      class="min-w-0 flex-1 truncate text-left hover:underline pointer-coarse:min-h-11"
+                      (click)="oeffneZiel(ziel)"
+                    >
+                      {{ zielName(ziel) }}
+                    </button>
+                  } @else {
+                    <span class="min-w-0 flex-1 truncate">
+                      <ng-icon name="lucideMapPin" class="mr-1 align-middle text-muted-foreground" />
+                      {{ zielName(ziel) }}
+                    </span>
+                  }
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    class="size-6"
+                    type="button"
+                    [disabled]="$index === 0"
+                    (click)="verschieben(begehung.id, $index, -1)"
+                    aria-label="Nach oben"
+                  >
+                    <ng-icon name="lucideArrowUp" />
+                  </button>
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    class="size-6"
+                    type="button"
+                    [disabled]="$index === begehung.ziele.length - 1"
+                    (click)="verschieben(begehung.id, $index, 1)"
+                    aria-label="Nach unten"
+                  >
+                    <ng-icon name="lucideArrowDown" />
+                  </button>
+                </li>
+              }
+            </ol>
+          </article>
+        } @empty {
+          <p class="py-8 text-center text-sm text-muted-foreground">
+            Noch keine Begehungen geplant — «Begehung planen» (R-03) startet die erste.
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Rechte Spalte: Karte mit der Route der gewählten Begehung -->
+    <aside class="flex w-[44%] min-w-96 shrink-0 flex-col border-l border-border">
+      @if (punktwahlAktiv()) {
+        <p class="border-b border-border bg-muted/60 px-3 py-1.5 text-sm">
+          Punkt wählen: Klick auf die Karte übernimmt die Position in die Anforderung.
         </p>
       }
-    </div>
+      <ivs-karte
+        class="block min-h-0 flex-1"
+        [streckenFilter]="kartenStrecken()"
+        [begehungsPunkte]="routenPunkte()"
+        (kommentarPosition)="positionGewaehlt($event)"
+      />
+    </aside>
   </div>
 </div>
 
 <ivs-begehung-dialog [(offen)]="begehungOffen" />
+
+<!-- Begehung anfordern (Entscheid 89): Objekt oder freier Kartenpunkt -->
+<hlm-dialog
+  [state]="anfordernOffen() ? 'open' : 'closed'"
+  (stateChanged)="anfordernOffen.set($event === 'open')"
+>
+  <hlm-dialog-content *hlmDialogPortal>
+    <hlm-dialog-header>
+      <h3 hlmDialogTitle>Begehung anfordern</h3>
+      <p hlmDialogDescription>
+        Für ein Objekt (auch eine ganze Strecke) oder einen frei gewählten Kartenpunkt — die
+        Fachliche Administration plant die Begehung anschliessend fix ein.
+      </p>
+    </hlm-dialog-header>
+    <div class="grid gap-3 py-2">
+      <div class="grid gap-1.5">
+        <label hlmLabel for="ba-objekt">Objekt</label>
+        <hlm-native-select
+          id="ba-objekt"
+          [ngModel]="anfordernSignatur()"
+          (ngModelChange)="anfordernSignatur.set($event)"
+        >
+          <option hlmNativeSelectOption value="">— kein Objekt (Kartenpunkt)</option>
+          @for (eintrag of alleObjekte(); track eintrag.id) {
+            <option hlmNativeSelectOption [value]="eintrag.signatur">
+              {{ eintrag.signatur }} – {{ eintrag.name }}
+            </option>
+          }
+        </hlm-native-select>
+      </div>
+      @if (!anfordernSignatur()) {
+        <div class="grid gap-1.5">
+          <span hlmLabel>Kartenpunkt <span class="text-destructive">*</span></span>
+          <div class="flex items-center gap-2">
+            @if (anfordernPosition(); as position) {
+              <span hlmBadge variant="secondary">
+                {{ position.lat.toFixed(4) }} / {{ position.lon.toFixed(4) }}
+              </span>
+            } @else {
+              <span class="text-sm text-muted-foreground">Noch kein Punkt gewählt.</span>
+            }
+            <button hlmBtn variant="outline" size="sm" type="button" (click)="punktWaehlen()">
+              <ng-icon name="lucideMapPin" />
+              Punkt auf der Karte wählen
+            </button>
+          </div>
+        </div>
+        <div class="grid gap-1.5">
+          <label hlmLabel for="ba-bezeichnung">Bezeichnung des Punkts</label>
+          <input
+            hlmInput
+            id="ba-bezeichnung"
+            placeholder="z. B. Mögliche Wegfortsetzung"
+            [ngModel]="anfordernBezeichnung()"
+            (ngModelChange)="anfordernBezeichnung.set($event)"
+          />
+        </div>
+      }
+      <div class="grid gap-1.5">
+        <label hlmLabel for="ba-begruendung">
+          Begründung <span class="text-destructive">*</span>
+        </label>
+        <textarea
+          hlmTextarea
+          id="ba-begruendung"
+          class="min-h-20 w-full"
+          [ngModel]="anfordernBegruendung()"
+          (ngModelChange)="anfordernBegruendung.set($event)"
+        ></textarea>
+      </div>
+    </div>
+    <hlm-dialog-footer>
+      <button hlmBtn variant="outline" type="button" (click)="anfordernOffen.set(false)">
+        Abbrechen
+      </button>
+      <button
+        hlmBtn
+        type="button"
+        [disabled]="
+          !anfordernBegruendung().trim() || (!anfordernSignatur() && !anfordernPosition())
+        "
+        (click)="anforderungSpeichern()"
+      >
+        Anfordern
+      </button>
+    </hlm-dialog-footer>
+  </hlm-dialog-content>
+</hlm-dialog>
