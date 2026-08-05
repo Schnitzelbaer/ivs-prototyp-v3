@@ -16,8 +16,13 @@ export const EBENE_LABEL: Record<Ebene, string> = {
   wegbegleiter: 'Wegbegleiter',
 };
 
-/** Die acht verbindlichen Workflow-Stati (Fachkontext Abschnitt 7). */
+/**
+ * Die verbindlichen Workflow-Stati (Fachkontext Abschnitt 7). «Offen» steht
+ * vor der Kette: Objekte, die noch niemandem zugewiesen sind (Entscheid 79) —
+ * sie tragen keine zuständige Person (zustaendigName leer).
+ */
 export type WorkflowStatus =
+  | 'offen'
   | 'zugewiesen'
   | 'in_bearbeitung'
   | 'bereit_zur_pruefung'

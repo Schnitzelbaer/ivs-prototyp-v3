@@ -71,7 +71,7 @@ interface StatusOption {
 }
 
 /**
- * Dashboard (04): persönliche Aufgabenliste, gruppiert nach allen acht
+ * Dashboard (04): persönliche Aufgabenliste, gruppiert nach allen
  * Workflow-Stati — je Status erscheinen nur Objekte, die der aktiven
  * Person zugewiesen sind oder laut Lognotizen einmal zugewiesen waren.
  * Die vollständige Übersicht liegt unter «Objekte».
@@ -237,7 +237,7 @@ export class Dashboard {
       .sort((a, b) => richtung * a.signatur.localeCompare(b.signatur, 'de-CH', { numeric: true }));
   });
 
-  /** Alle acht Stati in Workflow-Reihenfolge (Gruppen und Filter). */
+  /** Alle Stati in Workflow-Reihenfolge (Gruppen und Filter). */
   protected readonly alleStati = ALLE_STATI;
 
   protected readonly bloecke = computed<StatusBlock[]>(() => {

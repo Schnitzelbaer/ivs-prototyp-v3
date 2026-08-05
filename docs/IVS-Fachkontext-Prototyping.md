@@ -588,18 +588,24 @@ Spezifikation und User Story Map nennen Stati nur beispielhaft. Für das
 Prototyping gilt diese konsolidierte Liste als verbindlich:
 
 ```
-zugewiesen
-  → in_bearbeitung
-      → bereit_zur_pruefung
-          → in_pruefung
-              → korrektur ──┐ (zurück zu in_bearbeitung)
-              → geprueft    │
-                  → freigegeben
-                      → publiziert
+offen
+  → zugewiesen
+      → in_bearbeitung
+          → bereit_zur_pruefung
+              → in_pruefung
+                  → korrektur ──┐ (zurück zu in_bearbeitung)
+                  → geprueft    │
+                      → freigegeben
+                          → publiziert
 ```
 
-Deutsche Bezeichnungen: Zugewiesen · In Bearbeitung · Bereit zur Prüfung ·
-In Prüfung · Korrektur · Geprüft · Freigegeben · Publiziert
+Deutsche Bezeichnungen: Offen · Zugewiesen · In Bearbeitung · Bereit zur
+Prüfung · In Prüfung · Korrektur · Geprüft · Freigegeben · Publiziert
+
+**«Offen»** steht seit Entscheid 79 vor der Kette: Objekte, die noch
+niemandem zugewiesen sind — sie tragen keine zuständige Person (Anzeige
+«—»). Setzen dürfen ihn R-03 und R-04 (entzieht die Zuweisung); die
+Zuweisung einer Person führt automatisch zu «Zugewiesen».
 
 **Der Status wird auf Strecken-Ebene geführt** — alle untergeordneten
 Objekte (Linienführungen, Abschnitte, Wegbegleiter) richten sich nach dem
@@ -610,6 +616,8 @@ siehe 07.16).
 
 Zuständigkeiten pro Übergang (aus den Rollen abgeleitet):
 
+- **R-03 Fachliche Administration und R-04 Regionale Koordination** stellen
+  Objekte mit `offen` in den unzugewiesenen Pool zurück (Entscheid 79)
 - **R-05 Inventarisierende** bearbeiten in `zugewiesen`, `in_bearbeitung`,
   `korrektur` und übergeben an die Prüfung
 - **R-06 Fachlektorat** bearbeitet in `bereit_zur_pruefung`, `in_pruefung`,
@@ -1151,6 +1159,21 @@ _Prüfprotokoll, Arbeitspakete und Status-Vererbung_
     Strecken-Ebene** (der Knopf «Prüfung» erscheint nur auf Strecken —
     der Abschluss wechselt den Streckenstatus samt Nachkommen).
 
+**Siebte Ausbaustufe — Review-Paket «Verbesserungen» (PDF vom 05.08.2026,
+16 Rückfragen in derselben Session geklärt).** Status «Offen»,
+Zuständigkeit über das Dashboard, echte Kantonspakete, persistente
+Arbeitspakete und echte Filter.
+
+79. **Status «Offen»:** Neuer erster Status vor «Zugewiesen» — Objekte,
+    die noch niemandem zugewiesen sind. Sie tragen **keine zuständige
+    Person** (`zustaendigName` leer, Anzeige «—»); das Setzen auf «Offen»
+    entzieht die Zuweisung, die Zuweisung einer Person führt automatisch
+    zu «Zugewiesen». Setzbar für **R-03 und R-04**. Im Seed stehen **3/4
+    der publizierten Strecken auf «Offen»** (deterministisch: jede vierte
+    generierte Strecken-Nummer bleibt publiziert); **BE 7 bleibt als
+    Demo-Beispiel bewusst publiziert**. Statusfarbe: neutrales Grau
+    (`--status-offen`). SEED_VERSION 11.
+
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
 
@@ -1459,7 +1482,7 @@ die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
 - **Dashboard (04)**: **nur Strecken** (ToDos auf Strecken-Ebene,
   Entscheid 60), **persönlich** — je Status nur Objekte, die der aktiven
   Person zugewiesen sind oder einmal zugewiesen waren (Entscheid 70) —,
-  gruppiert **nach allen acht Workflow-Stati** in Workflow-Reihenfolge
+  gruppiert **nach allen Workflow-Stati** (inkl. «Offen», Entscheid 79) in Workflow-Reihenfolge
   (Entscheide 68/70, mit Status-Farbpunkt; leere Gruppen starten
   zugeklappt, Entscheid 71), Suche, Schnellfilter inkl. Status-Filter,
   Zeilen-Dropdown mit direktem Wechsel unter den **setzbaren Stati**
@@ -1509,8 +1532,9 @@ die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
   (Freiburgstrasse, geprüft), inkl. zwei kuratierter Kunstbauten — plus
   generierte **Vollabdeckung** aller Testgeometrien (Entscheide 44/48):
   insgesamt ~3742 Objekte (403 Strecken, 862 Linienführungen, 2301
-  Abschnitte inkl. 148 Kunstbauten, 176 Wegbegleiter), generierte im
-  Status «publiziert» und neutral «System» zugewiesen (Entscheid 70), mit
+  Abschnitte inkl. 148 Kunstbauten, 176 Wegbegleiter), generierte zu 3/4
+  im Status «Offen» ohne zuständige Person, der Rest «publiziert» und
+  neutral «System» zugewiesen (Entscheide 70/79), mit
   aus `ivs_signatur` abgeleiteter Bedeutung/Substanz und
   Wegbegleiter-Namen aus dem `easyocr`-Feld. **Der Status gilt je
   Strecke** — alle Nachkommen tragen den Status ihrer Strecke

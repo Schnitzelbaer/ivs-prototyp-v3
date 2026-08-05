@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 10;
+export const SEED_VERSION = 11;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -68,6 +68,9 @@ export interface Vorlage {
 /** Zuständige Rolle aus dem Status ableiten (wer ist am Zug). */
 export function rolleFuerStatus(status: WorkflowStatus): RolleId {
   switch (status) {
+    case 'offen':
+      // niemand ist am Zug — das Objekt liegt im unzugewiesenen Pool
+      return 'R-08';
     case 'zugewiesen':
     case 'in_bearbeitung':
     case 'korrektur':
@@ -78,6 +81,19 @@ export function rolleFuerStatus(status: WorkflowStatus): RolleId {
     default:
       return 'R-03';
   }
+}
+
+/**
+ * Zuständigkeit aus dem Status ableiten. «Offen» heisst: noch niemandem
+ * zugewiesen (Entscheid 79) — der Name bleibt leer, angezeigt wird «—».
+ */
+export function zustaendigkeitFuerStatus(status: WorkflowStatus): {
+  rolle: RolleId;
+  name: string;
+} {
+  if (status === 'offen') return { rolle: 'R-08', name: '' };
+  const rolle = rolleFuerStatus(status);
+  return { rolle, name: NAME_FUER_ROLLE[rolle] };
 }
 
 export const NAME_FUER_ROLLE: Record<RolleId, string> = {
@@ -114,7 +130,9 @@ function leereBewertung(): Bewertung {
 }
 
 export function objektAusVorlage(v: Vorlage): IvsObjekt {
-  const rolle = v.zustaendigRolle ?? rolleFuerStatus(v.status);
+  const rolle = v.zustaendigRolle ?? zustaendigkeitFuerStatus(v.status).rolle;
+  const zustaendig =
+    v.zustaendigName ?? (v.status === 'offen' ? '' : NAME_FUER_ROLLE[rolle]);
   return {
     id: idAusSignatur(v.signatur),
     signatur: v.signatur,
@@ -123,7 +141,7 @@ export function objektAusVorlage(v: Vorlage): IvsObjekt {
     parent: v.parent,
     status: v.status,
     zustaendigRolle: rolle,
-    zustaendigName: v.zustaendigName ?? NAME_FUER_ROLLE[rolle],
+    zustaendigName: zustaendig,
     inexistent: v.inexistent ?? null,
     nhgWert: v.nhgWert ?? 'national',
     substanzgrad: v.substanzgrad === undefined ? 'mit_substanz' : v.substanzgrad,

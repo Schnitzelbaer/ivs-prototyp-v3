@@ -274,6 +274,11 @@ async function erzeugeModell(): Promise<ObjektModell> {
     while (KURATIERTE_NUMMERN.has(nummer));
     const streckeSignatur = `BE ${nummer}`;
     const codes = [...new Set(kandidat.routen.map((r) => r.code))].sort((a, b) => a - b);
+    // 3/4 der publizierten Strecken starten «Offen» — noch niemandem
+    // zugewiesen (Entscheid 79). Deterministisch über die Strecken-Nummer:
+    // jede vierte bleibt publiziert. Die Nachkommen erben den Status über
+    // statusVonStreckeErben; BE 7 (kuratiert) bleibt bewusst publiziert.
+    const offen = nummer % 4 !== 0;
     generierte.push(
       objektAusVorlage({
         signatur: streckeSignatur,
@@ -281,6 +286,7 @@ async function erzeugeModell(): Promise<ObjektModell> {
         name: `Verkehrsweg ${kandidat.fk}${kandidat.teil ? ` (Teil ${kandidat.teil})` : ''}`,
         parent: null,
         ...generierteFelder(Math.min(...codes)),
+        ...(offen ? { status: 'offen' as const, zustaendigName: '' } : {}),
       }),
     );
     // Linienführungen: je ivs_signatur-Code, bei räumlicher Trennung weiter

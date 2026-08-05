@@ -35,8 +35,9 @@ export const ROLLEN: readonly Rolle[] = [
     id: 'R-03',
     name: 'Fachliche Administration',
     waehlbar: true,
-    // Freigabeprozess plus die Zuweisung neuer Arbeit
-    setzbareStati: ['zugewiesen', 'in_bearbeitung', 'geprueft', 'freigegeben', 'publiziert'],
+    // Freigabeprozess plus die Zuweisung neuer Arbeit; «Offen» stellt ein
+    // Objekt in den unzugewiesenen Pool zurück (Entscheid 79)
+    setzbareStati: ['offen', 'zugewiesen', 'in_bearbeitung', 'geprueft', 'freigegeben', 'publiziert'],
     editStati: [],
   },
   {
@@ -44,9 +45,10 @@ export const ROLLEN: readonly Rolle[] = [
     name: 'Regionale Koordination',
     waehlbar: true,
     // koordiniert die Erfassung: alles, was bei den Inventarisierenden liegt,
-    // plus deren Abgaben an die Prüfung
+    // plus deren Abgaben an die Prüfung; «Offen» stellt ein Objekt in den
+    // unzugewiesenen Pool zurück (Entscheid 79)
     // «Korrektur» leitet das Fachlektorat ein
-    setzbareStati: ['zugewiesen', 'in_bearbeitung', 'bereit_zur_pruefung'],
+    setzbareStati: ['offen', 'zugewiesen', 'in_bearbeitung', 'bereit_zur_pruefung'],
     editStati: [],
   },
   {

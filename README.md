@@ -139,8 +139,9 @@ neuen Session weiterzuarbeiten.
 - **Dashboard** (`/dashboard`): **persönliche** Aufgabenliste, nur mit
   Strecken (ToDos werden auf Strecken-Ebene zugewiesen) — je Status
   erscheinen nur Objekte, die der aktiven Person zugewiesen sind oder
-  laut Lognotizen einmal zugewiesen waren; gruppiert **nach allen acht
-  Workflow-Stati** (leere Gruppen zugeklappt), Volltextsuche,
+  laut Lognotizen einmal zugewiesen waren; gruppiert **nach allen neun
+  Workflow-Stati** — zuvorderst «Offen» für noch niemandem zugewiesene
+  Objekte — (leere Gruppen zugeklappt), Volltextsuche,
   Schnellfilter inkl. Status-Filter, Zeilen-Dropdown mit direktem
   Statuswechsel unter den von der Rolle setzbaren Stati,
   Polygon-Selektion auf der Karte als geographischer Filter. Die
@@ -215,7 +216,7 @@ neuen Session weiterzuarbeiten.
   eine generierte **Vollabdeckung** aller Testgeometrien
   (`src/app/core/objekt-generierung.ts`): Jede Route, jedes Teilsegment und
   jedes Punktobjekt gehört zu einem Mock-Objekt (insgesamt ~3742 inkl. 148
-  Kunstbauten, generierte im Status «publiziert») und reagiert auf der
+  Kunstbauten, generierte zu 3/4 im Status «Offen», der Rest «publiziert») und reagiert auf der
   Karte auf Hover und Klick. Die Ableitung folgt den echten Gruppierungen
   (`ivs_ivsfk` → Strecke, `ivs_signatur` → Linienführung, Route →
   Abschnitt; Ein-Routen-Linienführungen werden über die Teilsegmente in

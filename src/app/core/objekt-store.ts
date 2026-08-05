@@ -2,11 +2,10 @@ import { Injectable, computed, effect, signal } from '@angular/core';
 import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus } from './model';
 import { ladeObjektModell } from './objekt-generierung';
 import {
-  NAME_FUER_ROLLE,
   SEED_OBJEKTE,
   SEED_VERSION,
-  rolleFuerStatus,
   statusVonStreckeErben,
+  zustaendigkeitFuerStatus,
 } from './seed-data';
 import { STATUS_LABEL } from './status';
 
@@ -116,8 +115,8 @@ export class ObjektStore {
   statusWechseln(id: string, status: WorkflowStatus, autor: string, autorRolle: RolleId): void {
     const objekt = this.byId(id);
     if (!objekt || objekt.status === status) return;
-    const zustaendigRolle = rolleFuerStatus(status);
-    const zustaendigName = NAME_FUER_ROLLE[zustaendigRolle];
+    // «Offen» entzieht die Zuweisung — das Objekt gehört wieder niemandem
+    const { rolle: zustaendigRolle, name: zustaendigName } = zustaendigkeitFuerStatus(status);
     const betroffene =
       objekt.ebene === 'strecke'
         ? this.mitNachkommen([objekt.signatur])

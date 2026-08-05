@@ -163,7 +163,7 @@
           aria-label="Zugewiesene Person wechseln"
         >
           <ng-icon name="lucideUserRound" />
-          {{ o.zustaendigName }}
+          {{ o.zustaendigName || '—' }}
           <ng-icon name="lucideChevronDown" />
         </button>
         <ng-template #personMenu>
@@ -389,7 +389,7 @@
                   </div>
                   <div>
                     <dt class="text-xs text-muted-foreground">Zuständig</dt>
-                    <dd>{{ o.zustaendigName }} ({{ o.zustaendigRolle }})</dd>
+                    <dd>{{ o.zustaendigName ? o.zustaendigName + ' (' + o.zustaendigRolle + ')' : '—' }}</dd>
                   </div>
                   <div id="attr-name">
                     <dt class="text-xs text-muted-foreground">Objektname</dt>
