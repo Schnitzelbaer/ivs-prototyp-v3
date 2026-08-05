@@ -63,6 +63,7 @@ import {
 } from '../core/objekt-filter';
 import { ObjektStore } from '../core/objekt-store';
 import { KANTONE, PaketStore } from '../core/paket-store';
+import { darfEditieren } from '../core/rollen';
 import { NAME_FUER_ROLLE, PERSONEN } from '../core/seed-data';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { Karte } from '../karte/karte';
@@ -73,6 +74,147 @@ interface StatusBlock {
   label: string;
   objekte: IvsObjekt[];
 }
+
+/** Ein per Multi-Edit befüllbares Attribut (04.04, Entscheid 87). */
+interface MultiEditAttribut {
+  key: string;
+  label: string;
+  eingabe: 'text' | 'zahl' | 'textarea' | 'select';
+  optionen?: { wert: string; label: string }[];
+  anwenden: (o: IvsObjekt, wert: string) => Partial<IvsObjekt>;
+}
+
+/** Punkte-Optionen der NHG-Bewertung (leer = nicht bewertet). */
+const PUNKTE_OPTIONEN = [
+  { wert: '', label: '— nicht bewertet' },
+  ...[0, 1, 2, 3, 4].map((p) => ({ wert: String(p), label: `${p} Punkte` })),
+];
+
+/** Eine Bewertungs-Dimension als zwei Multi-Edit-Attribute (Punkte, Text). */
+function bewertungsAttribute(
+  schluessel: 'geschichte' | 'morphologie' | 'substanzwert',
+  titel: string,
+): MultiEditAttribut[] {
+  return [
+    {
+      key: `bewertung-${schluessel}-punkte`,
+      label: `Bewertung ${titel} — Punkte`,
+      eingabe: 'select',
+      optionen: PUNKTE_OPTIONEN,
+      anwenden: (o, w) => ({
+        bewertung: {
+          ...o.bewertung,
+          [schluessel]: { ...o.bewertung[schluessel], punkte: w === '' ? null : Number(w) },
+        },
+      }),
+    },
+    {
+      key: `bewertung-${schluessel}-text`,
+      label: `Bewertung ${titel} — Begründung`,
+      eingabe: 'textarea',
+      anwenden: (o, w) => ({
+        bewertung: {
+          ...o.bewertung,
+          [schluessel]: { ...o.bewertung[schluessel], text: w },
+        },
+      }),
+    },
+  ];
+}
+
+/**
+ * Alle Formularfelder des Objekts sind per Multi-Edit befüllbar
+ * (Entscheid 87 — «wirklich jedes Attribut»). Nicht dabei: Status,
+ * Zuständigkeit, Kanton und Inexistenz — dafür gibt es die dedizierten
+ * Mechanismen (Status-Dropdown, Zuständig-Aktion, Kanton-Umteilung,
+ * Inexistent-Dialog mit Pflichtbegründung).
+ */
+const MULTI_EDIT_ATTRIBUTE: MultiEditAttribut[] = [
+  { key: 'name', label: 'Objektname', eingabe: 'text', anwenden: (_o, w) => ({ name: w }) },
+  {
+    key: 'nhgWert',
+    label: 'NHG-Wert',
+    eingabe: 'select',
+    optionen: [
+      { wert: 'national', label: 'national' },
+      { wert: 'regional', label: 'regional' },
+      { wert: 'lokal', label: 'lokal' },
+    ],
+    anwenden: (_o, w) => ({ nhgWert: w as NhgWert }),
+  },
+  {
+    key: 'substanzgrad',
+    label: 'Substanzgrad',
+    eingabe: 'select',
+    optionen: [
+      { wert: '', label: '—' },
+      { wert: 'viel_substanz', label: 'Viel Substanz' },
+      { wert: 'mit_substanz', label: 'Mit Substanz' },
+      { wert: 'wenig_substanz', label: 'Wenig Substanz' },
+      { wert: 'ohne_substanz', label: 'Ohne Substanz' },
+    ],
+    anwenden: (_o, w) => ({ substanzgrad: (w || null) as Substanzgrad | null }),
+  },
+  { key: 'bauzeit', label: 'Bauzeit', eingabe: 'text', anwenden: (_o, w) => ({ bauzeit: w }) },
+  {
+    key: 'bauherrschaft',
+    label: 'Bauherrschaft',
+    eingabe: 'text',
+    anwenden: (_o, w) => ({ bauherrschaft: w }),
+  },
+  { key: 'planer', label: 'Planer', eingabe: 'text', anwenden: (_o, w) => ({ planer: w }) },
+  {
+    key: 'gemeinden',
+    label: 'Gemeinden',
+    eingabe: 'text',
+    anwenden: (_o, w) => ({ gemeinden: w }),
+  },
+  {
+    key: 'aufnahmejahr',
+    label: 'Aufnahmejahr',
+    eingabe: 'zahl',
+    anwenden: (_o, w) => ({ aufnahmejahr: w ? Number(w) : null }),
+  },
+  ...bewertungsAttribute('geschichte', 'Geschichte'),
+  ...bewertungsAttribute('morphologie', 'Morphologie'),
+  ...bewertungsAttribute('substanzwert', 'Substanzwert'),
+  {
+    key: 'erhaltungsziel',
+    label: 'Erhaltungsziel',
+    eingabe: 'textarea',
+    anwenden: (_o, w) => ({ erhaltungsziel: w }),
+  },
+  {
+    key: 'gefahrenMassnahmen',
+    label: 'Gefahren und Massnahmen',
+    eingabe: 'textarea',
+    anwenden: (_o, w) => ({ gefahrenMassnahmen: w }),
+  },
+  {
+    key: 'geschichteText',
+    label: 'Geschichtsbeschrieb',
+    eingabe: 'textarea',
+    anwenden: (_o, w) => ({ geschichteText: w }),
+  },
+  {
+    key: 'gelaendeText',
+    label: 'Geländebeschrieb',
+    eingabe: 'textarea',
+    anwenden: (_o, w) => ({ gelaendeText: w }),
+  },
+  {
+    key: 'bibliografie',
+    label: 'Bibliografie',
+    eingabe: 'textarea',
+    anwenden: (_o, w) => ({ bibliografie: w }),
+  },
+  {
+    key: 'pruefkommentar',
+    label: 'Prüfkommentar',
+    eingabe: 'textarea',
+    anwenden: (_o, w) => ({ pruefkommentar: w }),
+  },
+];
 
 interface StatusOption {
   wert: WorkflowStatus;
@@ -391,6 +533,112 @@ export class Dashboard {
   protected readonly zuweisenDialogOffen = signal(false);
   protected readonly zuweisenObjekt = signal<IvsObjekt | null>(null);
   protected readonly zuweisenPerson = signal('B. Anderegg');
+
+  // ------------------------------------------- Multi-Edit (04.04, E87)
+
+  /** Attribut befüllen dürfen R-03, R-05 und R-06 (Anforderung 04.04). */
+  protected readonly darfMultiAttribut = computed(() => {
+    const rolle = this.einstellungen.aktiveRolleId();
+    return rolle === 'R-03' || rolle === 'R-05' || rolle === 'R-06';
+  });
+
+  protected readonly multiEditAttribute = MULTI_EDIT_ATTRIBUTE;
+
+  // Dialog «Zuständige Person definieren» (alle gewählten Strecken)
+  protected readonly mehrfachZuweisenOffen = signal(false);
+  protected readonly mehrfachZuweisenPerson = signal('B. Anderegg');
+
+  // Dialog «Attribut befüllen»
+  protected readonly attributDialogOffen = signal(false);
+  protected readonly attributKey = signal(MULTI_EDIT_ATTRIBUTE[0].key);
+  protected readonly attributWert = signal('');
+
+  protected readonly aktivesAttribut = computed(
+    () => MULTI_EDIT_ATTRIBUTE.find((a) => a.key === this.attributKey()) ?? MULTI_EDIT_ATTRIBUTE[0],
+  );
+
+  protected attributWaehlen(key: string): void {
+    this.attributKey.set(key);
+    this.attributWert.set('');
+  }
+
+  /** Gruppen-Checkbox: alle Strecken einer Status-Gruppe (de)selektieren. */
+  protected gruppeGanzGewaehlt(block: StatusBlock): boolean {
+    return block.objekte.length > 0 && block.objekte.every((o) => this.ausgewaehlt().has(o.id));
+  }
+
+  protected gruppeAuswaehlen(block: StatusBlock, gewaehlt: boolean): void {
+    this.ausgewaehlt.update((menge) => {
+      const neu = new Set(menge);
+      for (const o of block.objekte) {
+        if (gewaehlt) neu.add(o.id);
+        else neu.delete(o.id);
+      }
+      return neu;
+    });
+  }
+
+  protected auswahlAufheben(): void {
+    this.ausgewaehlt.set(new Set());
+  }
+
+  /** Multi-Edit: allen gewählten Strecken eine zuständige Person geben. */
+  protected mehrfachZuweisenBestaetigen(): void {
+    const person = PERSONEN.find((p) => p.name === this.mehrfachZuweisenPerson());
+    const ids = [...this.ausgewaehlt()];
+    if (!person || !ids.length) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const anzahl = this.store.personZuweisenMehrere(ids, person, NAME_FUER_ROLLE[rolle], rolle);
+    this.mehrfachZuweisenOffen.set(false);
+    this.auswahlAufheben();
+    toast.success(`Zugewiesen an ${person.name}`, {
+      description: `${anzahl} Strecke${anzahl === 1 ? '' : 'n'} — offene wechseln auf «Zugewiesen», Zuweisungen protokolliert.`,
+    });
+  }
+
+  /**
+   * Multi-Edit: das gewählte Attribut auf allen gewählten Strecken mit
+   * demselben Wert befüllen. Die Rechteprüfung folgt dem Formular
+   * (Rolle × Status); R-03 darf statusunabhängig (04.04). Nicht
+   * bearbeitbare Strecken werden übersprungen und ausgewiesen.
+   */
+  protected attributAnwenden(): void {
+    const attribut = this.aktivesAttribut();
+    const rolle = this.einstellungen.aktiveRolleId();
+    const erlaubt: string[] = [];
+    let uebersprungen = 0;
+    for (const id of this.ausgewaehlt()) {
+      const o = this.store.byId(id);
+      if (!o) continue;
+      if (rolle === 'R-03' || darfEditieren(rolle, o.status)) erlaubt.push(id);
+      else uebersprungen++;
+    }
+    if (!erlaubt.length) {
+      this.attributDialogOffen.set(false);
+      this.hinweis.zeige(
+        'Keine bearbeitbare Strecke in der Auswahl',
+        `Die Rolle «${this.einstellungen.aktiveRolle().name}» kann keine der gewählten ` +
+          'Strecken in deren aktuellem Status bearbeiten.',
+      );
+      return;
+    }
+    const wert = this.attributWert();
+    const wertKurz = wert.length > 60 ? `${wert.slice(0, 60)}…` : wert || '—';
+    const anzahl = this.store.attributSetzenMehrere(
+      erlaubt,
+      (o) => attribut.anwenden(o, wert),
+      `Multi-Edit: «${attribut.label}» → «${wertKurz}».`,
+      NAME_FUER_ROLLE[rolle],
+      rolle,
+    );
+    this.attributDialogOffen.set(false);
+    this.auswahlAufheben();
+    toast.success(`«${attribut.label}» auf ${anzahl} Strecke${anzahl === 1 ? '' : 'n'} gesetzt`, {
+      description: uebersprungen
+        ? `${uebersprungen} übersprungen — in deren Status für die Rolle nicht bearbeitbar.`
+        : 'Änderung je Objekt als Lognotiz protokolliert.',
+    });
+  }
 
   protected zuweisenBestaetigen(): void {
     const objekt = this.zuweisenObjekt();

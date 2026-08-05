@@ -305,6 +305,44 @@
           </div>
         }
 
+        <!-- Multi-Edit (04.04, Entscheid 87): Aktionen auf der Auswahl -->
+        @if (ausgewaehlt().size) {
+          <div
+            class="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2"
+          >
+            <p class="text-sm font-medium">
+              {{ ausgewaehlt().size }} Strecke{{ ausgewaehlt().size === 1 ? '' : 'n' }} ausgewählt
+            </p>
+            <div class="ml-auto flex flex-wrap items-center gap-2">
+              @if (istPaketRolle()) {
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="mehrfachZuweisenOffen.set(true)"
+                >
+                  Zuständige Person …
+                </button>
+              }
+              @if (darfMultiAttribut()) {
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="attributDialogOffen.set(true)"
+                >
+                  Attribut befüllen …
+                </button>
+              }
+              <button hlmBtn variant="ghost" size="sm" type="button" (click)="auswahlAufheben()">
+                Auswahl aufheben
+              </button>
+            </div>
+          </div>
+        }
+
         @for (block of bloecke(); track block.status) {
           <!-- Leere Status-Gruppen starten zugeklappt -->
           <div
@@ -313,19 +351,27 @@
             #gruppeAuf="brnCollapsible"
             class="rounded-md border border-border"
           >
-            <button
-              hlmCollapsibleTrigger
-              class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold"
-            >
-              <ng-icon
-                name="lucideChevronDown"
-                class="text-muted-foreground transition-transform"
-                [class.-rotate-90]="!gruppeAuf.expanded()"
+            <div class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3">
+              <!-- Übergreifende Checkbox: alle Objekte der Gruppe (Entscheid 87) -->
+              <hlm-checkbox
+                [ngModel]="gruppeGanzGewaehlt(block)"
+                (ngModelChange)="gruppeAuswaehlen(block, $event)"
+                [attr.aria-label]="'Alle Objekte in ' + block.label + ' auswählen'"
               />
-              <span class="inline-block size-2 rounded-full {{ statusFarbe[block.status] }}"></span>
-              {{ block.label }}
-              <span hlmBadge class="ml-auto">{{ block.objekte.length }}</span>
-            </button>
+              <button
+                hlmCollapsibleTrigger
+                class="flex min-w-0 flex-1 items-center gap-2 py-2 text-sm font-semibold"
+              >
+                <ng-icon
+                  name="lucideChevronDown"
+                  class="text-muted-foreground transition-transform"
+                  [class.-rotate-90]="!gruppeAuf.expanded()"
+                />
+                <span class="inline-block size-2 rounded-full {{ statusFarbe[block.status] }}"></span>
+                {{ block.label }}
+                <span hlmBadge class="ml-auto">{{ block.objekte.length }}</span>
+              </button>
+            </div>
 
             <div hlmCollapsibleContent>
               @if (block.objekte.length === 0) {
@@ -549,6 +595,120 @@
     }
   </div>
 </div>
+
+<!-- Multi-Edit: allen gewählten Strecken eine zuständige Person geben (E87) -->
+<hlm-dialog
+  [state]="mehrfachZuweisenOffen() ? 'open' : 'closed'"
+  (stateChanged)="mehrfachZuweisenOffen.set($event === 'open')"
+>
+  <hlm-dialog-content *hlmDialogPortal>
+    <hlm-dialog-header>
+      <h3 hlmDialogTitle>Zuständige Person definieren</h3>
+      <p hlmDialogDescription>
+        Für alle {{ ausgewaehlt().size }} gewählten Strecken — offene Objekte wechseln damit
+        auf «Zugewiesen», die Zuständigkeit vererbt sich auf die Nachkommen.
+      </p>
+    </hlm-dialog-header>
+    <div class="grid gap-1.5 py-2">
+      <label hlmLabel for="me-person">Zuständige Person <span class="text-destructive">*</span></label>
+      <hlm-native-select
+        id="me-person"
+        [ngModel]="mehrfachZuweisenPerson()"
+        (ngModelChange)="mehrfachZuweisenPerson.set($event)"
+      >
+        @for (person of allePersonen; track person.name) {
+          <option hlmNativeSelectOption [value]="person.name">
+            {{ person.name }} ({{ person.rolle }})
+          </option>
+        }
+      </hlm-native-select>
+    </div>
+    <hlm-dialog-footer>
+      <button hlmBtn variant="outline" type="button" (click)="mehrfachZuweisenOffen.set(false)">
+        Abbrechen
+      </button>
+      <button hlmBtn type="button" (click)="mehrfachZuweisenBestaetigen()">Zuweisen</button>
+    </hlm-dialog-footer>
+  </hlm-dialog-content>
+</hlm-dialog>
+
+<!-- Multi-Edit: ein Attribut über alle gewählten Strecken befüllen (04.04, E87) -->
+<hlm-dialog
+  [state]="attributDialogOffen() ? 'open' : 'closed'"
+  (stateChanged)="attributDialogOffen.set($event === 'open')"
+>
+  <hlm-dialog-content *hlmDialogPortal>
+    <hlm-dialog-header>
+      <h3 hlmDialogTitle>Attribut befüllen</h3>
+      <p hlmDialogDescription>
+        Setzt das gewählte Attribut auf allen {{ ausgewaehlt().size }} gewählten Strecken auf
+        denselben Wert. Nicht bearbeitbare Strecken (Rolle × Status) werden übersprungen.
+      </p>
+    </hlm-dialog-header>
+    <div class="grid gap-3 py-2">
+      <div class="grid gap-1.5">
+        <label hlmLabel for="me-attribut">Attribut</label>
+        <hlm-native-select
+          id="me-attribut"
+          [ngModel]="attributKey()"
+          (ngModelChange)="attributWaehlen($event)"
+        >
+          @for (attribut of multiEditAttribute; track attribut.key) {
+            <option hlmNativeSelectOption [value]="attribut.key">{{ attribut.label }}</option>
+          }
+        </hlm-native-select>
+      </div>
+      <div class="grid gap-1.5">
+        <label hlmLabel for="me-wert">Wert</label>
+        @switch (aktivesAttribut().eingabe) {
+          @case ('select') {
+            <hlm-native-select
+              id="me-wert"
+              [ngModel]="attributWert()"
+              (ngModelChange)="attributWert.set($event)"
+            >
+              @for (option of aktivesAttribut().optionen ?? []; track option.wert) {
+                <option hlmNativeSelectOption [value]="option.wert">{{ option.label }}</option>
+              }
+            </hlm-native-select>
+          }
+          @case ('zahl') {
+            <input
+              hlmInput
+              id="me-wert"
+              type="number"
+              [ngModel]="attributWert()"
+              (ngModelChange)="attributWert.set($event)"
+            />
+          }
+          @case ('textarea') {
+            <textarea
+              hlmTextarea
+              id="me-wert"
+              class="min-h-24 w-full"
+              [ngModel]="attributWert()"
+              (ngModelChange)="attributWert.set($event)"
+            ></textarea>
+          }
+          @default {
+            <input
+              hlmInput
+              id="me-wert"
+              [ngModel]="attributWert()"
+              (ngModelChange)="attributWert.set($event)"
+            />
+          }
+        }
+      </div>
+    </div>
+    <hlm-dialog-footer>
+      <button hlmBtn variant="outline" type="button" (click)="attributDialogOffen.set(false)">
+        Abbrechen
+      </button>
+      <button hlmBtn type="button" (click)="attributAnwenden()">Auf Auswahl anwenden</button>
+    </hlm-dialog-footer>
+  </hlm-dialog-content>
+</hlm-dialog>
 
 <!-- Person zuweisen: Offen → Zugewiesen verlangt eine Person (Entscheid 86) -->
 <hlm-dialog

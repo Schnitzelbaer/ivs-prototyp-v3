@@ -195,6 +195,39 @@ export class ObjektStore {
     );
   }
 
+  /**
+   * Multi-Edit (04.04): dasselbe Attribut auf mehreren Objekten in einem
+   * Zug setzen. Keine Vererbung — die Attribute gehören dem Objekt
+   * selbst; Lognotiz je Objekt. Die Rechteprüfung (Rolle × Status)
+   * geschieht beim Aufrufer. Gibt die Zahl der geänderten Objekte zurück.
+   */
+  attributSetzenMehrere(
+    ids: readonly string[],
+    patchFuer: (o: IvsObjekt) => Partial<IvsObjekt>,
+    notizText: string,
+    autor: string,
+    autorRolle: RolleId,
+  ): number {
+    const menge = new Set(ids);
+    const datum = jetztLokal().slice(0, 10);
+    let anzahl = 0;
+    this.objekte.update((liste) =>
+      liste.map((o) => {
+        if (!menge.has(o.id)) return o;
+        anzahl++;
+        return {
+          ...o,
+          ...patchFuer(o),
+          lognotizen: [
+            ...o.lognotizen,
+            { datum, autor, rolle: autorRolle, text: notizText },
+          ],
+        };
+      }),
+    );
+    return anzahl;
+  }
+
   lognotizHinzufuegen(id: string, notiz: Lognotiz): void {
     const objekt = this.byId(id);
     if (!objekt) return;

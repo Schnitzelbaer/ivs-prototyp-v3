@@ -1266,6 +1266,24 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     Zug). Allen anderen Rollen erklärt ein Modal, dass Zuweisungen
     R-03/R-04 vorbehalten sind (präzisiert die Entscheide 79/81 —
     R-05 kann sich offene Objekte nicht mehr selbst holen).
+87. **Multi-Edit im Dashboard** (04.04): Im Kopf jeder Status-Gruppe
+    wählt eine **übergreifende Checkbox** alle Objekte der Gruppe;
+    sobald etwas ausgewählt ist, erscheint die **Multi-Edit-Leiste**
+    mit zwei Aktionen. **«Zuständige Person …»** (R-03/R-04) weist
+    alle gewählten Strecken einer Person zu (`personZuweisenMehrere` —
+    Vererbung, Lognotiz je Strecke, offene wechseln auf «Zugewiesen»).
+    **«Attribut befüllen …»** (R-03/R-05/R-06 gemäss 04.04) setzt ein
+    gewähltes Attribut auf allen gewählten Strecken auf denselben
+    Wert — wählbar ist **jedes Formularfeld** (Eckdaten, Bewertung
+    samt Punkten und Begründungen, Empfehlungen, Beschriebe,
+    Bibliografie, Prüfkommentar) mit typgerechter Eingabe; nicht dabei
+    sind Status, Zuständigkeit, Kanton und Inexistenz (eigene
+    Mechanismen). Die **Rechteprüfung folgt dem Formular** (Rolle ×
+    Status) je Objekt — nicht bearbeitbare Strecken werden
+    übersprungen und im Toast ausgewiesen; **R-03 darf
+    statusunabhängig** (04.04 nennt sie ausdrücklich). Änderungen
+    werden je Objekt als Lognotiz protokolliert
+    (`attributSetzenMehrere` im ObjektStore).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
