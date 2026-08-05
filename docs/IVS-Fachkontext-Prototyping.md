@@ -17,14 +17,14 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 78), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 84), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
-> **Stand:** 05.08.2026, sechste Ausbaustufe (Rolle pro Tab, Dashboard nach
-> echten Stati und persönlich, Review-Paket «Bug-Fixes / Small Changes»,
-> Prüfprotokoll, Arbeitspakete, Status auf Strecken-Ebene — Entscheide
-> 67–78). Repository auf `main`. Live unter
+> **Stand:** 05.08.2026, siebte Ausbaustufe (Review-Paket «Verbesserungen»:
+> Status «Offen», Zuständigkeit über das Dashboard, Kantonspakete mit allen
+> 26 Kantonen, Arbeitspakete als persistente Entitäten, echte
+> Attributfilter — Entscheide 79–84). Repository auf `main`. Live unter
 > <https://ivs-prototyp-v3.vercel.app>, Auto-Deploy aus `main` aktiv (12.7).
 >
 > **Ein spartan/ui-Skill liegt im Repo** (`.claude/skills/spartan/`, per
@@ -1545,8 +1545,8 @@ Seed-Strecken sind dort als Tabellen hinterlegt. Das Dufour-Situierungsbild
 
 ### 12.5 Stand der Arbeit
 
-Gebaut ist die **sechste Ausbaustufe des Kern-Workflows** (Stand 05.08.2026;
-die Anpassungen der letzten beiden Sitzungen sind als Entscheide 48–78 in
+Gebaut ist die **siebte Ausbaustufe des Kern-Workflows** (Stand 05.08.2026;
+die Anpassungen der letzten Sitzungen sind als Entscheide 48–84 in
 9.8 dokumentiert):
 
 - **Shell**: Das IVS-Logo führt zum Dashboard; «Perspektive wechseln» liegt
@@ -1989,7 +1989,7 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach der sechsten Ausbaustufe (05.08.2026, Entscheide 67–78);
+Stand nach der siebten Ausbaustufe (05.08.2026, Entscheide 79–84);
 Reihenfolge als Vorschlag.
 
 1. **Prüfprotokoll ausbauen (Abschnitt 4.6).** Der Fragenteil ist gebaut
