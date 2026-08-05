@@ -1258,6 +1258,14 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     (Kantonspakete, Entscheid 82); der Filter «Arbeitspaket» steht nur
     noch R-03 zur Verfügung und bietet die 26 Kantonspakete. Das
     Kanton-Scoping von R-04 bleibt.
+86. **Offen → Zugewiesen verlangt eine Person:** Wählt R-03 oder R-04
+    auf einem offenen Objekt den Status «Zugewiesen» (Dashboard-Zeile
+    oder Kopfzeilen-Dropdown), öffnet sich der Dialog **«Person
+    zuweisen»** — ohne Personenwahl kein Wechsel; die Bestätigung
+    läuft über `personZuweisen` (Person, Status, Lognotiz in einem
+    Zug). Allen anderen Rollen erklärt ein Modal, dass Zuweisungen
+    R-03/R-04 vorbehalten sind (präzisiert die Entscheide 79/81 —
+    R-05 kann sich offene Objekte nicht mehr selbst holen).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):

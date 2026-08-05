@@ -352,6 +352,23 @@ export class Dashboard {
     select?: { writeValue(wert: unknown): void },
   ): void {
     if (status === objekt.status) return;
+    // Offen → Zugewiesen verlangt zwingend eine Person (Entscheid 86):
+    // R-03/R-04 wählen sie im Dialog, andere Rollen erklärt ein Modal.
+    if (objekt.status === 'offen' && status === 'zugewiesen') {
+      select?.writeValue(objekt.status);
+      if (!this.istPaketRolle()) {
+        this.hinweis.zeige(
+          'Zuweisung erforderlich',
+          'Ein offenes Objekt wird über die Zuweisung einer Person «Zugewiesen» — zuweisen ' +
+            'dürfen die Fachliche Administration (R-03) und die Regionale Koordination (R-04).',
+        );
+        return;
+      }
+      this.zuweisenObjekt.set(objekt);
+      this.zuweisenPerson.set('B. Anderegg');
+      this.zuweisenDialogOffen.set(true);
+      return;
+    }
     // «Geprüft» setzt ein bestandenes Prüfprotokoll voraus (siehe Objekt-Detail)
     if (status === 'geprueft' && !pruefungBestanden(objekt.pruefprotokoll)) {
       select?.writeValue(objekt.status);
@@ -367,6 +384,23 @@ export class Dashboard {
     this.store.statusWechseln(objekt.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
       description: `${objekt.signatur} — Übergang protokolliert.`,
+    });
+  }
+
+  // Dialog «Person zuweisen» — Offen → Zugewiesen (Entscheid 86)
+  protected readonly zuweisenDialogOffen = signal(false);
+  protected readonly zuweisenObjekt = signal<IvsObjekt | null>(null);
+  protected readonly zuweisenPerson = signal('B. Anderegg');
+
+  protected zuweisenBestaetigen(): void {
+    const objekt = this.zuweisenObjekt();
+    const person = PERSONEN.find((p) => p.name === this.zuweisenPerson());
+    if (!objekt || !person) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.store.personZuweisen(objekt.id, person, NAME_FUER_ROLLE[rolle], rolle);
+    this.zuweisenDialogOffen.set(false);
+    toast.success(`Zugewiesen an ${person.name}`, {
+      description: `${objekt.signatur} — Status «Zugewiesen» gesetzt, Zuweisung protokolliert.`,
     });
   }
 

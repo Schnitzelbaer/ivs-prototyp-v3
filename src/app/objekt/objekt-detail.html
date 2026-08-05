@@ -1189,6 +1189,44 @@
     </div>
   </div>
 
+  <!-- Person zuweisen: Offen → Zugewiesen verlangt eine Person (Entscheid 86) -->
+  <hlm-dialog
+    [state]="zuweisenDialogOffen() ? 'open' : 'closed'"
+    (stateChanged)="zuweisenDialogOffen.set($event === 'open')"
+  >
+    <hlm-dialog-content *hlmDialogPortal>
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>Person zuweisen</h3>
+        <p hlmDialogDescription>
+          {{ o.signatur }} ist noch niemandem zugewiesen — der Wechsel auf «Zugewiesen»
+          braucht eine zuständige Person.
+        </p>
+      </hlm-dialog-header>
+      <div class="grid gap-1.5 py-2">
+        <label hlmLabel for="od-zw-person">
+          Zuständige Person <span class="text-destructive">*</span>
+        </label>
+        <hlm-native-select
+          id="od-zw-person"
+          [ngModel]="zuweisenPerson()"
+          (ngModelChange)="zuweisenPerson.set($event)"
+        >
+          @for (person of personen; track person.name) {
+            <option hlmNativeSelectOption [value]="person.name">
+              {{ person.name }} ({{ person.rolle }})
+            </option>
+          }
+        </hlm-native-select>
+      </div>
+      <hlm-dialog-footer>
+        <button hlmBtn variant="outline" type="button" (click)="zuweisenDialogOffen.set(false)">
+          Abbrechen
+        </button>
+        <button hlmBtn type="button" (click)="zuweisenBestaetigen()">Zuweisen</button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
+
   <!-- Kommentar auf der Karte (05.11) -->
   <hlm-dialog
     [state]="kartenKommentarOffen() ? 'open' : 'closed'"

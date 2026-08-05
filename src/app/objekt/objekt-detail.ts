@@ -82,7 +82,7 @@ import {
 } from '../core/pruefprotokoll';
 import { ObjektStore } from '../core/objekt-store';
 import { ROLLEN, darfEditieren } from '../core/rollen';
-import { NAME_FUER_ROLLE, rolleFuerStatus } from '../core/seed-data';
+import { NAME_FUER_ROLLE, PERSONEN, rolleFuerStatus } from '../core/seed-data';
 import { StammdatenStore } from '../core/stammdaten';
 import { ALLE_STATI, STATUS_FARBE, STATUS_LABEL } from '../core/status';
 import { alterStand, wortDiff } from '../core/version-vergleich';
@@ -404,6 +404,22 @@ export class ObjektDetail implements OnDestroy {
       );
       return;
     }
+    // Offen → Zugewiesen verlangt zwingend eine Person (Entscheid 86):
+    // R-03/R-04 wählen sie im Dialog, andere Rollen erklärt ein Modal.
+    if (o.status === 'offen' && status === 'zugewiesen') {
+      const rolle = this.einstellungen.aktiveRolleId();
+      if (rolle !== 'R-03' && rolle !== 'R-04') {
+        this.hinweis.zeige(
+          'Zuweisung erforderlich',
+          'Ein offenes Objekt wird über die Zuweisung einer Person «Zugewiesen» — zuweisen ' +
+            'dürfen die Fachliche Administration (R-03) und die Regionale Koordination (R-04).',
+        );
+        return;
+      }
+      this.zuweisenPerson.set('B. Anderegg');
+      this.zuweisenDialogOffen.set(true);
+      return;
+    }
     // «Geprüft» setzt ein vollständig mit Ja beantwortetes Prüfprotokoll
     // voraus — sonst erklärt sich der Wechsel und die Prüfung öffnet sich.
     if (status === 'geprueft' && !pruefungBestanden(o.pruefprotokoll)) {
@@ -421,6 +437,23 @@ export class ObjektDetail implements OnDestroy {
     this.store.statusWechseln(o.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
       description: `${o.signatur} — Übergang protokolliert.`,
+    });
+  }
+
+  // Dialog «Person zuweisen» — Offen → Zugewiesen (Entscheid 86)
+  protected readonly personen = PERSONEN;
+  protected readonly zuweisenDialogOffen = signal(false);
+  protected readonly zuweisenPerson = signal('B. Anderegg');
+
+  protected zuweisenBestaetigen(): void {
+    const o = this.objekt();
+    const person = PERSONEN.find((p) => p.name === this.zuweisenPerson());
+    if (!o || !person) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    this.store.personZuweisen(o.id, person, NAME_FUER_ROLLE[rolle], rolle);
+    this.zuweisenDialogOffen.set(false);
+    toast.success(`Zugewiesen an ${person.name}`, {
+      description: `${o.signatur} — Status «Zugewiesen» gesetzt, Zuweisung protokolliert.`,
     });
   }
 
