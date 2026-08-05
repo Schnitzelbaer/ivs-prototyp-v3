@@ -822,9 +822,13 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
 23. **Dashboard vs. Objekte:** Das Dashboard zeigt je Rolle vorgefilterte
     Aufgaben (Anforderung «Dashboard», Prio S), «Objekte» die vollständige
     Übersicht (04.01, Prio M).
-24. **Rollenabhängigkeit ist echt:** Jede Rolle hat eigene Dashboard-Stati und
-    eigene Edit-Rechte; die Statusübergänge sind je Rolle definiert. Löschen
-    ist R-05 (in ihren Bearbeitungsstati) und R-03 vorbehalten.
+24. **Rollenabhängigkeit ist echt:** Jede Rolle hat eigene Edit-Rechte
+    (`editStati`) und eigene **setzbare** Stati. Löschen ist R-05 (in
+    ihren Bearbeitungsstati) und R-03 vorbehalten. ~~Jede Rolle hat
+    eigene Dashboard-Stati; die Statusübergänge sind je Rolle
+    definiert.~~ **Überholt durch die Entscheide 69/70** — das Dashboard
+    zeigt allen Rollen alle acht Stati, und statt einer Übergangstabelle
+    gibt es die frei wählbaren `setzbareStati`.
 25. **Hierarchie-Dropdown:** Klick auf ein Objekt wechselt die Detailansicht,
     behält den Modus (View/Edit) bei und **wechselt die Kartenselektion mit**.
     Alle Ebenen inklusive Wegbegleiter sind voll bearbeitbar.
@@ -1048,9 +1052,8 @@ _Perspektiven und Dashboard_
     setzbaren Stati an. **«Korrektur» leitet allein das Fachlektorat
     (R-06) ein** — R-04 und R-05 sehen den Status weiterhin, setzen ihn
     aber nicht. Die **Fachliche Prüfstelle (R-07) darf «Publiziert»
-    setzen**; `publiziert` gehört neu auch zu ihren relevanten Stati
-    (eigene Dashboard-Gruppe). Die seit Entscheid 59 tote
-    Übergangs-Tabelle (`UEBERGAENGE` in status.ts) ist entfernt.
+    setzen**. Die seit Entscheid 59 tote Übergangs-Tabelle
+    (`UEBERGAENGE` in status.ts) ist entfernt.
 70. **Dashboard ist persönlich, alle Stati:** Für jede Rolle erscheinen
     **alle acht Stati** als Gruppen (präzisiert Entscheid 68); je Status
     stehen nur Objekte, die der **aktiven Person** zugewiesen sind oder
@@ -1255,6 +1258,19 @@ Aus der sechsten Ausbaustufe (05.08.2026) offen geblieben:
   (Entscheid 72) ist bewusst für alle Rollen offen. Ob die Zuweisung
   fachlich auf R-03/R-04 zu beschränken wäre, ist nicht abschliessend
   geklärt.
+- **Prüfkommentar neben dem Prüfprotokoll:** Der Abschnitt
+  «Prüfen / Freigabe» im Formular führt weiterhin das Freitextfeld
+  `pruefkommentar` (fachliche Zusammenfassung der Prüfung, seit der
+  ersten Ausbaustufe). Das strukturierte Protokoll (Entscheid 75) liegt
+  daneben in der Seitenleiste. Ob das Feld bleibt, im Protokoll aufgeht
+  oder zu dessen Gesamtbemerkung wird, ist offen — **nicht
+  eigenmächtig zusammenlegen**.
+- **Region-Filter ist eine Attrappe:** Das Select «Region» in der
+  Dashboard-Filterleiste (einziger Wert «Bern-Mittelland») wird bewusst
+  **nicht ausgewertet** — die Testdaten kennen nur eine Region.
+  Filterleiste und «Alle Filter»-Popover zeigen generell mehr Filter, als
+  fachlich hinterlegt sind (vgl. Vorgabe 12: Attrappen sind zulässig).
+  Kein Bug — nicht ungefragt «reparieren».
 
 ---
 
@@ -1332,11 +1348,13 @@ Tailwind-Utilities mappt.
 ### 12.4 Projektstruktur
 
 ```
+README.md        Kurzüberblick — wird bei jeder Etappe mitgepflegt
 docs/            Fachkontext (dieses Dokument) und Story-Map-PDF
 libs/ui/         57 generierte spartan/ui-Primitives
 public/data/     Geodaten (Kopien aus ivs-map)
 src/styles.css   Theme-Tokens (inkl. --status-*), Touch-Regeln
 src/app/
+  app.ts, app.config.ts  Wurzelkomponente und Provider (Router, Icons, Sonner)
   app.routes.ts        Routen inkl. Guard für /stammdaten (nur R-03)
   core/                Modell, Stati, Rollen, Seed-Daten, Stores
     model.ts           IvsObjekt, ObjektTyp/objektTypText, WorkflowStatus, …
@@ -1365,6 +1383,8 @@ src/app/
   objekt/              Objektbearbeitung
     objekt-detail.*    Formular, Statusfluss, Personen-Zuweisung, Dialoge,
                        Prüfprotokoll-Sheet, Versionsvergleich
+                       (das Template hat ~1700 Zeilen — Änderungen dort
+                       gezielt suchen, nicht die Datei am Stück lesen)
     hierarchie-menu.ts Hierarchie-Menü mit Typ-Tags und Umteilen je Zeile
     versions-karte.ts  Vergleichskarte IVS 1.0/2.0 (zwei Deckkraft-Layer)
     text-editor.ts     Rich-Text-Editor (contenteditable, 07.17)
@@ -1396,11 +1416,13 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen           | Konstante in `begehungen.ts`      |
 | `ivs-prototyp-v3.stammdaten`    | Auswahllisten                 | Konstante in `stammdaten.ts`      |
 | `ivs-prototyp-v3.einstellungen` | Standard-Rolle neuer Tabs, Dark-Mode | —                          |
+| `ivs-prototyp-v3.rolle` (**sessionStorage**) | Rolle dieses Tabs (Entscheid 67) | —                  |
 
 Passt die gespeicherte Version nicht zur Konstante, wird der Stand verworfen
 und neu geseedet. **Nach jeder Seed-Änderung die Version erhöhen**, sonst
 sehen bestehende Browser die Änderung nie. «Demodaten zurücksetzen» im
-Account-Menü leert alle Stores auf einmal.
+Account-Menü setzt Objekte, Kommentare, Geometrien, Begehungen und
+Stammdaten zurück — die Einstellungen (Rolle, Dark-Mode) bleiben.
 
 Drei Stores (`kommentare`, `geometrien`, `einstellungen`) hören zusätzlich
 auf das `storage`-Ereignis und übernehmen Änderungen aus anderen Fenstern —
@@ -1832,6 +1854,16 @@ Bewährt hat sich: in Etappen bauen, jede Etappe **im Browser verifizieren**
 und **einzeln committen**, mit deutscher Commit-Nachricht, die den fachlichen
 Zweck nennt (nicht die Dateiliste). Zwischen den Etappen wird nicht auf
 Freigabe gewartet, ausser eine Entscheidung ist wirklich offen.
+
+**Dokumentation gehört zur Etappe.** Jeder abgestimmte Entscheid wird als
+nummerierter Eintrag in 9.8 festgehalten (überholte Entscheide werden
+durchgestrichen und mit dem ablösenden Entscheid versehen, nicht
+gelöscht), der Stand in 12.5 und der `README.md` nachgeführt und neue
+Fallstricke in 12.6 ergänzt — im selben Commit wie der Code.
+
+**Direkt auf `main`.** Es wird ohne Feature-Branch und ohne Pull Request
+gearbeitet; nach jedem Commit wird gepusht, was den Vercel-Deploy auslöst
+(12.7).
 
 Für grössere Blöcke wurde ein **adversarialer Code-Review** eingesetzt:
 mehrere Reviewer prüfen parallel je eine Dimension (Fachlogik,
