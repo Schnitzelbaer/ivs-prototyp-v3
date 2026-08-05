@@ -12,7 +12,6 @@ import {
   lucideRotateCcw,
   lucideRoute,
   lucideSun,
-  lucideUser,
 } from '@ng-icons/lucide';
 import { toast } from '@spartan-ng/brain/sonner';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -67,7 +66,6 @@ import { HinweisDialog } from './hinweis-dialog';
       lucideRotateCcw,
       lucideRoute,
       lucideSun,
-      lucideUser,
     }),
   ],
   templateUrl: './shell.html',
