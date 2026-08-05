@@ -172,12 +172,13 @@ export class Dashboard {
   protected readonly ohnePerson = OHNE_PERSON;
 
   /**
-   * Gebündelter Attributfilter fürs gemeinsame Prädikat. Der Status wird
-   * im Dashboard über die Gruppen bzw. den Status-Filter der Blöcke
-   * gehandhabt und bleibt hier aussen vor.
+   * Gebündelter Attributfilter fürs gemeinsame Prädikat. Der Status
+   * gehört dazu — nur so folgt auch die Karte dem Status-Filter
+   * (die Gruppen blenden zusätzlich über bloecke() aus).
    */
   private readonly attributFilter = computed<AttributFilter>(() => ({
     ...leererAttributFilter(),
+    status: this.statusFilter(),
     bedeutung: this.bedeutungFilter(),
     substanz: this.substanzFilter(),
     kanton: this.kantonFilter(),
