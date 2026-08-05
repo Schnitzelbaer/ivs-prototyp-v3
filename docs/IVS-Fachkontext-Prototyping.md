@@ -17,7 +17,7 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 77), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 78), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
@@ -584,6 +584,10 @@ zugewiesen
 Deutsche Bezeichnungen: Zugewiesen · In Bearbeitung · Bereit zur Prüfung ·
 In Prüfung · Korrektur · Geprüft · Freigegeben · Publiziert
 
+**Der Status wird auf Strecken-Ebene geführt** — alle untergeordneten
+Objekte (Linienführungen, Abschnitte, Wegbegleiter) richten sich nach dem
+Status ihrer Strecke (Entscheid 78).
+
 Zusätzlich das orthogonale Kennzeichen **nicht-existent** (mit Pflicht-Begründung,
 siehe 07.16).
 
@@ -1102,6 +1106,19 @@ Rückfragen in derselben Session geklärt)**
     unterstellte Personen **absteigen**: Ein Ansicht-Umschalter zeigt
     deren persönliches Dashboard mit allen Aktionen (R-03 →
     R-04- und R-05-Personen, R-04 → R-05-Personen).
+78. **Status auf Strecken-Ebene:** Der Workflow-Status wird nur auf
+    Strecken gesetzt — **alle untergeordneten Objekte richten sich nach
+    dem Status ihrer Strecke.** Umgesetzt als Vererbung: Ein
+    Statuswechsel auf der Strecke (`statusWechseln`, `paketZuweisen`)
+    zieht Status und Zuständigkeit still auf alle Nachkommen (Lognotiz
+    nur an der Strecke); die Seed-Daten und die generierte Vollabdeckung
+    sind entsprechend normalisiert (`statusVonStreckeErben`,
+    SEED_VERSION 10 — frühere Child-Stati wie «Korrektur» auf
+    BE 21.1.3 entfallen). Auf Child-Objekten erklärt der
+    Status-Wechsel-Versuch im Modal, dass der Status auf der Strecke
+    gesetzt wird; damit läuft auch das **Prüfprotokoll auf
+    Strecken-Ebene** (der Knopf «Prüfung» erscheint nur auf Strecken —
+    der Abschluss wechselt den Streckenstatus samt Nachkommen).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):

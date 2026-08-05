@@ -127,6 +127,10 @@ neuen Session weiterzuarbeiten.
   Dark-Mode, Sprachwechsler (Attrappe). Es gibt keine ausgegrauten
   Bedienelemente: Gesperrte Aktionen bleiben aktiv und erklären sich beim
   Klick in einem Modal (**nie-disabled-Regel**).
+- **Workflow-Status auf Strecken-Ebene**: Der Status wird nur auf
+  Strecken gesetzt — alle untergeordneten Objekte erben ihn (auf
+  Child-Objekten erklärt der Wechsel-Versuch ein Modal); entsprechend
+  laufen auch Prüfprotokoll und Arbeitspakete auf Strecken.
 - **Objekt-Taxonomie und Legende**: Strecke → Linienführung → Abschnitt mit
   Substanz / mit viel Substanz / **Kunstbaute als spezifischer Abschnitt**.
   Überall dieselben Symbole (Karte, Kartenbild-Panel, Hierarchie-Menü,

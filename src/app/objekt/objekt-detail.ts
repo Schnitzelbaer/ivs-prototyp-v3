@@ -398,6 +398,18 @@ export class ObjektDetail implements OnDestroy {
   protected statusSetzen(status: string, select?: { writeValue(wert: unknown): void }): void {
     const o = this.objekt();
     if (!o || status === o.status) return;
+    // Der Status wird auf Strecken-Ebene geführt (Entscheid 78) — alle
+    // untergeordneten Objekte richten sich nach ihrer Strecke.
+    if (o.ebene !== 'strecke') {
+      select?.writeValue(o.status);
+      const strecke = this.store.strecke(o);
+      this.hinweis.zeige(
+        'Status wird auf der Strecke gesetzt',
+        `Der Workflow-Status gilt je Strecke — alle untergeordneten Objekte richten sich ` +
+          `nach ihr. Ändere den Status auf der Strecke ${strecke.signatur} (${strecke.name}).`,
+      );
+      return;
+    }
     // «Geprüft» setzt ein vollständig mit Ja beantwortetes Prüfprotokoll
     // voraus — sonst erklärt sich der Wechsel und die Prüfung öffnet sich.
     if (status === 'geprueft' && !pruefungBestanden(o.pruefprotokoll)) {
@@ -427,14 +439,20 @@ export class ObjektDetail implements OnDestroy {
   protected readonly pruefungOffen = signal(false);
 
   /**
-   * Der Knopf «Prüfung» erscheint nur im Status «In Prüfung» und nur für
-   * die prüfenden Rollen: Fachlektorat (R-06) und Fachliche Prüfstelle
-   * (R-07 — deren eigenes Protokoll wird später spezifiziert).
+   * Der Knopf «Prüfung» erscheint nur auf Strecken im Status «In Prüfung»
+   * und nur für die prüfenden Rollen: Fachlektorat (R-06) und Fachliche
+   * Prüfstelle (R-07 — deren eigenes Protokoll wird später spezifiziert).
+   * Wie der Status lebt das Protokoll auf Strecken-Ebene (Entscheid 78).
    */
   protected readonly pruefungSichtbar = computed(() => {
     const o = this.objekt();
     const rolle = this.einstellungen.aktiveRolleId();
-    return !!o && o.status === 'in_pruefung' && (rolle === 'R-06' || rolle === 'R-07');
+    return (
+      !!o &&
+      o.ebene === 'strecke' &&
+      o.status === 'in_pruefung' &&
+      (rolle === 'R-06' || rolle === 'R-07')
+    );
   });
 
   /** Die Fachliche Prüfstelle sieht einen Platzhalter statt des Formulars. */
@@ -442,11 +460,14 @@ export class ObjektDetail implements OnDestroy {
     () => this.einstellungen.aktiveRolleId() === 'R-07',
   );
 
-  /** Ausfüllen darf das Fachlektorat, solange das Objekt in Prüfung ist. */
+  /** Ausfüllen darf das Fachlektorat, solange die Strecke in Prüfung ist. */
   protected readonly darfPruefen = computed(() => {
     const o = this.objekt();
     return (
-      !!o && o.status === 'in_pruefung' && this.einstellungen.aktiveRolleId() === 'R-06'
+      !!o &&
+      o.ebene === 'strecke' &&
+      o.status === 'in_pruefung' &&
+      this.einstellungen.aktiveRolleId() === 'R-06'
     );
   });
 

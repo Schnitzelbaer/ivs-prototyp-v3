@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 8;
+export const SEED_VERSION = 10;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -944,6 +944,34 @@ const BE_35: Vorlage[] = [
   },
 ];
 
-export const SEED_OBJEKTE: IvsObjekt[] = [...BE_7, ...BE_21, ...BE_22, ...BE_23, ...BE_35].map(
-  objektAusVorlage,
+/**
+ * Der Workflow-Status wird auf Strecken-Ebene geführt — alle
+ * untergeordneten Objekte richten sich nach ihrer Strecke (Entscheid 78).
+ * Die Vorlagen tragen historisch teils eigene Stati; hier werden Status
+ * und Zuständigkeit der Nachkommen auf den Stand der Strecke normalisiert.
+ * Der ObjektStore nutzt dieselbe Normalisierung, wenn er die generierte
+ * Vollabdeckung ergänzt (generierte Nachkommen kuratierter Strecken).
+ */
+export function statusVonStreckeErben(liste: IvsObjekt[]): IvsObjekt[] {
+  const proSignatur = new Map(liste.map((o) => [o.signatur, o]));
+  return liste.map((o) => {
+    if (!o.parent) return o;
+    let strecke = o;
+    while (strecke.parent) {
+      const parent = proSignatur.get(strecke.parent);
+      if (!parent) break;
+      strecke = parent;
+    }
+    if (o.status === strecke.status && o.zustaendigName === strecke.zustaendigName) return o;
+    return {
+      ...o,
+      status: strecke.status,
+      zustaendigRolle: strecke.zustaendigRolle,
+      zustaendigName: strecke.zustaendigName,
+    };
+  });
+}
+
+export const SEED_OBJEKTE: IvsObjekt[] = statusVonStreckeErben(
+  [...BE_7, ...BE_21, ...BE_22, ...BE_23, ...BE_35].map(objektAusVorlage),
 );

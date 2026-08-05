@@ -1,7 +1,13 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus } from './model';
 import { ladeObjektModell } from './objekt-generierung';
-import { NAME_FUER_ROLLE, SEED_OBJEKTE, SEED_VERSION, rolleFuerStatus } from './seed-data';
+import {
+  NAME_FUER_ROLLE,
+  SEED_OBJEKTE,
+  SEED_VERSION,
+  rolleFuerStatus,
+  statusVonStreckeErben,
+} from './seed-data';
 import { STATUS_LABEL } from './status';
 
 interface Ablage {
@@ -45,7 +51,10 @@ export class ObjektStore {
     this.objekte.update((liste) => {
       const vorhanden = new Set(liste.map((o) => o.id));
       const neue = generierte.filter((o) => !vorhanden.has(o.id));
-      return neue.length ? [...liste, ...neue.map((o) => strukturKopie(o))] : liste;
+      if (!neue.length) return liste;
+      // Generierte Nachkommen kuratierter Strecken erben deren Status
+      // und Zuständigkeit (Entscheid 78)
+      return statusVonStreckeErben([...liste, ...neue.map((o) => strukturKopie(o))]);
     });
   }
 
@@ -77,30 +86,60 @@ export class ObjektStore {
   }
 
   /**
+   * Alle Nachkommen der übergebenen Signaturen (inklusive dieser selbst),
+   * über die parent-Verkettung gesammelt.
+   */
+  private mitNachkommen(signaturen: Iterable<string>): Set<string> {
+    const menge = new Set<string>(signaturen);
+    let gewachsen = true;
+    while (gewachsen) {
+      gewachsen = false;
+      for (const o of this.objekte()) {
+        if (o.parent && menge.has(o.parent) && !menge.has(o.signatur)) {
+          menge.add(o.signatur);
+          gewachsen = true;
+        }
+      }
+    }
+    return menge;
+  }
+
+  /**
    * Statuswechsel als fachliche Operation: setzt den Status, führt die
    * Zuständigkeit nach (wer ist am Zug — gleiche Ableitung wie im Seed)
-   * und protokolliert den Übergang als Lognotiz. So bleibt die
-   * Historisierung unabhängig vom Einstiegspunkt (Dashboard, Detail)
-   * vollständig.
+   * und protokolliert den Übergang als Lognotiz. Der Status wird auf
+   * Strecken-Ebene geführt (Entscheid 78) — bei Strecken erben alle
+   * Nachkommen Status und Zuständigkeit still (Lognotiz nur am Objekt
+   * selbst). So bleibt die Historisierung unabhängig vom Einstiegspunkt
+   * (Dashboard, Detail) vollständig.
    */
   statusWechseln(id: string, status: WorkflowStatus, autor: string, autorRolle: RolleId): void {
     const objekt = this.byId(id);
     if (!objekt || objekt.status === status) return;
     const zustaendigRolle = rolleFuerStatus(status);
-    this.update(id, {
-      status,
-      zustaendigRolle,
-      zustaendigName: NAME_FUER_ROLLE[zustaendigRolle],
-      lognotizen: [
-        ...objekt.lognotizen,
-        {
-          datum: new Date().toISOString().slice(0, 10),
-          autor,
-          rolle: autorRolle,
-          text: `Status: ${STATUS_LABEL[objekt.status]} → ${STATUS_LABEL[status]}`,
-        },
-      ],
-    });
+    const zustaendigName = NAME_FUER_ROLLE[zustaendigRolle];
+    const betroffene =
+      objekt.ebene === 'strecke'
+        ? this.mitNachkommen([objekt.signatur])
+        : new Set([objekt.signatur]);
+    const notiz: Lognotiz = {
+      datum: new Date().toISOString().slice(0, 10),
+      autor,
+      rolle: autorRolle,
+      text: `Status: ${STATUS_LABEL[objekt.status]} → ${STATUS_LABEL[status]}`,
+    };
+    this.objekte.update((liste) =>
+      liste.map((o) => {
+        if (!betroffene.has(o.signatur)) return o;
+        return {
+          ...o,
+          status,
+          zustaendigRolle,
+          zustaendigName,
+          lognotizen: o.id === id ? [...o.lognotizen, notiz] : o.lognotizen,
+        };
+      }),
+    );
   }
 
   lognotizHinzufuegen(id: string, notiz: Lognotiz): void {
@@ -112,7 +151,8 @@ export class ObjektStore {
   /**
    * Arbeitspaket zuweisen (03.02/03.03): setzt alle Objekte in einem Zug
    * auf «Zugewiesen», trägt die Person als zuständig ein und protokolliert
-   * das Paket je Objekt als Lognotiz.
+   * das Paket je Strecke als Lognotiz. Status und Zuständigkeit erben die
+   * Nachkommen still (Entscheid 78).
    */
   paketZuweisen(
     ids: readonly string[],
@@ -122,24 +162,32 @@ export class ObjektStore {
     autorRolle: RolleId,
   ): void {
     const menge = new Set(ids);
+    const signaturen = this.mitNachkommen(
+      this.objekte()
+        .filter((o) => menge.has(o.id))
+        .map((o) => o.signatur),
+    );
     const datum = new Date().toISOString().slice(0, 10);
     this.objekte.update((liste) =>
       liste.map((o) =>
-        menge.has(o.id)
+        signaturen.has(o.signatur)
           ? {
               ...o,
               status: 'zugewiesen' as WorkflowStatus,
               zustaendigRolle: person.rolle,
               zustaendigName: person.name,
-              lognotizen: [
-                ...o.lognotizen,
-                {
-                  datum,
-                  autor,
-                  rolle: autorRolle,
-                  text: `${paket} zugewiesen an ${person.name} (${person.rolle}).`,
-                },
-              ],
+              // Lognotiz nur auf den Strecken des Pakets, Nachkommen erben still
+              lognotizen: menge.has(o.id)
+                ? [
+                    ...o.lognotizen,
+                    {
+                      datum,
+                      autor,
+                      rolle: autorRolle,
+                      text: `${paket} zugewiesen an ${person.name} (${person.rolle}).`,
+                    },
+                  ]
+                : o.lognotizen,
             }
           : o,
       ),
