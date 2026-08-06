@@ -2,17 +2,25 @@
   <!-- Kopfzeile -->
   <header class="flex items-center justify-between gap-4 border-b border-border px-4 py-2.5">
     <h1 class="text-base font-semibold">Dashboard</h1>
-    <button
-      hlmBtn
-      variant="outline"
-      size="icon"
-      type="button"
-      hlmTooltip="Gefilterte Liste exportieren (im Prototyp ohne Funktion)"
-      position="left"
-      aria-label="Exportieren"
-    >
-      <ng-icon name="lucideDownload" />
-    </button>
+    <div class="flex items-center gap-2">
+      <!-- Neue Strecke anfordern (Entscheid 90): R-03/R-06 fordern an,
+           R-05 erstellt — andere Rollen erklärt der Klick -->
+      <button hlmBtn variant="outline" size="sm" type="button" (click)="streckeAnfordernKlick()">
+        <ng-icon name="lucideMapPinPlus" />
+        Strecke anfordern
+      </button>
+      <button
+        hlmBtn
+        variant="outline"
+        size="icon"
+        type="button"
+        hlmTooltip="Gefilterte Liste exportieren (im Prototyp ohne Funktion)"
+        position="left"
+        aria-label="Exportieren"
+      >
+        <ng-icon name="lucideDownload" />
+      </button>
+    </div>
   </header>
 
   <!-- Filterleiste -->
@@ -429,6 +437,9 @@
                             @if (o.inexistent) {
                               <span hlmBadge variant="destructive" class="ml-1">inexistent</span>
                             }
+                            @if (o.angefordert) {
+                              <span hlmBadge variant="outline" class="ml-1">angefordert</span>
+                            }
                           </td>
                           <td hlmTd>{{ o.kanton }}</td>
                           <td hlmTd class="text-muted-foreground">
@@ -595,6 +606,97 @@
     }
   </div>
 </div>
+
+<!-- Strecke anfordern (Entscheid 90): R-03/R-06 fordern, R-05 erstellt -->
+<hlm-dialog
+  [state]="anfordernOffen() ? 'open' : 'closed'"
+  (stateChanged)="anfordernOffen.set($event === 'open')"
+>
+  <hlm-dialog-content *hlmDialogPortal>
+    <hlm-dialog-header>
+      <h3 hlmDialogTitle>Strecke anfordern</h3>
+      <p hlmDialogDescription>
+        Legt eine noch nicht vorhandene Strecke im Status «Offen» an — die Inventarisierenden
+        erstellen anschliessend Geometrie und Beschrieb.
+      </p>
+    </hlm-dialog-header>
+    <div class="grid gap-3 py-2">
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-1.5">
+          <label hlmLabel for="sa-kanton">Kanton</label>
+          <hlm-native-select
+            id="sa-kanton"
+            [ngModel]="anfordernKanton()"
+            (ngModelChange)="anfordernKantonWechseln($event)"
+          >
+            @for (kanton of kantone; track kanton.kuerzel) {
+              <option hlmNativeSelectOption [value]="kanton.kuerzel">{{ kanton.name }}</option>
+            }
+          </hlm-native-select>
+        </div>
+        <div class="grid gap-1.5">
+          <label hlmLabel for="sa-signatur">Signatur (automatisch, anpassbar)</label>
+          <input
+            hlmInput
+            id="sa-signatur"
+            [ngModel]="anfordernSignatur()"
+            (ngModelChange)="anfordernSignatur.set($event)"
+          />
+        </div>
+      </div>
+      <div class="grid gap-1.5">
+        <label hlmLabel for="sa-titel">Arbeitstitel <span class="text-destructive">*</span></label>
+        <input
+          hlmInput
+          id="sa-titel"
+          placeholder="z. B. Riedbach – Detligen; alter Marktweg"
+          [ngModel]="anfordernTitel()"
+          (ngModelChange)="anfordernTitel.set($event)"
+        />
+      </div>
+      <div class="grid gap-1.5">
+        <label hlmLabel for="sa-begruendung">
+          Begründung <span class="text-destructive">*</span>
+        </label>
+        <textarea
+          hlmTextarea
+          id="sa-begruendung"
+          class="min-h-20 w-full"
+          [ngModel]="anfordernBegruendung()"
+          (ngModelChange)="anfordernBegruendung.set($event)"
+        ></textarea>
+      </div>
+      <div class="grid gap-1.5">
+        <span hlmLabel>Ortsangabe (optional)</span>
+        <div class="flex items-center gap-2">
+          @if (anfordernPosition(); as position) {
+            <span hlmBadge variant="secondary">
+              {{ position.lat.toFixed(4) }} / {{ position.lon.toFixed(4) }}
+            </span>
+          } @else {
+            <span class="text-sm text-muted-foreground">Noch kein Punkt gewählt.</span>
+          }
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="ortWaehlen()">
+            Punkt auf der Karte wählen
+          </button>
+        </div>
+      </div>
+    </div>
+    <hlm-dialog-footer>
+      <button hlmBtn variant="outline" type="button" (click)="anfordernOffen.set(false)">
+        Abbrechen
+      </button>
+      <button
+        hlmBtn
+        type="button"
+        [disabled]="!anfordernTitel().trim() || !anfordernBegruendung().trim()"
+        (click)="streckeAnfordernSpeichern()"
+      >
+        Strecke anfordern
+      </button>
+    </hlm-dialog-footer>
+  </hlm-dialog-content>
+</hlm-dialog>
 
 <!-- Multi-Edit: allen gewählten Strecken eine zuständige Person geben (E87) -->
 <hlm-dialog

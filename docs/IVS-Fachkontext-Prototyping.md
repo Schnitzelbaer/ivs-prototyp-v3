@@ -1314,6 +1314,19 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     der war der falsche Ort), die Einplanung und offene Anforderungen
     stehen im neuen Formular-Abschnitt **«Begehung»**; der Dialog
     wohnt neu unter `begehungen/`. Begehungs-Seed-Version 2.
+90. **Strecke anfordern und erstellen:** Über den Dashboard-Knopf
+    **«Strecke anfordern»** legen **R-03 und R-06** eine noch nicht
+    vorhandene Strecke an (anderen Rollen erklärt der Klick die
+    Sperre): Kanton-Wahl mit **automatischer Signatur** (nächste freie
+    Nummer, im Dialog anpassbar), Arbeitstitel und Begründung als
+    Pflicht, optionale **Ortsangabe per Kartenklick**. Die Strecke
+    entsteht im Status **«Offen»** ohne Zuständige, mit dem Kennzeichen
+    **«angefordert»** (Badge in Zeile und Kopfzeile, Begründung als
+    Lognotiz und Tooltip). Die **Erstellung** — Geometrie zeichnen und
+    Beschrieb füllen — übernehmen die **Inventarisierenden** nach der
+    Zuweisung über die üblichen Werkzeuge. Solange das Kennzeichen
+    steht, bleibt die **Signatur im Formular anpassbar**
+    (`signaturAendern` zieht Ids, Nachkommen und die URL nach).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):

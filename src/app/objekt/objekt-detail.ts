@@ -679,6 +679,31 @@ export class ObjektDetail implements OnDestroy {
     });
   }
 
+  // ------------------------------------ Signatur angeforderter Strecken (E90)
+
+  protected readonly signaturEntwurf = signal<string | null>(null);
+
+  protected signaturUebernehmen(): void {
+    const o = this.objekt();
+    const entwurf = this.signaturEntwurf()?.trim();
+    if (!o || !entwurf || entwurf === o.signatur) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const neu = this.store.signaturAendern(o.id, entwurf, NAME_FUER_ROLLE[rolle], rolle);
+    if (!neu) {
+      this.hinweis.zeige(
+        'Signatur bereits vergeben',
+        `Unter «${entwurf}» existiert bereits ein Objekt — bitte eine andere Signatur wählen.`,
+      );
+      return;
+    }
+    this.signaturEntwurf.set(null);
+    toast.success(`Signatur geändert: ${neu.signatur}`, {
+      description: 'Ids und Nachkommen wurden nachgezogen.',
+    });
+    // Die URL folgt der neuen Id
+    void this.router.navigate(['/objekt', neu.id], { replaceUrl: true });
+  }
+
   // ---------------------------------------------- Versionsvergleich (08.05)
 
   protected readonly versionsvergleichOffen = signal(false);

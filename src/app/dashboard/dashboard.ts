@@ -21,6 +21,7 @@ import {
   lucideLasso,
   lucideListFilter,
   lucideMessageSquarePlus,
+  lucideMapPinPlus,
   lucideRotateCw,
   lucideSearch,
   lucideTrash2,
@@ -262,6 +263,7 @@ interface StatusOption {
       lucideLasso,
       lucideListFilter,
       lucideMessageSquarePlus,
+      lucideMapPinPlus,
       lucideRotateCw,
       lucideSearch,
       lucideTrash2,
@@ -770,11 +772,88 @@ export class Dashboard {
     this.karte()?.kommentarWerkzeugUmschalten();
   }
 
+  // ------------------------------------- Strecke anfordern (Entscheid 90)
+
+  protected readonly anfordernOffen = signal(false);
+  protected readonly anfordernKanton = signal('BE');
+  protected readonly anfordernSignatur = signal('');
+  protected readonly anfordernTitel = signal('');
+  protected readonly anfordernBegruendung = signal('');
+  protected readonly anfordernPosition = signal<{ lon: number; lat: number } | null>(null);
+  /** Ortswahl-Modus: der nächste Kartenklick liefert die Position. */
+  protected readonly ortswahlAktiv = signal(false);
+
+  protected streckeAnfordernKlick(): void {
+    const rolle = this.einstellungen.aktiveRolleId();
+    if (rolle !== 'R-03' && rolle !== 'R-06') {
+      this.hinweis.zeige(
+        'Anfordern nicht möglich',
+        'Neue Strecken anfordern können die Fachliche Administration (R-03) und das ' +
+          'Fachlektorat (R-06); die Erstellung übernehmen die Inventarisierenden (R-05).',
+      );
+      return;
+    }
+    this.anfordernKanton.set('BE');
+    this.anfordernSignatur.set(`BE ${this.store.naechsteFreieNummer('BE')}`);
+    this.anfordernTitel.set('');
+    this.anfordernBegruendung.set('');
+    this.anfordernPosition.set(null);
+    this.anfordernOffen.set(true);
+  }
+
+  /** Kantonswechsel im Dialog belegt die Signatur automatisch neu vor. */
+  protected anfordernKantonWechseln(kuerzel: string): void {
+    this.anfordernKanton.set(kuerzel);
+    this.anfordernSignatur.set(`${kuerzel} ${this.store.naechsteFreieNummer(kuerzel)}`);
+  }
+
+  /** Ortsangabe wählen: Dialog kurz schliessen, Kartenklick abwarten. */
+  protected ortWaehlen(): void {
+    this.anfordernOffen.set(false);
+    this.ortswahlAktiv.set(true);
+    this.karte()?.kommentarWerkzeugUmschalten();
+  }
+
+  protected streckeAnfordernSpeichern(): void {
+    const titel = this.anfordernTitel().trim();
+    const begruendung = this.anfordernBegruendung().trim();
+    if (!titel || !begruendung) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const strecke = this.store.streckeAnfordern({
+      signatur: this.anfordernSignatur(),
+      kanton: this.anfordernKanton(),
+      name: titel,
+      begruendung,
+      position: this.anfordernPosition(),
+      autor: NAME_FUER_ROLLE[rolle],
+      rolle,
+    });
+    if (!strecke) {
+      this.hinweis.zeige(
+        'Signatur bereits vergeben',
+        `Unter «${this.anfordernSignatur().trim()}» existiert bereits ein Objekt — bitte ` +
+          'eine andere Signatur wählen.',
+      );
+      return;
+    }
+    this.anfordernOffen.set(false);
+    toast.success(`Strecke ${strecke.signatur} angefordert`, {
+      description: 'Status «Offen» — die Erstellung übernehmen die Inventarisierenden.',
+    });
+  }
+
   protected kommentarPositionGewaehlt(position: {
     lon: number;
     lat: number;
     signatur: string | null;
   }): void {
+    // Ortswahl der Strecken-Anforderung hat Vorrang (Entscheid 90)
+    if (this.ortswahlAktiv()) {
+      this.ortswahlAktiv.set(false);
+      this.anfordernPosition.set({ lon: position.lon, lat: position.lat });
+      this.anfordernOffen.set(true);
+      return;
+    }
     this.kartenKommentarPosition.set(position);
     // Pflicht-Zuweisung (Entscheid 88), vorbelegt mit dem getroffenen Objekt
     this.kartenKommentarZuweisung.set(position.signatur ?? '');

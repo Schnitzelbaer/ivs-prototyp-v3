@@ -1,11 +1,12 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { jetztLokal } from './kommentare';
-import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus } from './model';
+import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus, idAusSignatur } from './model';
 import { ladeObjektModell } from './objekt-generierung';
 import { KANTONE } from './paket-store';
 import {
   SEED_OBJEKTE,
   SEED_VERSION,
+  objektAusVorlage,
   statusVonStreckeErben,
   zustaendigkeitFuerStatus,
 } from './seed-data';
@@ -327,6 +328,106 @@ export class ObjektStore {
       ),
     );
     return wechselnde.length;
+  }
+
+  /**
+   * Nächste freie Strecken-Nummer eines Kantons (für die automatische
+   * Signatur neuer Strecken, Entscheid 90).
+   */
+  naechsteFreieNummer(kuerzel: string): number {
+    let max = 0;
+    for (const o of this.objekte()) {
+      if (o.ebene !== 'strecke') continue;
+      const treffer = new RegExp(`^${kuerzel} (\\d+)$`).exec(o.signatur);
+      if (treffer) max = Math.max(max, Number(treffer[1]));
+    }
+    return max + 1;
+  }
+
+  /**
+   * Neue Strecke anfordern (Entscheid 90): legt sie im Status «Offen»
+   * mit dem Kennzeichen «angefordert» an — ohne Geometrie, mit
+   * Arbeitstitel, Begründung und optionaler Ortsangabe. Gibt null
+   * zurück, wenn die Signatur bereits vergeben ist.
+   */
+  streckeAnfordern(anforderung: {
+    signatur: string;
+    kanton: string;
+    name: string;
+    begruendung: string;
+    position: { lon: number; lat: number } | null;
+    autor: string;
+    rolle: RolleId;
+  }): IvsObjekt | null {
+    const signatur = anforderung.signatur.trim();
+    if (!signatur || this.bySignatur(signatur)) return null;
+    const datum = jetztLokal().slice(0, 10);
+    const objekt: IvsObjekt = {
+      ...objektAusVorlage({
+        signatur,
+        ebene: 'strecke',
+        name: anforderung.name,
+        parent: null,
+        status: 'offen',
+      }),
+      kanton: anforderung.kanton,
+      gemeinden: '',
+      aufnahmejahr: null,
+      substanzgrad: null,
+      planer: '',
+      angefordert: {
+        datum,
+        autor: anforderung.autor,
+        rolle: anforderung.rolle,
+        begruendung: anforderung.begruendung,
+        position: anforderung.position,
+      },
+      lognotizen: [
+        {
+          datum,
+          autor: anforderung.autor,
+          rolle: anforderung.rolle,
+          text: `Strecke angefordert: ${anforderung.begruendung}`,
+        },
+      ],
+    };
+    this.objekte.update((liste) => [...liste, objekt]);
+    return objekt;
+  }
+
+  /**
+   * Signatur einer angeforderten Strecke ändern (Entscheid 90): zieht
+   * Ids, Nachkommen-Signaturen und parent-Verweise nach. Gibt das
+   * aktualisierte Objekt zurück — oder null, wenn die neue Signatur
+   * bereits vergeben ist.
+   */
+  signaturAendern(id: string, neueSignatur: string, autor: string, autorRolle: RolleId): IvsObjekt | null {
+    const objekt = this.byId(id);
+    const neu = neueSignatur.trim();
+    if (!objekt || !objekt.angefordert || !neu || neu === objekt.signatur) return null;
+    if (this.bySignatur(neu)) return null;
+    const alt = objekt.signatur;
+    const betroffene = this.mitNachkommen([alt]);
+    const notiz: Lognotiz = {
+      datum: jetztLokal().slice(0, 10),
+      autor,
+      rolle: autorRolle,
+      text: `Signatur geändert: ${alt} → ${neu}.`,
+    };
+    this.objekte.update((liste) =>
+      liste.map((o) => {
+        if (!betroffene.has(o.signatur)) return o;
+        const signatur = neu + o.signatur.slice(alt.length);
+        return {
+          ...o,
+          signatur,
+          id: idAusSignatur(signatur),
+          parent: o.parent && betroffene.has(o.parent) ? neu + o.parent.slice(alt.length) : o.parent,
+          lognotizen: o.id === id ? [...o.lognotizen, notiz] : o.lognotizen,
+        };
+      }),
+    );
+    return this.bySignatur(neu) ?? null;
   }
 
   /** Löscht ein Objekt mitsamt allen Unterobjekten (07.05). */

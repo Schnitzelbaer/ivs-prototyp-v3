@@ -20,6 +20,18 @@
         @if (o.inexistent) {
           <span hlmBadge variant="destructive">inexistent</span>
         }
+        @if (o.angefordert; as angefordert) {
+          <span
+            hlmBadge
+            variant="outline"
+            [hlmTooltip]="
+              'Angefordert von ' + angefordert.autor + ' (' + angefordert.rolle + '): ' +
+              angefordert.begruendung
+            "
+          >
+            angefordert
+          </span>
+        }
         <!-- Geplante Begehung sichtbar machen (Klick führt zum Begehungen-Tab) -->
         @for (begehung of geplanteBegehungen(); track begehung.id) {
           <a
@@ -341,7 +353,30 @@
 
                   <div class="grid gap-1.5">
                     <label hlmLabel for="f-signatur">IVS-Signatur</label>
-                    <input hlmInput id="f-signatur" [ngModel]="o.signatur" disabled />
+                    @if (o.angefordert) {
+                      <!-- Bei angeforderten Strecken bleibt die Signatur
+                           anpassbar (Entscheid 90) -->
+                      <div class="flex items-center gap-1.5">
+                        <input
+                          hlmInput
+                          id="f-signatur"
+                          class="min-w-0 flex-1"
+                          [ngModel]="signaturEntwurf() ?? o.signatur"
+                          (ngModelChange)="signaturEntwurf.set($event)"
+                        />
+                        <button
+                          hlmBtn
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          (click)="signaturUebernehmen()"
+                        >
+                          Ändern
+                        </button>
+                      </div>
+                    } @else {
+                      <input hlmInput id="f-signatur" [ngModel]="o.signatur" disabled />
+                    }
                   </div>
                   <div class="grid gap-1.5">
                     <label hlmLabel for="f-kanton"

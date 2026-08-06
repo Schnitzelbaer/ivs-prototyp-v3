@@ -104,6 +104,18 @@ export interface IvsObjekt {
   zustaendigName: string;
   /** Orthogonales Kennzeichen mit Pflichtbegründung (07.16). */
   inexistent: { seit: string; begruendung: string } | null;
+  /**
+   * Vermerk einer angeforderten Neu-Strecke (Entscheid 90): R-03 oder
+   * R-06 fordern die Erstellung an, R-05 erstellt Geometrie und
+   * Beschrieb. Solange der Vermerk steht, bleibt die Signatur anpassbar.
+   */
+  angefordert?: {
+    datum: string;
+    autor: string;
+    rolle: RolleId;
+    begruendung: string;
+    position: { lon: number; lat: number } | null;
+  } | null;
 
   // Eckdaten
   nhgWert: NhgWert;
