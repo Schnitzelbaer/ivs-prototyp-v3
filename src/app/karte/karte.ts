@@ -36,7 +36,10 @@ import Point from '@arcgis/core/geometry/Point.js';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils.js';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol.js';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol.js';
+import { toast } from '@spartan-ng/brain/sonner';
 import { Ebene, ObjektTyp, objektTyp } from '../core/model';
+import { signaturKette } from '../core/objekt-generierung';
+import { ObjektGeo } from './objekt-geo';
 import {
   BASEMAP_DEFS,
   LAYER_DEFS,
@@ -351,6 +354,7 @@ export class Karte implements AfterViewInit, OnDestroy {
   private readonly kommentarStore = inject(KommentarStore);
   private readonly geometrieStore = inject(GeometrieStore);
   private readonly objektStore = inject(ObjektStore);
+  private readonly objektGeo = inject(ObjektGeo);
 
   protected readonly layerDefs = LAYER_DEFS;
   /** Hintergründe (Basemaps und Raster-Overlays), additiv kombinierbar. */
@@ -366,7 +370,7 @@ export class Karte implements AfterViewInit, OnDestroy {
   /** Anzahl aktuell im Update-Modus selektierter Arbeitsgeometrien. */
   readonly editAuswahlAnzahl = signal(0);
   /** Aktives Zeichenwerkzeug des Geometrie-Editings. */
-  readonly editWerkzeug = signal<'polyline' | 'point' | 'verschneiden' | null>(null);
+  readonly editWerkzeug = signal<'polyline' | 'point' | 'verschneiden' | 'tracing' | null>(null);
 
   /** Hover-MapTip: Hierarchie der unter dem Cursor getroffenen Objekte. */
   protected readonly mapTip = signal<{ x: number; y: number; eintraege: Treffer[] } | null>(null);
@@ -398,6 +402,15 @@ export class Karte implements AfterViewInit, OnDestroy {
   private markerLayer: GraphicsLayer | null = null;
   private kommentarLayer: GraphicsLayer | null = null;
   private begehungsLayer: GraphicsLayer | null = null;
+  /**
+   * Bearbeitete Geometrien ALLER Objekte (Entscheid 91): Sobald ein Objekt
+   * Arbeitsgeometrien hat, ersetzen sie sein Original auf der Karte — sie
+   * bleiben über die räumliche Treffersuche anwählbar wie zuvor.
+   */
+  private bearbeitetLayer: GraphicsLayer | null = null;
+  /** Tracing (05.09): erster gewählter Punkt auf einer Original-Linie. */
+  private tracingStart: { pfad: [number, number][]; s: number } | null = null;
+  private tracingMarker: Graphic | null = null;
   private kegelGraphic: Graphic | null = null;
   private sketch: SketchViewModel | null = null;
   private erstZoomErledigt = false;
@@ -481,6 +494,47 @@ export class Karte implements AfterViewInit, OnDestroy {
       const punkte = this.begehungsPunkte();
       untracked(() => this.zeichneBegehungsRoute(punkte));
     });
+    // Bearbeitete Geometrien spiegeln und die Originale ausblenden (E91):
+    // hängt am Geometrie-Store (auch storage-synchron) und am Edit-Objekt
+    effect(() => {
+      this.geometrieStore.alle();
+      this.geometrieEditObjekt();
+      untracked(() => {
+        this.zeichneBearbeitete();
+        this.wendeStreckenFilterAn(this.streckenFilter());
+      });
+    });
+  }
+
+  /**
+   * Bearbeitete Geometrien aller Objekte zeichnen — ausser des gerade
+   * editierten (dessen Arbeitsgeometrien liegen im Edit-Layer). Die
+   * Graphics tragen die Objektzuordnung für die räumliche Treffersuche.
+   */
+  private zeichneBearbeitete(): void {
+    const layer = this.bearbeitetLayer;
+    if (!layer) return;
+    layer.removeAll();
+    const editiert = this.geometrieEditObjekt();
+    for (const [signatur, geometrien] of Object.entries(this.geometrieStore.alle())) {
+      if (signatur === editiert || !geometrien.length) continue;
+      const kette = signaturKette(signatur);
+      for (const json of geometrien) {
+        const geometry = geometryJsonUtils.fromJSON(json as never);
+        if (!geometry) continue;
+        layer.add(
+          new Graphic({
+            geometry,
+            attributes: {
+              signatur,
+              lf: kette.lf,
+              strecke: kette.strecke || signatur,
+            },
+            symbol: geometry.type === 'point' ? editPunktSymbol() : editLinienSymbol(),
+          }),
+        );
+      }
+    }
   }
 
   /**
@@ -562,17 +616,33 @@ export class Karte implements AfterViewInit, OnDestroy {
   private wendeStreckenFilterAn(filter: readonly string[] | null): void {
     const lauf = ++this.streckenFilterLauf;
     const basisVon = (id: string) => LAYER_DEFS.find((d) => d.id === id)?.filter;
-    const setze = (id: string, zusatz: string | null) => {
+    const setze = (id: string, ...zusaetze: (string | null)[]) => {
       const layer = this.layers.get(id);
       if (!layer) return;
-      layer.definitionExpression = [basisVon(id), zusatz].filter(Boolean).join(' AND ');
+      layer.definitionExpression = [basisVon(id), ...zusaetze].filter(Boolean).join(' AND ');
     };
+
+    // Originale von Objekten mit bearbeiteter Geometrie ausblenden (E91):
+    // die bearbeitete Version ersetzt sie auf der Karte.
+    const bearbeitet = { strecke: [] as string[], lf: [] as string[], signatur: [] as string[] };
+    for (const [signatur, geometrien] of Object.entries(this.geometrieStore.alle())) {
+      if (!geometrien.length) continue;
+      const ebene = ebeneAusSignatur(signatur);
+      if (ebene === 'strecke') bearbeitet.strecke.push(signatur);
+      else if (ebene === 'linienfuehrung') bearbeitet.lf.push(signatur);
+      else bearbeitet.signatur.push(signatur);
+    }
+    const notIn = (feld: 'strecke' | 'lf' | 'signatur') =>
+      bearbeitet[feld].length
+        ? `${feld} NOT IN (${bearbeitet[feld].map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')})`
+        : null;
+    const ausblenden = [notIn('strecke'), notIn('lf'), notIn('signatur')];
 
     for (const id of OBJEKT_LAYER_IDS) {
       const werte = filter?.length
         ? filter.map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')
         : "''";
-      setze(id, filter === null ? null : `strecke IN (${werte})`);
+      setze(id, filter === null ? null : `strecke IN (${werte})`, ...ausblenden);
     }
 
     void (async () => {
@@ -664,6 +734,11 @@ export class Karte implements AfterViewInit, OnDestroy {
     map.add(this.begehungsLayer);
     this.zeichneBegehungsRoute(this.begehungsPunkte());
 
+    // Bearbeitete Geometrien aller Objekte (Entscheid 91)
+    this.bearbeitetLayer = new GraphicsLayer({ listMode: 'hide' });
+    map.add(this.bearbeitetLayer);
+    this.zeichneBearbeitete();
+
     // Arbeitsgeometrien des Geometrie-Editings (05.05)
     this.editLayer = new GraphicsLayer({ listMode: 'hide' });
     map.add(this.editLayer);
@@ -754,6 +829,11 @@ export class Karte implements AfterViewInit, OnDestroy {
       if (!view) return;
       const menuWarOffen = this.kontextMenu() !== null;
       this.kontextMenu.set(null);
+      // Tracing (05.09): zwei Klicks übernehmen das Teilstück einer Linie
+      if (this.editWerkzeug() === 'tracing') {
+        void this.tracingKlick(ereignis);
+        return;
+      }
       // Während des Geometrie-Editings gehören die Klicks dem Sketch
       if (this.geometrieEditObjekt() || this.polygonAktiv()) return;
       // Kommentar-Werkzeug: Klick wählt die Position (05.11)
@@ -886,7 +966,27 @@ export class Karte implements AfterViewInit, OnDestroy {
           .catch(() => null),
       ),
     );
-    return antworten.flatMap((antwort) => antwort?.features.map((f) => f.attributes) ?? []);
+    const treffer = antworten.flatMap((antwort) => antwort?.features.map((f) => f.attributes) ?? []);
+    // Bearbeitete Geometrien treffen wie Originale (Entscheid 91) — sie
+    // liegen lokal als Graphics, die Prüfung läuft über die Distanz.
+    const radiusMeter = view.resolution * radiusPx;
+    for (const [signatur, geometrien] of Object.entries(this.geometrieStore.alle())) {
+      if (!geometrien.length) continue;
+      for (const json of geometrien) {
+        const geometry = geometryJsonUtils.fromJSON(json as never);
+        if (!geometry) continue;
+        try {
+          if (geometryEngine.distance(geometry as never, zentrum as never, 'meters') <= radiusMeter) {
+            const kette = signaturKette(signatur);
+            treffer.push({ signatur, lf: kette.lf, strecke: kette.strecke || signatur });
+            break;
+          }
+        } catch {
+          // Geometrie in fremder SR — überspringen
+        }
+      }
+    }
+    return treffer;
   }
 
   /**
@@ -1055,6 +1155,7 @@ export class Karte implements AfterViewInit, OnDestroy {
       this.editWechselLaeuft = false;
     }
     this.verschneideModus = false;
+    this.tracingBeenden();
     this.editWerkzeug.set(null);
     this.editAuswahlAnzahl.set(0);
     this.editLayer.removeAll();
@@ -1085,6 +1186,7 @@ export class Karte implements AfterViewInit, OnDestroy {
     // gleich wieder nullen (Toolbar verlöre die Hervorhebung).
     this.editSketch.cancel();
     this.verschneideModus = false;
+    this.tracingBeenden();
     this.editWerkzeug.set(typ);
     this.editSketch.create(typ);
   }
@@ -1093,6 +1195,7 @@ export class Karte implements AfterViewInit, OnDestroy {
   geometrieVerschneiden(): void {
     if (!this.editSketch) return;
     this.editSketch.cancel();
+    this.tracingBeenden();
     this.verschneideModus = true;
     this.editWerkzeug.set('verschneiden');
     this.editSketch.create('polyline');
@@ -1103,17 +1206,186 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.editSketch?.delete();
   }
 
-  /** Alle Linien der Arbeitsgeometrien zu einer zusammenfügen (05.05). */
+  /**
+   * Originalgeometrie des editierten Objekts als Arbeitsgeometrie
+   * übernehmen (Entscheid 91): Die Features werden kopiert und damit
+   * bearbeitbar; das Original blendet die Karte aus, sobald
+   * Arbeitsgeometrien existieren. Gibt die Zahl der Linien zurück.
+   */
+  async geometrieUebernehmen(): Promise<number> {
+    const signatur = this.geometrieEditObjekt();
+    if (!signatur || !this.editLayer) return 0;
+    const features = await this.objektGeo.objektFeatures(ebeneAusSignatur(signatur), signatur);
+    if (!features.length || this.geometrieEditObjekt() !== signatur) return 0;
+    const graphics: Graphic[] = [];
+    for (const feature of features) {
+      const g = feature.geometry;
+      const pfade = (
+        g.type === 'LineString' ? [g.coordinates] : g.type === 'MultiLineString' ? g.coordinates : []
+      ) as [number, number][][];
+      if (pfade.length) {
+        const linie = webMercatorUtils.geographicToWebMercator(
+          new Polyline({ paths: pfade, spatialReference: { wkid: 4326 } }),
+        ) as Polyline;
+        graphics.push(new Graphic({ geometry: linie, symbol: editLinienSymbol() }));
+      } else if (g.type === 'Point') {
+        const [lon, lat] = g.coordinates as [number, number];
+        graphics.push(
+          new Graphic({
+            geometry: webMercatorUtils.geographicToWebMercator(
+              new Point({ longitude: lon, latitude: lat }),
+            ) as Point,
+            symbol: editPunktSymbol(),
+          }),
+        );
+      }
+    }
+    if (!graphics.length) return 0;
+    this.editLayer.addMany(graphics);
+    this.geometrienSpeichern();
+    return graphics.length;
+  }
+
+  /**
+   * Tracing (05.09): Zeichnen entlang einer bestehenden Geometrie — zwei
+   * Klicks auf eine Original-Linie übernehmen das Teilstück dazwischen
+   * als neue Arbeitslinie.
+   */
+  geometrieTracing(): void {
+    if (!this.editSketch) return;
+    if (this.editWerkzeug() === 'tracing') {
+      this.tracingBeenden();
+      return;
+    }
+    this.editSketch.cancel();
+    this.verschneideModus = false;
+    this.tracingStart = null;
+    this.editWerkzeug.set('tracing');
+  }
+
+  private tracingBeenden(): void {
+    this.tracingStart = null;
+    if (this.tracingMarker) {
+      this.skizzenLayer?.remove(this.tracingMarker);
+      this.tracingMarker = null;
+    }
+    if (this.editWerkzeug() === 'tracing') this.editWerkzeug.set(null);
+  }
+
+  /** Klick im Tracing-Modus: Punkt auf der nächstgelegenen Original-Linie. */
+  private async tracingKlick(punkt: { x: number; y: number }): Promise<void> {
+    const view = this.view;
+    if (!view) return;
+    const zentrum = view.toMap(punkt);
+    if (!zentrum) return;
+    const radiusPx = matchMedia('(pointer: coarse)').matches
+      ? TREFFER_RADIUS_TOUCH_PX
+      : TREFFER_RADIUS_PX;
+
+    if (this.tracingStart) {
+      // Zweiter Klick: Teilstück zwischen beiden Punkten übernehmen
+      const start = this.tracingStart;
+      const s1 = naechsterAufPfad(start.pfad, [zentrum.x, zentrum.y]);
+      const teil = teilstueckZwischen(start.pfad, start.s, s1.s);
+      this.tracingBeenden();
+      if (teil.length < 2 || !this.editLayer) return;
+      this.editLayer.add(
+        new Graphic({
+          geometry: new Polyline({ paths: [teil], spatialReference: view.spatialReference }),
+          symbol: editLinienSymbol(),
+        }),
+      );
+      this.geometrienSpeichern();
+      return;
+    }
+
+    // Erster Klick: nächstgelegene Original-Linie im Umkreis suchen
+    let bester: { pfad: [number, number][]; s: number; distanz: number } | null = null;
+    for (const layer of this.objektLayers) {
+      const antwort = await layer
+        .queryFeatures({
+          geometry: zentrum,
+          distance: view.resolution * radiusPx * 3,
+          units: 'meters',
+          spatialRelationship: 'intersects',
+          where: "signatur <> ''",
+          outFields: ['signatur'],
+          returnGeometry: true,
+          outSpatialReference: view.spatialReference,
+        })
+        .catch(() => null);
+      for (const feature of antwort?.features ?? []) {
+        const geometrie = feature.geometry;
+        if (geometrie?.type !== 'polyline') continue;
+        for (const pfad of (geometrie as Polyline).paths as [number, number][][]) {
+          const kandidat = naechsterAufPfad(pfad, [zentrum.x, zentrum.y]);
+          if (!bester || kandidat.distanz < bester.distanz) {
+            bester = { pfad, s: kandidat.s, distanz: kandidat.distanz };
+          }
+        }
+      }
+    }
+    if (!bester || this.editWerkzeug() !== 'tracing') return;
+    this.tracingStart = { pfad: bester.pfad, s: bester.s };
+    const startPunkt = punktBeiDistanz(bester.pfad, bester.s);
+    this.tracingMarker = new Graphic({
+      geometry: new Point({
+        x: startPunkt[0],
+        y: startPunkt[1],
+        spatialReference: view.spatialReference,
+      }),
+      symbol: new SimpleMarkerSymbol({
+        color: [79, 70, 229],
+        size: 10,
+        outline: { color: [255, 255, 255], width: 2 },
+      }),
+    });
+    this.skizzenLayer?.add(this.tracingMarker);
+  }
+
+  /**
+   * Linien zusammenfügen (05.05): die im Sketch selektierten Linien —
+   * ersatzweise alle. Berührende Pfade werden zu durchgehenden Linien
+   * verkettet; das frühere reine `union` liess sie als getrennte
+   * Teilpfade stehen und wirkte darum folgenlos.
+   */
   geometrieZusammenfuegen(): void {
-    if (!this.editLayer) return;
-    const linien = this.editLayer.graphics.filter((g) => g.geometry?.type === 'polyline');
-    if (linien.length < 2) return;
-    const vereint = geometryEngine.union(
-      linien.map((g) => g.geometry!).toArray(),
-    ) as Polyline | null;
-    if (!vereint) return;
-    this.editLayer.removeMany(linien.toArray());
-    this.editLayer.add(new Graphic({ geometry: vereint, symbol: editLinienSymbol() }));
+    if (!this.editLayer || !this.editSketch) return;
+    const selektiert = this.editSketch.updateGraphics
+      .filter((g) => g.geometry?.type === 'polyline')
+      .toArray();
+    const kandidaten =
+      selektiert.length >= 2
+        ? selektiert
+        : this.editLayer.graphics.filter((g) => g.geometry?.type === 'polyline').toArray();
+    if (kandidaten.length < 2) {
+      toast.info('Zum Zusammenfügen braucht es mindestens zwei Linien', {
+        description: 'Mehrere Linien mit Shift-Klick auswählen — ohne Auswahl gelten alle.',
+      });
+      return;
+    }
+    this.editWechselLaeuft = true;
+    try {
+      this.editSketch.cancel();
+    } finally {
+      this.editWechselLaeuft = false;
+    }
+    this.editAuswahlAnzahl.set(0);
+    const pfade: [number, number][][] = [];
+    for (const graphic of kandidaten) {
+      pfade.push(...((graphic.geometry as Polyline).paths as [number, number][][]));
+    }
+    const sr = (kandidaten[0].geometry as Polyline).spatialReference;
+    // Toleranz fürs Verketten: ~15 m (WebMercator) bzw. ~15 m in Grad
+    const toleranz = sr?.isGeographic ? 0.00015 : 15;
+    const verkettet = verkettePfade(pfade, toleranz);
+    this.editLayer.removeMany(kandidaten);
+    this.editLayer.add(
+      new Graphic({
+        geometry: new Polyline({ paths: verkettet, spatialReference: sr }),
+        symbol: editLinienSymbol(),
+      }),
+    );
     this.geometrienSpeichern();
   }
 
@@ -1121,18 +1393,28 @@ export class Karte implements AfterViewInit, OnDestroy {
   private verschneiden(schnittlinie: Polyline): void {
     if (!this.editLayer) return;
     const linien = this.editLayer.graphics.filter((g) => g.geometry?.type === 'polyline').toArray();
-    let geschnitten = false;
+    let geschnitten = 0;
     for (const graphic of linien) {
       const teile = geometryEngine.cut(graphic.geometry as Polyline, schnittlinie);
       if (teile.length > 1) {
-        geschnitten = true;
+        geschnitten++;
         this.editLayer.remove(graphic);
         this.editLayer.addMany(
           teile.map((teil) => new Graphic({ geometry: teil, symbol: editLinienSymbol() })),
         );
       }
     }
-    if (geschnitten) this.geometrienSpeichern();
+    if (geschnitten) {
+      this.geometrienSpeichern();
+      toast.success(`${geschnitten} Linie${geschnitten === 1 ? '' : 'n'} geteilt`, {
+        description: 'Die Teile lassen sich einzeln auswählen, verschieben und löschen.',
+      });
+    } else {
+      // Rückmeldung statt Stille — vorher wirkte das Werkzeug defekt
+      toast.info('Nichts geschnitten', {
+        description: 'Die Schnittlinie muss eine Arbeitslinie kreuzen.',
+      });
+    }
   }
 
   snappingUmschalten(): void {
@@ -1354,6 +1636,123 @@ function whereFuerSelektion(auswahl: KartenSelektion): string {
     default:
       return `signatur = '${wert}'`;
   }
+}
+
+/**
+ * Ebene aus dem Signaturformat ableiten («BE 21» → Strecke, «BE 21.1» →
+ * Linienführung, «BE 21.1.2» → Abschnitt, «BE 21 W1» → Wegbegleiter) —
+ * für Ausblendung und Übernahme bearbeiteter Geometrien (Entscheid 91).
+ */
+function ebeneAusSignatur(signatur: string): Ebene {
+  if (/ W\d+$/.test(signatur)) return 'wegbegleiter';
+  const teile = signatur.split('.');
+  return teile.length >= 3 ? 'abschnitt' : teile.length === 2 ? 'linienfuehrung' : 'strecke';
+}
+
+/**
+ * Pfade zu möglichst wenigen durchgehenden Linien verketten: Solange sich
+ * zwei Pfad-Enden innerhalb der Toleranz berühren, werden die Pfade
+ * (bei Bedarf umgedreht) aneinandergehängt.
+ */
+function verkettePfade(pfade: [number, number][][], toleranz: number): [number, number][][] {
+  const offen = pfade.map((p) => [...p]);
+  const nah = (a: [number, number], b: [number, number]) =>
+    Math.hypot(a[0] - b[0], a[1] - b[1]) <= toleranz;
+  const ergebnis: [number, number][][] = [];
+  while (offen.length) {
+    let aktuell = offen.shift()!;
+    let gewachsen = true;
+    while (gewachsen) {
+      gewachsen = false;
+      for (let i = 0; i < offen.length; i++) {
+        const kandidat = offen[i];
+        const aStart = aktuell[0];
+        const aEnde = aktuell[aktuell.length - 1];
+        const kStart = kandidat[0];
+        const kEnde = kandidat[kandidat.length - 1];
+        if (nah(aEnde, kStart)) aktuell = [...aktuell, ...kandidat.slice(1)];
+        else if (nah(aEnde, kEnde)) aktuell = [...aktuell, ...[...kandidat].reverse().slice(1)];
+        else if (nah(aStart, kEnde)) aktuell = [...kandidat, ...aktuell.slice(1)];
+        else if (nah(aStart, kStart))
+          aktuell = [...[...kandidat].reverse(), ...aktuell.slice(1)];
+        else continue;
+        offen.splice(i, 1);
+        gewachsen = true;
+        break;
+      }
+    }
+    ergebnis.push(aktuell);
+  }
+  return ergebnis;
+}
+
+/**
+ * Projektion eines Punkts auf einen Pfad: kumulative Distanz `s` entlang
+ * des Pfads und der Abstand zum Pfad (alles planar in Karteneinheiten).
+ */
+function naechsterAufPfad(
+  pfad: [number, number][],
+  punkt: [number, number],
+): { s: number; distanz: number } {
+  let besteS = 0;
+  let besteDistanz = Number.POSITIVE_INFINITY;
+  let laufend = 0;
+  for (let i = 1; i < pfad.length; i++) {
+    const [ax, ay] = pfad[i - 1];
+    const [bx, by] = pfad[i];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const laenge2 = dx * dx + dy * dy;
+    const t = laenge2 === 0 ? 0 : Math.max(0, Math.min(1, ((punkt[0] - ax) * dx + (punkt[1] - ay) * dy) / laenge2));
+    const px = ax + t * dx;
+    const py = ay + t * dy;
+    const distanz = Math.hypot(punkt[0] - px, punkt[1] - py);
+    const segmentLaenge = Math.sqrt(laenge2);
+    if (distanz < besteDistanz) {
+      besteDistanz = distanz;
+      besteS = laufend + t * segmentLaenge;
+    }
+    laufend += segmentLaenge;
+  }
+  return { s: besteS, distanz: besteDistanz };
+}
+
+/** Punkt bei kumulativer Distanz `s` entlang eines Pfads. */
+function punktBeiDistanz(pfad: [number, number][], s: number): [number, number] {
+  let laufend = 0;
+  for (let i = 1; i < pfad.length; i++) {
+    const [ax, ay] = pfad[i - 1];
+    const [bx, by] = pfad[i];
+    const laenge = Math.hypot(bx - ax, by - ay);
+    if (laufend + laenge >= s && laenge > 0) {
+      const t = (s - laufend) / laenge;
+      return [ax + t * (bx - ax), ay + t * (by - ay)];
+    }
+    laufend += laenge;
+  }
+  return pfad[pfad.length - 1];
+}
+
+/** Teilstück eines Pfads zwischen zwei kumulativen Distanzen (Tracing). */
+function teilstueckZwischen(
+  pfad: [number, number][],
+  s0: number,
+  s1: number,
+): [number, number][] {
+  const [von, bis] = s0 <= s1 ? [s0, s1] : [s1, s0];
+  if (bis - von <= 0) return [];
+  const punkte: [number, number][] = [punktBeiDistanz(pfad, von)];
+  let laufend = 0;
+  for (let i = 1; i < pfad.length; i++) {
+    const [ax, ay] = pfad[i - 1];
+    const [bx, by] = pfad[i];
+    const laenge = Math.hypot(bx - ax, by - ay);
+    const ende = laufend + laenge;
+    if (ende > von && ende < bis) punkte.push([bx, by]);
+    laufend = ende;
+  }
+  punkte.push(punktBeiDistanz(pfad, bis));
+  return punkte;
 }
 
 /** Referenz auf die Layer-Definitionen für einbettende Seiten. */

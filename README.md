@@ -219,8 +219,12 @@ neuen Session weiterzuarbeiten.
   Platzier-Werkzeug) — immer mit Pflicht-Objektzuweisung, vorbelegt
   mit dem an der Klickstelle getroffenen Objekt.
 - **Detail-Werkzeuge**: Rich-Text-Editor (07.17) für Geschichte/Gelände,
-  Geometrie-Editing (05.05/05.09: zeichnen, verschieben, Stützpunkte,
-  verschneiden, zusammenfügen, Snapping), Hintergrundkarten und Overlays
+  Geometrie-Editing (05.05/05.09: zeichnen, auswählen, verschieben,
+  Stützpunkte, verschneiden, selektionsbasiertes Zusammenfügen mit
+  echter Pfad-Verkettung, Originalgeometrie übernehmen — sie ersetzt
+  das Original und bleibt anwählbar —, Tracing entlang bestehender
+  Linien, neue Linienführungen/Abschnitte direkt aus dem Zeichnen,
+  Snapping), Hintergrundkarten und Overlays
   mit Transparenz (05.04), Objekt umteilen (07.09), Quellen zusammenstellen
   mit simulierter Literaturdatenbank-Abfrage (07.18).
 - **Stammdatenverwaltung** (`/stammdaten`, nur R-03): Auswahllisten mit

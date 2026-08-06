@@ -331,6 +331,58 @@ export class ObjektStore {
   }
 
   /**
+   * Neues Kind-Objekt für das Geometrie-Editing anlegen (Entscheid 91):
+   * unter einer Strecke eine Linienführung, unter einer Linienführung
+   * einen Abschnitt — mit automatischer Signatur (nächste freie
+   * Unternummer); Status und Zuständigkeit erben vom Parent
+   * (Entscheid 78). Gibt null zurück, wenn der Parent fehlt.
+   */
+  kindErstellen(
+    parentId: string,
+    ebene: 'linienfuehrung' | 'abschnitt',
+    name: string,
+    autor: string,
+    autorRolle: RolleId,
+  ): IvsObjekt | null {
+    const parent = this.byId(parentId);
+    if (!parent) return null;
+    let nummer = 0;
+    for (const o of this.objekte()) {
+      if (o.parent !== parent.signatur) continue;
+      const teil = Number(o.signatur.slice(parent.signatur.length + 1));
+      if (Number.isFinite(teil)) nummer = Math.max(nummer, teil);
+    }
+    const signatur = `${parent.signatur}.${nummer + 1}`;
+    if (this.bySignatur(signatur)) return null;
+    const objekt: IvsObjekt = {
+      ...objektAusVorlage({
+        signatur,
+        ebene,
+        name,
+        parent: parent.signatur,
+        status: parent.status,
+        zustaendigRolle: parent.zustaendigRolle,
+        zustaendigName: parent.zustaendigName,
+      }),
+      kanton: parent.kanton,
+      gemeinden: parent.gemeinden,
+      substanzgrad: null,
+      aufnahmejahr: null,
+      planer: '',
+      lognotizen: [
+        {
+          datum: jetztLokal().slice(0, 10),
+          autor,
+          rolle: autorRolle,
+          text: 'Objekt aus dem Geometrie-Editing angelegt.',
+        },
+      ],
+    };
+    this.objekte.update((liste) => [...liste, objekt]);
+    return objekt;
+  }
+
+  /**
    * Nächste freie Strecken-Nummer eines Kantons (für die automatische
    * Signatur neuer Strecken, Entscheid 90).
    */

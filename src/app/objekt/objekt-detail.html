@@ -1229,8 +1229,47 @@
               >
                 <ng-icon name="lucideMagnet" />
               </button>
+              <button
+                hlmBtn
+                [variant]="editWerkzeug() === 'tracing' ? 'secondary' : 'ghost'"
+                size="icon"
+                type="button"
+                (click)="karte()?.geometrieTracing()"
+                hlmTooltip="Tracing: zwei Klicks auf eine bestehende Linie übernehmen das Teilstück dazwischen (05.09)"
+                aria-label="Tracing entlang bestehender Geometrie"
+              >
+                <ng-icon name="lucideRoute" />
+              </button>
+              <div class="mx-1 h-5 w-px bg-border"></div>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                (click)="geometrieUebernehmenKlick()"
+                hlmTooltip="Originalgeometrie dieses Objekts übernehmen und bearbeiten — das Original wird ersetzt (Entscheid 91)"
+                aria-label="Originalgeometrie übernehmen"
+              >
+                <ng-icon name="lucideImport" />
+              </button>
+              @if (o.ebene === 'strecke' || o.ebene === 'linienfuehrung') {
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  type="button"
+                  (click)="neuesObjektKlick()"
+                  [hlmTooltip]="
+                    'Neues Objekt anlegen und dafür zeichnen: ' +
+                    (o.ebene === 'strecke' ? 'neue Linienführung' : 'neuer Abschnitt')
+                  "
+                  aria-label="Neues Objekt anlegen und dafür zeichnen"
+                >
+                  <ng-icon name="lucidePlus" />
+                </button>
+              }
               <span class="ml-auto text-xs text-muted-foreground">
-                Klick auf eine Zeichnung: verschieben und Stützpunkte ziehen
+                Klick auf eine Zeichnung: auswählen, verschieben, Stützpunkte ziehen
               </span>
             </div>
           }
@@ -1273,6 +1312,48 @@
       </aside>
     </div>
   </div>
+
+  <!-- Neues Objekt fürs Zeichnen anlegen (Entscheid 91) -->
+  <hlm-dialog
+    [state]="neuesObjektOffen() ? 'open' : 'closed'"
+    (stateChanged)="neuesObjektOffen.set($event === 'open')"
+  >
+    <hlm-dialog-content *hlmDialogPortal>
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>
+          {{ neuesObjektEbene() === 'linienfuehrung' ? 'Neue Linienführung' : 'Neuer Abschnitt' }}
+          anlegen
+        </h3>
+        <p hlmDialogDescription>
+          Unter {{ o.signatur }} — die Signatur wird automatisch vergeben, danach wechselt die
+          Ansicht zum neuen Objekt und die Zeichnung landet dort.
+        </p>
+      </hlm-dialog-header>
+      <div class="grid gap-1.5 py-2">
+        <label hlmLabel for="no-name">Name <span class="text-destructive">*</span></label>
+        <input
+          hlmInput
+          id="no-name"
+          placeholder="z. B. Hohlweg über die Fluh"
+          [ngModel]="neuesObjektName()"
+          (ngModelChange)="neuesObjektName.set($event)"
+        />
+      </div>
+      <hlm-dialog-footer>
+        <button hlmBtn variant="outline" type="button" (click)="neuesObjektOffen.set(false)">
+          Abbrechen
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          [disabled]="!neuesObjektName().trim()"
+          (click)="neuesObjektErstellen()"
+        >
+          Anlegen und zeichnen
+        </button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
 
   <!-- Begehung anfordern (Entscheid 89): für dieses Objekt, mit Begründung -->
   <hlm-dialog

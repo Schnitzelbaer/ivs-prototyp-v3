@@ -27,11 +27,13 @@ import {
   lucideHistory,
   lucideImagePlus,
   lucideMagnet,
+  lucideImport,
   lucideMapPin,
   lucideMerge,
   lucideMessageSquarePlus,
   lucidePencil,
   lucidePlus,
+  lucideRoute,
   lucideScissors,
   lucideSpline,
   lucideTrash2,
@@ -148,12 +150,14 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideExternalLink,
       lucideHistory,
       lucideImagePlus,
+      lucideImport,
       lucideMagnet,
       lucideMapPin,
       lucideMerge,
       lucideMessageSquarePlus,
       lucidePencil,
       lucidePlus,
+      lucideRoute,
       lucideScissors,
       lucideSpline,
       lucideTrash2,
@@ -677,6 +681,60 @@ export class ObjektDetail implements OnDestroy {
     toast.success('Begehung angefordert', {
       description: `${o.signatur} — die Fachliche Administration plant sie ein.`,
     });
+  }
+
+  // ------------------------------------------ Geometrie-Werkzeuge (E91)
+
+  /** Originalgeometrie übernehmen — sie ersetzt das Original auf der Karte. */
+  protected geometrieUebernehmenKlick(): void {
+    void this.karte()
+      ?.geometrieUebernehmen()
+      .then((anzahl) => {
+        if (anzahl > 0) {
+          toast.success(`${anzahl} Geometrie${anzahl === 1 ? '' : 'n'} übernommen`, {
+            description:
+              'Die Originalgeometrie ist jetzt bearbeitbar und ersetzt die bisherige Darstellung.',
+          });
+        } else {
+          this.hinweis.zeige(
+            'Keine Originalgeometrie',
+            'Für dieses Objekt liegen keine Original-Features vor — zeichne die Geometrie neu ' +
+              'oder übernimm ein Teilstück per Tracing.',
+          );
+        }
+      });
+  }
+
+  // Neues Kind-Objekt fürs Zeichnen anlegen (Entscheid 91)
+  protected readonly neuesObjektOffen = signal(false);
+  protected readonly neuesObjektName = signal('');
+
+  protected readonly neuesObjektEbene = computed<'linienfuehrung' | 'abschnitt' | null>(() => {
+    const ebene = this.objekt()?.ebene;
+    return ebene === 'strecke' ? 'linienfuehrung' : ebene === 'linienfuehrung' ? 'abschnitt' : null;
+  });
+
+  protected neuesObjektKlick(): void {
+    if (!this.neuesObjektEbene()) return;
+    this.neuesObjektName.set('');
+    this.neuesObjektOffen.set(true);
+  }
+
+  protected neuesObjektErstellen(): void {
+    const o = this.objekt();
+    const ebene = this.neuesObjektEbene();
+    const name = this.neuesObjektName().trim();
+    if (!o || !ebene || !name) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const neu = this.store.kindErstellen(o.id, ebene, name, NAME_FUER_ROLLE[rolle], rolle);
+    if (!neu) return;
+    this.neuesObjektOffen.set(false);
+    toast.success(`${neu.signatur} angelegt`, {
+      description: 'Zum neuen Objekt gewechselt — die Zeichnung landet dort.',
+    });
+    // Zum neuen Objekt wechseln: Modus (Edit + Geometrie) bleibt erhalten,
+    // die nächste Zeichnung gehört damit dem neuen Objekt (Entscheid 91)
+    this.wechsleZu(neu);
   }
 
   // ------------------------------------ Signatur angeforderter Strecken (E90)

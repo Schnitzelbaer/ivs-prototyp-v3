@@ -1327,6 +1327,28 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     Zuweisung über die üblichen Werkzeuge. Solange das Kennzeichen
     steht, bleibt die **Signatur im Formular anpassbar**
     (`signaturAendern` zieht Ids, Nachkommen und die URL nach).
+91. **Geometrie-Werkzeuge ausgebaut** (05.05/05.09): **(a) Übernahme
+    und Selektion** — «Originalgeometrie übernehmen» kopiert die
+    Original-Features des Objekts als bearbeitbare Arbeitsgeometrie
+    (Klick wählt aus, Verschieben/Stützpunkte wie gehabt); sobald ein
+    Objekt Arbeitsgeometrien hat, **ersetzen sie sein Original auf
+    allen Karten** (Original per definitionExpression ausgeblendet,
+    die bearbeitete Version bleibt über die räumliche Treffersuche
+    anwählbar — Hover, Klick, Side-Panel unverändert). **(b)
+    Zusammenfügen repariert**: wirkt auf die selektierten Linien
+    (Shift-Klick; ohne Auswahl alle) und **verkettet berührende Pfade
+    zu durchgehenden Linien** — das frühere reine `union` liess sie
+    als getrennte Teilpfade stehen und wirkte folgenlos. **(c)
+    Verschneiden** teilt die Arbeitslinien an einer gezeichneten
+    Schnittlinie und meldet das Ergebnis als Toast — auch wenn nichts
+    geschnitten wurde (vorher stilles Nichtstun). **(d) Tracing**:
+    zwei Klicks auf eine Original-Linie übernehmen das **Teilstück
+    dazwischen** als neue Arbeitslinie. **(e) Neues Objekt vor dem
+    Zeichnen**: Der Plus-Knopf legt unter einer Strecke eine neue
+    Linienführung bzw. unter einer Linienführung einen neuen Abschnitt
+    an (`kindErstellen`: automatische Signatur, Status/Zuständigkeit
+    vom Parent) und wechselt dorthin — die Zeichnung gehört damit dem
+    neuen Objekt.
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1746,8 +1768,12 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–84 in
   Pflicht-Objektzuweisung, vorbelegt mit dem getroffenen Objekt.
 - **Detail-Werkzeuge**: Rich-Text-Editor für die Beschriebe (07.17: fett,
   kursiv, durchstreichen, Markerfarben), Geometrie-Editing auf der Karte
-  (05.05: zeichnen, verschieben, Stützpunkte, verschneiden, zusammenfügen;
-  Snapping 05.09 an bestehender Geometrie — TLM liegt nur als Raster vor),
+  (05.05/Entscheid 91: zeichnen, auswählen, verschieben, Stützpunkte,
+  verschneiden mit Rückmeldung, selektionsbasiertes Zusammenfügen mit
+  echter Pfad-Verkettung, Originalgeometrie übernehmen — sie ersetzt das
+  Original und bleibt anwählbar —, Tracing entlang bestehender Linien,
+  neue Linienführungen/Abschnitte direkt aus dem Zeichnen; Snapping
+  05.09 an bestehender Geometrie — TLM liegt nur als Raster vor),
   Hintergrundwechsel und Raster-Overlays mit Transparenz (05.04: IVS-
   Geländekarte, Dufourkarte, Luftbild) samt Objekt-Deckkraft, Umteilen an
   ein anderes Parent-Objekt (07.09), Quellen-Zusammenstellung mit
@@ -1957,6 +1983,20 @@ Fehler, die schon einmal Zeit gekostet haben:
   nach dem Öffnen die gewünschte Zeile fokussieren (`ivsFokusAktiv` in
   hierarchie-menu.ts, `afterNextRender` + `setTimeout`, nach dem
   CDK-eigenen Fokus).
+- **`geometryEngine.union` verschmilzt Polyline-Pfade nicht.** Die
+  Eingabelinien bleiben als getrennte Teilpfade einer Multi-Path-Polyline
+  stehen — fürs «Zusammenfügen» braucht es eine eigene Verkettung über
+  die Endpunkte (mit Toleranz, `verkettePfade` in karte.ts). Ohne sie
+  wirkt das Werkzeug folgenlos.
+- **Das SketchViewModel reagiert nicht auf ferngesteuerte Klicks** des
+  Browser-Panes (weder synthetische DOM-Events noch CDP-Klicks kommen in
+  seiner Eingabe-Pipeline an) — Zeichnen lässt sich dort nur über
+  direkte Methodenaufrufe der Komponente verifizieren
+  (`ng.getComponent`), echte Maus bleibt der Massstab. `view.on('click')`
+  dagegen funktioniert mit echten CDP-Klicks.
+- **`queryFeatures` mit Buffer-Polygon kann leer bleiben,** wo dieselbe
+  Abfrage mit `distance` + `units` am Punkt zuverlässig trifft — fürs
+  Tracing wird deshalb die distance-Form verwendet.
 - **Verschachtelte `hlmDropdownMenuTrigger` sind eine Falle.** Das CDK
   behandelt einen Trigger innerhalb eines offenen Menüs als **Submenü**:
   Es öffnet bereits auf Hover. Zudem wird das Menü-Template im
