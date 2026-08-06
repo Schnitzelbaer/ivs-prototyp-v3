@@ -872,8 +872,9 @@ gelten ebenfalls, bis sie ausdrücklich geändert werden.
     Reihenfolge der Objekte, Logistik (Verkehrsmittel, Unterkunft,
     Zeitbedarf). Eine Begehung ist auch aus der Objektdetailansicht planbar.
 38. **Kommentieren** auf jedem Parent- oder Child-Objekt sowie **frei auf der
-    Karte** an beliebigem Ort; die Zuweisung zu einem Objekt ist dort
-    optional. Gestaltung gemäss Screenshot: Suche, Sortierung, Filter
+    Karte** an beliebigem Ort; ~~die Zuweisung zu einem Objekt ist dort
+    optional~~ **überholt durch Entscheid 88** — jeder Kommentar gehört
+    zwingend zu einem Objekt. Gestaltung gemäss Screenshot: Suche, Sortierung, Filter
     (offen/geschlossen, Datum, eigene, Attribut), Threads mit Antworten,
     Erledigt-Schalter, Titel, `@`-Erwähnungen aller Benutzer mit Rolle und
     `#`-Attribut-Referenzen, die im Formular zum Attribut scrollen.
@@ -1147,10 +1148,10 @@ _Prüfprotokoll, Arbeitspakete und Status-Vererbung_
     oder ersatzweise die aktive **Polygon-Selektion**, Zielperson
     wählbar (B. Anderegg, L. Furrer). Eine Zuweisung ist ein
     **einmaliger Vorgang** (keine persistente Paket-Entität, dadurch
-    exklusiv).~~ **Überholt durch Entscheid 83** — Pakete sind benannte,
-    gespeicherte Entitäten. Die Zuweisung setzt weiterhin alle Objekte
-    des Pakets in einem Zug auf **«Zugewiesen»**, mit Person und
-    Lognotiz (`paketZuweisen` im ObjektStore).
+    exklusiv).~~ ~~**Überholt durch Entscheid 83** — Pakete sind
+    benannte, gespeicherte Entitäten.~~ **Überholt durch Entscheid 85**
+    — R-04-Arbeitspakete sind entfallen, die Zuweisung läuft rein über
+    die Zuständigkeit (`personZuweisen`/`personZuweisenMehrere`).
     **Paketrollen sehen immer alle Objekte** (der persönliche Filter
     aus Entscheid 70 gilt nur noch für R-05/06/07; R-04 seit
     Entscheid 83 beschränkt auf ihre Kantone). ~~Sie können auf
@@ -1161,7 +1162,7 @@ _Prüfprotokoll, Arbeitspakete und Status-Vererbung_
 78. **Status auf Strecken-Ebene:** Der Workflow-Status wird nur auf
     Strecken gesetzt — **alle untergeordneten Objekte richten sich nach
     dem Status ihrer Strecke.** Umgesetzt als Vererbung: Ein
-    Statuswechsel auf der Strecke (`statusWechseln`, `paketZuweisen`)
+    Statuswechsel auf der Strecke (`statusWechseln`, `personZuweisen`)
     zieht Status und Zuständigkeit still auf alle Nachkommen (Lognotiz
     nur an der Strecke); die Seed-Daten und die generierte Vollabdeckung
     sind entsprechend normalisiert (`statusVonStreckeErben`,
@@ -1239,13 +1240,15 @@ Arbeitspakete und echte Filter.
     Bewertungs-Durchschnitt (mindestens Ø 1–3) und Inexistenz**; die
     Schnellfilter (Status, Bedeutung, Substanzgrad) bleiben. Die
     **Region-Attrappe ist ersetzt**. Auf erster Ebene stehen — **nur
-    für R-03 und R-04** — die Filter **«Zuständige Person»** (alle
-    Personen, «System», «Ohne Zuweisung») und **«Arbeitspaket»**
-    (R-03: 26 Kantonspakete und alle R-04-Pakete; R-04: nur die
-    eigenen Pakete; Nachkommen paketierter Strecken gelten als im
-    Paket). Die persönliche Einschränkung für R-05/06/07 bleibt
-    bestehen — diese Rollen sehen die beiden Filter nicht. Die
-    **Karte folgt den Filtern** auf beiden Seiten (Entscheid 73).
+    für R-03 und R-04** — der Filter **«Zuständige Person»** (alle
+    Personen, «System», «Ohne Zuweisung») und ~~der Filter
+    **«Arbeitspaket»** (R-03: 26 Kantonspakete und alle R-04-Pakete;
+    R-04: nur die eigenen Pakete; Nachkommen paketierter Strecken
+    gelten als im Paket)~~ **mit Entscheid 85 reduziert** — der
+    Paket-Filter gehört allein R-03 und bietet die 26 Kantonspakete.
+    Die persönliche Einschränkung für R-05/06/07 bleibt bestehen —
+    diese Rollen sehen die Filter nicht. Die **Karte folgt den
+    Filtern** auf beiden Seiten (Entscheid 73).
 
 **Achte Ausbaustufe — Review-Paket vom 06.08.2026 (14 Rückfragen in
 derselben Session geklärt).** Rückbau der R-04-Pakete, Zuweisungs-Dialog,
@@ -1260,14 +1263,18 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     (Kantonspakete, Entscheid 82); der Filter «Arbeitspaket» steht nur
     noch R-03 zur Verfügung und bietet die 26 Kantonspakete. Das
     Kanton-Scoping von R-04 bleibt.
-86. **Offen → Zugewiesen verlangt eine Person:** Wählt R-03 oder R-04
-    auf einem offenen Objekt den Status «Zugewiesen» (Dashboard-Zeile
-    oder Kopfzeilen-Dropdown), öffnet sich der Dialog **«Person
+86. **Weg von «Offen» nur mit Person:** Wählt R-03 oder R-04 auf
+    einem offenen Objekt **irgendeinen anderen Status** —
+    «Zugewiesen», aber auch «In Bearbeitung» usw. (Dashboard-Zeile
+    oder Kopfzeilen-Dropdown) —, öffnet sich der Dialog **«Person
     zuweisen»** — ohne Personenwahl kein Wechsel; die Bestätigung
-    läuft über `personZuweisen` (Person, Status, Lognotiz in einem
-    Zug). Allen anderen Rollen erklärt ein Modal, dass Zuweisungen
-    R-03/R-04 vorbehalten sind (präzisiert die Entscheide 79/81 —
-    R-05 kann sich offene Objekte nicht mehr selbst holen).
+    läuft über `personZuweisen` und setzt immer **«Zugewiesen»**
+    (der Workflow beginnt dort — Person, Status, Lognotiz in einem
+    Zug). So gibt es keinen Schleichweg an der Zuweisungspflicht
+    vorbei (Review-Befund der achten Ausbaustufe). Allen anderen
+    Rollen erklärt ein Modal, dass Zuweisungen R-03/R-04 vorbehalten
+    sind (präzisiert die Entscheide 79/81 — R-05 kann sich offene
+    Objekte nicht mehr selbst holen).
 87. **Multi-Edit im Dashboard** (04.04): Im Kopf jeder Status-Gruppe
     wählt eine **übergreifende Checkbox** alle Objekte der Gruppe;
     sobald etwas ausgewählt ist, erscheint die **Multi-Edit-Leiste**
@@ -1326,15 +1333,23 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     Beschrieb füllen — übernehmen die **Inventarisierenden** nach der
     Zuweisung über die üblichen Werkzeuge. Solange das Kennzeichen
     steht, bleibt die **Signatur im Formular anpassbar**
-    (`signaturAendern` zieht Ids, Nachkommen und die URL nach).
+    (`signaturAendern` zieht Ids, Nachkommen, die URL sowie verknüpfte
+    Kommentare, Arbeitsgeometrien und Begehungsziele nach —
+    `signaturenMigrieren` in den drei Stores; `loeschen` räumt dieselben
+    Verknüpfungen ab). Das Kennzeichen **erlischt**, sobald die Strecke
+    die Erstellungsphase verlässt (Statuswechsel weg von
+    Offen/Zugewiesen/In Bearbeitung/Korrektur, Review-Befund).
 91. **Geometrie-Werkzeuge ausgebaut** (05.05/05.09): **(a) Übernahme
     und Selektion** — «Originalgeometrie übernehmen» kopiert die
     Original-Features des Objekts als bearbeitbare Arbeitsgeometrie
     (Klick wählt aus, Verschieben/Stützpunkte wie gehabt); sobald ein
     Objekt Arbeitsgeometrien hat, **ersetzen sie sein Original auf
-    allen Karten** (Original per definitionExpression ausgeblendet,
-    die bearbeitete Version bleibt über die räumliche Treffersuche
-    anwählbar — Hover, Klick, Side-Panel unverändert). **(b)
+    allen Karten** (Original per definitionExpression ausgeblendet —
+    bewusst nur über das exakte `signatur`-Feld, damit die
+    Kinder-Features einer bearbeiteten Strecke/Linienführung sichtbar
+    und anwählbar bleiben; die bearbeitete Version bleibt über die
+    räumliche Treffersuche anwählbar — Hover, Klick, Side-Panel
+    unverändert). **(b)
     Zusammenfügen repariert**: wirkt auf die selektierten Linien
     (Shift-Klick; ohne Auswahl alle) und **verkettet berührende Pfade
     zu durchgehenden Linien** — das frühere reine `union` liess sie
@@ -1425,9 +1440,9 @@ bei Bedarf nachschärfen):
 
 - **Wer weist ToDos zu?** ~~Wie eine Zuweisung fachlich entsteht
   (Arbeitspaket, Regionale Koordination) ist noch nicht gebaut.~~
-  **Gebaut mit Entscheid 77:** R-03 schnürt Kantonspakete für die
-  Regionale Koordination, R-04 Pakete für die Inventarisierenden;
-  offen bleiben Einsatzlisten (03.04) und persistente Paket-Entitäten.
+  **Gebaut (Entscheide 77/82/85):** R-03 schnürt Kantonspakete für die
+  Regionale Koordination; R-04 weist Inventarisierende direkt über die
+  Zuständigkeit zu (Multi-Edit). Offen bleiben Einsatzlisten (03.04).
 - **Substanzstufen der Legende:** Die abgestimmte Taxonomie kennt «Abschnitt
   mit Substanz» und «mit viel Substanz» (Entscheid 48). Die Testdaten führen
   zusätzlich «wenig Substanz» (64 Features); diese laufen unter der dünnen
@@ -1452,9 +1467,11 @@ Aus der sechsten Ausbaustufe (05.08.2026) offen geblieben:
   Vorgang (Entscheid 77) — es gibt keine benannten, nachträglich
   änderbaren Pakete und keine Einsatzlisten (03.04). Der Kanton als
   Paketkriterium ist im Prototyp nur mit Bern belegt; die übrigen
-  Kantone sind Attrappen.~~ **Überholt durch die Entscheide 82/83** —
-  Kantons- und Objekt-Pakete sind persistent und änderbar. Offen
-  bleiben die Einsatzlisten (03.04).
+  Kantone sind Attrappen.~~ **Überholt durch die Entscheide 82/83/85**
+  — die Kantonspakete sind persistent und änderbar; die
+  R-04-Objekt-Pakete sind mit Entscheid 85 wieder entfallen (Zuweisung
+  rein über die Zuständigkeit). Offen bleiben die Einsatzlisten
+  (03.04).
 - ~~**Zuweisen darf jede Rolle:** Das Personen-Dropdown im Objekt-Detail
   (Entscheid 72) ist bewusst für alle Rollen offen. Ob die Zuweisung
   fachlich auf R-03/R-04 zu beschränken wäre, ist nicht abschliessend
@@ -1568,7 +1585,10 @@ src/app/
                        statusVonStreckeErben, SEED_VERSION
     objekt-generierung.ts  Vollabdeckung: Objekte, Kunstbauten, Feature-Zuordnung
     objekt-store.ts    Objekte, statusWechseln (vererbt auf Nachkommen),
-                       paketZuweisen, ergänzt generierte idempotent
+                       personZuweisen/personZuweisenMehrere,
+                       attributSetzenMehrere, kindErstellen,
+                       streckeAnfordern, signaturAendern,
+                       ergänzt generierte idempotent
     einstellungen-store.ts  Rolle pro Tab (sessionStorage), Dark-Mode (storage-Sync)
     kommentare.ts      Kommentar-Modell, parseKommentarText, jetztLokal, Store
     attribute.ts       Registry der #-referenzierbaren Attribute mit Ankern
@@ -1620,10 +1640,10 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 
 | Schlüssel                       | Inhalt                        | Version                           |
 | ------------------------------- | ----------------------------- | --------------------------------- |
-| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 10) |
+| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 12) |
 | `ivs-prototyp-v3.kommentare`    | Kommentare und Antworten      | Konstante in `kommentare.ts`      |
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
-| `ivs-prototyp-v3.begehungen`    | geplante Begehungen           | Konstante in `begehungen.ts`      |
+| `ivs-prototyp-v3.begehungen`    | geplante Begehungen und Anforderungen | Konstante in `begehungen.ts` |
 | `ivs-prototyp-v3.stammdaten`    | Auswahllisten                 | Konstante in `stammdaten.ts`      |
 | `ivs-prototyp-v3.pakete`        | Kanton→Koordination-Zuweisungen | Konstante in `paket-store.ts`   |
 | `ivs-prototyp-v3.einstellungen` | Standard-Rolle neuer Tabs, Dark-Mode | —                          |
@@ -1676,7 +1696,10 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–91 in
   zugeklappt, Entscheid 71), Suche, **echte Attributfilter** —
   Schnellfilter plus «Alle Filter»-Popover (Kanton, Gemeinde,
   Aufnahmejahr, Bewertung, Inexistenz) sowie für R-03/R-04 «Zuständige
-  Person» und «Arbeitspaket» (Entscheid 84) —, Zeilen-Dropdown mit
+  Person» und nur für R-03 «Arbeitspaket» (Entscheide 84/85) —,
+  **Multi-Edit** über Zeilen- und Gruppen-Checkboxen (Person oder ein
+  beliebiges Attribut über die Auswahl setzen, Entscheid 87),
+  **«Strecke anfordern»** für R-03/R-06 (Entscheid 90), Zeilen-Dropdown mit
   direktem Wechsel unter den **setzbaren Stati** (Entscheid 69),
   **Zuständig-Spalte** mit Personen-Dropdown für R-03/R-04
   (Entscheid 81), Polygon-Selektion als geographischer Filter (05.03).
@@ -1705,7 +1728,9 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–91 in
   **Prüfprotokoll** als Seitenleiste hinter dem Knopf «Prüfung»
   (Entscheide 75/76); **Back-Button** zur gemerkten Herkunftsseite
   (Entscheid 62); **Versionsvergleich** im Historie-Menü (Entscheid 66);
-  Begehungs-Einplanung sichtbar (Badge und 360°-Bereich, Entscheid 65);
+  Begehungen im **Kalender-Menü der Kopfzeile** (anfordern/planen) und
+  im Formular-Abschnitt «Begehung» (Entscheid 89, löst den
+  360°-Bereich aus Entscheid 65 ab);
   Bearbeitungslog als Sheet; Löschen immer aktiv mit Warn- bzw.
   Erklär-Modal (07.05, nie-disabled-Regel, Entscheid 52).
 - **Karte**: ArcGIS Maps SDK mit swisstopo-WMTS und den Layern aus
@@ -1955,8 +1980,11 @@ Fehler, die schon einmal Zeit gekostet haben:
   Wechsel.** Wird ein `(ngModelChange)` durch einen Guard abgefangen (z. B.
   «Geprüft» ohne Prüfprotokoll), zeigt das Select trotzdem den neuen Wert —
   das Signal hat sich ja nicht geändert, Angular schreibt nichts zurück.
-  Abhilfe: Template-Referenz auf das Select mitgeben und im Guard
-  `select.writeValue(alterWert)` aufrufen (so in Objekt-Detail und
+  Und: ein einzelnes `select.writeValue(alterWert)` genügt NICHT — der
+  Binding-Cache führt den alten Wert bereits, das DOM-Update unterbleibt
+  (in der achten Ausbaustufe im Browser nachgewiesen). Abhilfe:
+  Template-Referenz mitgeben, erst den **abgelehnten** Wert schreiben und
+  im nächsten Tick den alten (`selectZuruecksetzen` in der
   Dashboard-Zeile).
 - **Abgeleitete Zustände gehören in EINE Funktion.** Der Status vererbt sich
   auf die Nachkommen (Entscheid 78) — das muss an allen Erzeugungspfaden
@@ -2146,7 +2174,8 @@ Reihenfolge als Vorschlag.
    Trefferradius von 8 px (Entscheid 46) in der Praxis passt.
 3. **Nebenblöcke** als einfache Screens: Accounts/Rollen (R-02),
    Reports (12.01–12.04), Arbeitspakete-Rest (Einsatzlisten 03.04 —
-   die Zuweisung selbst ist mit Entscheid 77 gebaut).
+   die Zuweisung selbst ist gebaut: Kantonspakete für R-03,
+   Zuständigkeit via Multi-Edit, Entscheide 77/82/85/87).
 4. **Tablet-Durchgang** bei 768 px über die neuen Seiten (Kommentar-Panel,
    Geometrie-Werkzeuge, Stammdaten-Tabelle) — die Touch-Vergrösserung aus
    Abschnitt 9.6 greift automatisch, das Layout ist aber ungeprüft.

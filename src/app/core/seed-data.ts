@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 11;
+export const SEED_VERSION = 12;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -449,7 +449,7 @@ const BE_21: Vorlage[] = [
         datum: '2026-06-12',
         autor: 'T. Nyffenegger',
         rolle: 'R-04',
-        text: 'Arbeitspaket «Wohlensee Süd» zugewiesen an B. Anderegg.',
+        text: 'Zuständigkeit zugewiesen an B. Anderegg (Abschnitt Wohlensee Süd).',
       },
     ],
   },
@@ -666,7 +666,7 @@ const BE_22: Vorlage[] = [
         datum: '2026-06-12',
         autor: 'T. Nyffenegger',
         rolle: 'R-04',
-        text: 'Arbeitspaket «Wohlensee Süd» zugewiesen an B. Anderegg.',
+        text: 'Zuständigkeit zugewiesen an B. Anderegg (Abschnitt Wohlensee Süd).',
       },
       {
         datum: '2026-06-28',
@@ -799,7 +799,7 @@ const BE_23: Vorlage[] = [
         datum: '2026-06-12',
         autor: 'T. Nyffenegger',
         rolle: 'R-04',
-        text: 'Arbeitspaket «Wohlensee Süd» zugewiesen an L. Furrer.',
+        text: 'Zuständigkeit zugewiesen an L. Furrer (Abschnitt Wohlensee Süd).',
       },
     ],
   },

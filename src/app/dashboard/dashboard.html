@@ -142,8 +142,8 @@
       }
     </hlm-native-select>
 
-    <!-- «Zuständige Person» und «Arbeitspaket»: nur für die Paketrollen
-         R-03/R-04 (Entscheid 84, ersetzt den Ansicht-Umschalter) -->
+    <!-- «Zuständige Person»: nur für die Paketrollen R-03/R-04
+         (Entscheid 84, ersetzt den Ansicht-Umschalter) -->
     @if (istPaketRolle()) {
       <hlm-native-select
         class="w-48"
@@ -821,8 +821,8 @@
     <hlm-dialog-header>
       <h3 hlmDialogTitle>Person zuweisen</h3>
       <p hlmDialogDescription>
-        {{ zuweisenObjekt()?.signatur }} ist noch niemandem zugewiesen — der Wechsel auf
-        «Zugewiesen» braucht eine zuständige Person.
+        {{ zuweisenObjekt()?.signatur }} ist noch niemandem zugewiesen — jeder Wechsel weg
+        von «Offen» beginnt mit der Zuweisung einer zuständigen Person (Status «Zugewiesen»).
       </p>
     </hlm-dialog-header>
     <div class="grid gap-1.5 py-2">
@@ -857,7 +857,7 @@
     <hlm-dialog-header>
       <h3 hlmDialogTitle>Kommentar auf der Karte</h3>
       <p hlmDialogDescription>
-        Räumliche Notiz an der gewählten Position — die Zuweisung zu einem Objekt ist optional.
+        Räumliche Notiz an der gewählten Position — jeder Kommentar gehört zu einem Objekt.
       </p>
     </hlm-dialog-header>
     <div class="grid gap-3 py-2">

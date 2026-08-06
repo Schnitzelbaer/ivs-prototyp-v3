@@ -66,7 +66,8 @@ export class BegehungDialog {
   protected readonly verkehrsmittel = signal<Verkehrsmittel>('zu_fuss');
   protected readonly unterkunft = signal('');
   protected readonly zeitbedarf = signal<number | null>(null);
-  protected readonly ziele = signal<BegehungsZiel[]>([]);
+  /** Ziele samt Herkunft: aus einer Anforderung übernommene tragen deren Id. */
+  protected readonly ziele = signal<(BegehungsZiel & { anforderungId: string | null })[]>([]);
   protected readonly neuesObjekt = signal('');
   /** Ids der in diese Begehung übernommenen Anforderungen. */
   protected readonly uebernommen = signal<ReadonlySet<string>>(new Set());
@@ -95,7 +96,9 @@ export class BegehungDialog {
         this.neuesObjekt.set('');
         this.uebernommen.set(new Set());
         const start = this.vorauswahl();
-        this.ziele.set(start ? [{ signatur: start, bezeichnung: '', position: null }] : []);
+        this.ziele.set(
+          start ? [{ signatur: start, bezeichnung: '', position: null, anforderungId: null }] : [],
+        );
       });
     });
   }
@@ -109,7 +112,10 @@ export class BegehungDialog {
   protected objektHinzufuegen(): void {
     const signatur = this.neuesObjekt();
     if (!signatur || this.ziele().some((z) => z.signatur === signatur)) return;
-    this.ziele.update((liste) => [...liste, { signatur, bezeichnung: '', position: null }]);
+    this.ziele.update((liste) => [
+      ...liste,
+      { signatur, bezeichnung: '', position: null, anforderungId: null },
+    ]);
     this.neuesObjekt.set('');
   }
 
@@ -123,12 +129,23 @@ export class BegehungDialog {
         signatur: anforderung.signatur,
         bezeichnung: anforderung.bezeichnung,
         position: anforderung.position,
+        anforderungId: id,
       },
     ]);
     this.uebernommen.update((menge) => new Set(menge).add(id));
   }
 
   protected zielEntfernen(index: number): void {
+    // Stammt das Ziel aus einer Anforderung, wird sie wieder frei —
+    // sonst gälte sie beim Speichern fälschlich als eingeplant
+    const entfernt = this.ziele()[index];
+    if (entfernt?.anforderungId) {
+      this.uebernommen.update((menge) => {
+        const neu = new Set(menge);
+        neu.delete(entfernt.anforderungId!);
+        return neu;
+      });
+    }
     this.ziele.update((liste) => liste.filter((_, i) => i !== index));
   }
 
@@ -151,7 +168,7 @@ export class BegehungDialog {
         verkehrsmittel: this.verkehrsmittel(),
         unterkunft: this.unterkunft().trim() || '—',
         zeitbedarfStunden: this.zeitbedarf(),
-        ziele: this.ziele(),
+        ziele: this.ziele().map(({ anforderungId: _weg, ...ziel }) => ziel),
       },
       [...this.uebernommen()],
     );

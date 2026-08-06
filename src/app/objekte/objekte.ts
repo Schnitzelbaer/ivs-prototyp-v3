@@ -165,7 +165,7 @@ export class Objekte {
   protected readonly allePersonen = PERSONEN;
   protected readonly ohnePerson = OHNE_PERSON;
 
-  /** «Zuständige Person» und «Arbeitspaket» filtern nur die Paketrollen. */
+  /** «Zuständige Person» filtert nur für die Paketrollen R-03/R-04. */
   protected readonly istPaketRolle = computed(() => {
     const rolle = this.einstellungen.aktiveRolleId();
     return rolle === 'R-03' || rolle === 'R-04';

@@ -144,8 +144,8 @@ neuen Session weiterzuarbeiten.
   Objekte — (leere Gruppen zugeklappt), Volltextsuche,
   echte Attributfilter (Schnellfilter plus «Alle Filter» mit Kanton,
   Gemeinde, Aufnahmejahr, Bewertung und Inexistenz; für R-03/R-04
-  zusätzlich «Zuständige Person» und «Arbeitspaket» — die gleichen
-  Filter stehen auf dem Objekte-Tab), Zeilen-Dropdown mit direktem
+  zusätzlich «Zuständige Person», nur für R-03 «Arbeitspaket» — die
+  gleichen Filter stehen auf dem Objekte-Tab), Zeilen-Dropdown mit direktem
   Statuswechsel unter den von der Rolle setzbaren Stati, Spalte
   «Zuständig» mit Personen-Dropdown für R-03/R-04 (vererbt auf die
   Nachkommen der Strecke; eine Zuweisung holt «offene» Objekte
@@ -174,7 +174,8 @@ neuen Session weiterzuarbeiten.
   **Back-Button** zur gemerkten Herkunftsseite, **Versionsvergleich**
   IVS 1.0 → 2.0 im Historie-Menü (Wort-Diff mit Änderungsmarkierungen plus
   Vergleichskarte, Deckkraft beider Stände separat regelbar),
-  Begehungs-Einplanung sichtbar (Badge und 360°-Bereich),
+  Begehungen im Kalender-Menü der Kopfzeile (anfordern, für R-03
+  planen) und im Formular-Abschnitt «Begehung»,
   Bearbeitungslog-Sheet, **Prüfprotokoll** als Seitenleiste (Knopf
   «Prüfung», nur im Status «In Prüfung» für R-06/R-07: Ja/Nein-Fragen
   in vier Gruppen, Nein mit Pflichtbegründung; Befunde werden beim

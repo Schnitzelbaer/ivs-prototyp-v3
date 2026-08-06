@@ -12,7 +12,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideCalendarPlus,
   lucideCamera,
   lucideMagnet,
   lucideMapPin,
@@ -74,7 +73,6 @@ import { KarteSync } from './karte-sync';
   ],
   providers: [
     provideIcons({
-      lucideCalendarPlus,
       lucideCamera,
       lucideMagnet,
       lucideMapPin,
@@ -169,7 +167,7 @@ import { KarteSync } from './karte-sync';
               size="icon"
               type="button"
               (click)="karte()?.geometrieZusammenfuegen()"
-              hlmTooltip="Alle Linien zusammenfügen"
+              hlmTooltip="Gewählte Linien zusammenfügen (ohne Auswahl: alle)"
               aria-label="Linien zusammenfügen"
             >
               <ng-icon name="lucideMerge" />
@@ -322,8 +320,6 @@ import { KarteSync } from './karte-sync';
         </hlm-dialog-footer>
       </hlm-dialog-content>
     </hlm-dialog>
-
-    <!-- Begehung planen (07.08) -->
 
     <hlm-toaster />
     <ivs-hinweis-dialog />

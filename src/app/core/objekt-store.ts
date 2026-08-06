@@ -1,5 +1,7 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
-import { jetztLokal } from './kommentare';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { BegehungsStore } from './begehungen';
+import { GeometrieStore } from './geometrie-store';
+import { KommentarStore, jetztLokal } from './kommentare';
 import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus, idAusSignatur } from './model';
 import { ladeObjektModell } from './objekt-generierung';
 import { KANTONE } from './paket-store';
@@ -26,6 +28,10 @@ const STORAGE_KEY = 'ivs-prototyp-v3.objekte';
  */
 @Injectable({ providedIn: 'root' })
 export class ObjektStore {
+  private readonly kommentarStore = inject(KommentarStore);
+  private readonly geometrieStore = inject(GeometrieStore);
+  private readonly begehungsStore = inject(BegehungsStore);
+
   private readonly objekte = signal<IvsObjekt[]>(laden());
 
   readonly alle = this.objekte.asReadonly();
@@ -140,6 +146,15 @@ export class ObjektStore {
         `Status: ${STATUS_LABEL[objekt.status]} → ${STATUS_LABEL[status]}` +
         (personWechselt ? `, zuständig neu ${zustaendigName || '—'}` : ''),
     };
+    // Das «angefordert»-Kennzeichen erlischt, sobald die Erstellung
+    // faktisch abgeschlossen ist — mit der Abgabe an die Prüfung
+    // (Review-Befund zu E90: sonst bliebe die Signatur ewig änderbar)
+    const erstellungAbgeschlossen = ![
+      'offen',
+      'zugewiesen',
+      'in_bearbeitung',
+      'korrektur',
+    ].includes(status);
     this.objekte.update((liste) =>
       liste.map((o) => {
         if (!betroffene.has(o.signatur)) return o;
@@ -148,6 +163,7 @@ export class ObjektStore {
           status,
           zustaendigRolle,
           zustaendigName,
+          angefordert: erstellungAbgeschlossen ? null : o.angefordert,
           lognotizen: o.id === id ? [...o.lognotizen, notiz] : o.lognotizen,
         };
       }),
@@ -479,6 +495,13 @@ export class ObjektStore {
         };
       }),
     );
+    // Verknüpfte Bestände mitziehen: Kommentare, Arbeitsgeometrien und
+    // Begehungen hängen per Signatur am Objekt (Review-Befund zu E90)
+    const umbenennen = (signatur: string) =>
+      betroffene.has(signatur) ? neu + signatur.slice(alt.length) : undefined;
+    this.kommentarStore.signaturenMigrieren(umbenennen);
+    this.geometrieStore.signaturenMigrieren(umbenennen);
+    this.begehungsStore.signaturenMigrieren(umbenennen);
     return this.bySignatur(neu) ?? null;
   }
 
@@ -488,6 +511,13 @@ export class ObjektStore {
     if (!objekt) return;
     const zuLoeschen = this.mitNachkommen([objekt.signatur]);
     this.objekte.update((liste) => liste.filter((o) => !zuLoeschen.has(o.signatur)));
+    // Verknüpfte Bestände bereinigen — sonst erben später neu angelegte
+    // Objekte mit recycelter Signatur fremde Kommentare, Geometrien und
+    // Begehungsziele (Review-Befund zu E91)
+    const entfernen = (signatur: string) => (zuLoeschen.has(signatur) ? null : undefined);
+    this.kommentarStore.signaturenMigrieren(entfernen);
+    this.geometrieStore.signaturenMigrieren(entfernen);
+    this.begehungsStore.signaturenMigrieren(entfernen);
   }
 
   /** Setzt alles auf den Seed zurück (Werkzeug für Demos). */

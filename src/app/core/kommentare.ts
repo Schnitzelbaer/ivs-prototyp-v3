@@ -2,11 +2,12 @@ import { Injectable, effect, signal } from '@angular/core';
 import { RolleId } from './model';
 
 /**
- * Kommentare (09/10): auf jedem Objekt jeder Ebene oder frei auf der Karte
- * (05.11, Objektzuweisung optional). Im Text stehen Erwähnungen als
- * `@[Name]` und Attribut-Referenzen als `#[Label]` — `parseKommentarText`
- * zerlegt sie fürs Rendering, ein Klick auf eine Attribut-Referenz scrollt
- * im Objektformular zum Feld (siehe core/attribute.ts).
+ * Kommentare (09/10): auf jedem Objekt jeder Ebene oder platziert auf der
+ * Karte (05.11) — seit Entscheid 88 immer mit Pflicht-Objektzuweisung. Im
+ * Text stehen Erwähnungen als `@[Name]` und Attribut-Referenzen als
+ * `#[Label]` — `parseKommentarText` zerlegt sie fürs Rendering, ein Klick
+ * auf eine Attribut-Referenz scrollt im Objektformular zum Feld (siehe
+ * core/attribute.ts).
  */
 
 export interface KommentarAntwort {
@@ -181,6 +182,21 @@ export class KommentarStore {
   antworten(id: string, antwort: KommentarAntwort): void {
     this.kommentare.update((liste) =>
       liste.map((k) => (k.id === id ? { ...k, antworten: [...k.antworten, antwort] } : k)),
+    );
+  }
+
+  /**
+   * Objektsignaturen umziehen bzw. Kommentare gelöschter Objekte entfernen
+   * (Entscheid 90 / 07.05). `umbenennen` liefert die neue Signatur — oder
+   * null zum Entfernen, undefined für unverändert.
+   */
+  signaturenMigrieren(umbenennen: (signatur: string) => string | null | undefined): void {
+    this.kommentare.update((liste) =>
+      liste.flatMap((k) => {
+        const ziel = umbenennen(k.objektSignatur);
+        if (ziel === null) return [];
+        return [ziel === undefined ? k : { ...k, objektSignatur: ziel }];
+      }),
     );
   }
 

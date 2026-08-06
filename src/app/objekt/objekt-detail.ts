@@ -420,15 +420,17 @@ export class ObjektDetail implements OnDestroy {
       );
       return;
     }
-    // Offen → Zugewiesen verlangt zwingend eine Person (Entscheid 86):
-    // R-03/R-04 wählen sie im Dialog, andere Rollen erklärt ein Modal.
-    if (o.status === 'offen' && status === 'zugewiesen') {
+    // Jeder Wechsel weg von «Offen» verlangt zwingend eine Person
+    // (Entscheid 86) — sonst würde die Rollen-Übergabe still eine Persona
+    // zuweisen. R-03/R-04 wählen sie im Dialog, andere erklärt ein Modal.
+    if (o.status === 'offen') {
       const rolle = this.einstellungen.aktiveRolleId();
       if (rolle !== 'R-03' && rolle !== 'R-04') {
         this.hinweis.zeige(
           'Zuweisung erforderlich',
-          'Ein offenes Objekt wird über die Zuweisung einer Person «Zugewiesen» — zuweisen ' +
-            'dürfen die Fachliche Administration (R-03) und die Regionale Koordination (R-04).',
+          'Ein offenes Objekt verlässt den Pool erst über die Zuweisung einer Person — ' +
+            'zuweisen dürfen die Fachliche Administration (R-03) und die Regionale ' +
+            'Koordination (R-04).',
         );
         return;
       }
@@ -740,6 +742,16 @@ export class ObjektDetail implements OnDestroy {
   // ------------------------------------ Signatur angeforderter Strecken (E90)
 
   protected readonly signaturEntwurf = signal<string | null>(null);
+  private signaturEntwurfFuerId: string | null = null;
+
+  /** Beim Objektwechsel verfällt ein nicht übernommener Signatur-Entwurf. */
+  private readonly signaturEntwurfReset = effect(() => {
+    const id = this.objekt()?.id ?? null;
+    if (id !== this.signaturEntwurfFuerId) {
+      this.signaturEntwurfFuerId = id;
+      untracked(() => this.signaturEntwurf.set(null));
+    }
+  });
 
   protected signaturUebernehmen(): void {
     const o = this.objekt();

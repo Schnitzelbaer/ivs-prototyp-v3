@@ -588,7 +588,9 @@ export class Karte implements AfterViewInit, OnDestroy {
         }),
       );
     }
-    // Ausschnitt auf die Route einpassen
+    // Ausschnitt auf die Route einpassen — und den Erstzoom auf alle
+    // Objekte abbestellen, der ihn sonst gleich wieder übersteuern würde
+    this.erstZoomErledigt = true;
     const lons = punkte.map((p) => p.lon);
     const lats = punkte.map((p) => p.lat);
     const rand = 0.004;
@@ -623,20 +625,17 @@ export class Karte implements AfterViewInit, OnDestroy {
     };
 
     // Originale von Objekten mit bearbeiteter Geometrie ausblenden (E91):
-    // die bearbeitete Version ersetzt sie auf der Karte.
-    const bearbeitet = { strecke: [] as string[], lf: [] as string[], signatur: [] as string[] };
-    for (const [signatur, geometrien] of Object.entries(this.geometrieStore.alle())) {
-      if (!geometrien.length) continue;
-      const ebene = ebeneAusSignatur(signatur);
-      if (ebene === 'strecke') bearbeitet.strecke.push(signatur);
-      else if (ebene === 'linienfuehrung') bearbeitet.lf.push(signatur);
-      else bearbeitet.signatur.push(signatur);
-    }
-    const notIn = (feld: 'strecke' | 'lf' | 'signatur') =>
-      bearbeitet[feld].length
-        ? `${feld} NOT IN (${bearbeitet[feld].map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')})`
-        : null;
-    const ausblenden = [notIn('strecke'), notIn('lf'), notIn('signatur')];
+    // die bearbeitete Version ersetzt sie auf der Karte. Bewusst nur über
+    // das exakte signatur-Feld — eine Ausblendung über strecke/lf würde
+    // sämtliche Kinder-Features mitreissen und unanwählbar machen
+    // (Review-Befund); bei Strecken/Linienführungen mit eigener
+    // Arbeitsgeometrie bleibt darum eine Überlagerung möglich.
+    const bearbeitet = Object.entries(this.geometrieStore.alle())
+      .filter(([, geometrien]) => geometrien.length)
+      .map(([signatur]) => signatur);
+    const ausblenden = bearbeitet.length
+      ? [`signatur NOT IN (${bearbeitet.map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')})`]
+      : [];
 
     for (const id of OBJEKT_LAYER_IDS) {
       const werte = filter?.length
@@ -729,10 +728,10 @@ export class Karte implements AfterViewInit, OnDestroy {
     map.add(this.kommentarLayer);
     this.zeichneKommentarPins();
 
-    // Begehungs-Route (Entscheid 89)
+    // Begehungs-Route (Entscheid 89) — gezeichnet wird erst nach der
+    // View-Erstellung, damit das goTo auf die Route nicht ins Leere läuft
     this.begehungsLayer = new GraphicsLayer({ listMode: 'hide' });
     map.add(this.begehungsLayer);
-    this.zeichneBegehungsRoute(this.begehungsPunkte());
 
     // Bearbeitete Geometrien aller Objekte (Entscheid 91)
     this.bearbeitetLayer = new GraphicsLayer({ listMode: 'hide' });
@@ -754,6 +753,10 @@ export class Karte implements AfterViewInit, OnDestroy {
       popupEnabled: false,
     });
     this.view.ui.move('zoom', 'top-left');
+
+    // Jetzt existiert die View: eine bereits gesetzte Begehungs-Route
+    // nachziehen (ihr goTo markiert den Erstzoom als erledigt)
+    this.zeichneBegehungsRoute(this.begehungsPunkte());
 
     this.sketch = new SketchViewModel({
       view: this.view,
@@ -1260,11 +1263,15 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.editSketch.cancel();
     this.verschneideModus = false;
     this.tracingStart = null;
+    // Während des Tracings darf ein Klick keine Arbeitsgeometrie in den
+    // Reshape-Modus heben — sonst frisst das SketchViewModel den Klick
+    this.editSketch.updateOnGraphicClick = false;
     this.editWerkzeug.set('tracing');
   }
 
   private tracingBeenden(): void {
     this.tracingStart = null;
+    if (this.editSketch) this.editSketch.updateOnGraphicClick = true;
     if (this.tracingMarker) {
       this.skizzenLayer?.remove(this.tracingMarker);
       this.tracingMarker = null;

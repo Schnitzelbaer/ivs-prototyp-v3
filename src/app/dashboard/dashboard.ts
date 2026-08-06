@@ -360,7 +360,10 @@ export class Dashboard {
 
   // -------------------------------------------- Arbeitspakete und Sichten
 
-  /** Paketrollen (R-03/R-04) schnüren Arbeitspakete und sehen alle Objekte. */
+  /**
+   * Paketrollen (R-03/R-04): sehen alle Objekte (R-04 kantonsbeschränkt)
+   * und weisen über Zuständig-Spalte, Dialog und Multi-Edit zu.
+   */
   protected readonly istPaketRolle = computed(() => {
     const rolle = this.einstellungen.aktiveRolleId();
     return rolle === 'R-03' || rolle === 'R-04';
@@ -490,21 +493,42 @@ export class Dashboard {
     }));
   }
 
+  /**
+   * Stellt das Zeilen-Select nach einem abgelehnten Wechsel sichtbar
+   * zurück. Ein einzelnes `writeValue(alt)` genügt nicht: Der
+   * Binding-Cache des Selects führt den alten Wert bereits, das
+   * DOM-Update unterbleibt und die abgelehnte Wahl bliebe stehen —
+   * darum erst den abgelehnten Wert ins Binding übernehmen, dann im
+   * nächsten Tick zurückstellen.
+   */
+  private selectZuruecksetzen(
+    select: { writeValue(wert: unknown): void } | undefined,
+    abgelehnt: string,
+    alt: string,
+  ): void {
+    if (!select) return;
+    select.writeValue(abgelehnt);
+    setTimeout(() => select.writeValue(alt));
+  }
+
   protected statusWechseln(
     objekt: IvsObjekt,
     status: string,
     select?: { writeValue(wert: unknown): void },
   ): void {
     if (status === objekt.status) return;
-    // Offen → Zugewiesen verlangt zwingend eine Person (Entscheid 86):
-    // R-03/R-04 wählen sie im Dialog, andere Rollen erklärt ein Modal.
-    if (objekt.status === 'offen' && status === 'zugewiesen') {
-      select?.writeValue(objekt.status);
+    // Jeder Wechsel weg von «Offen» verlangt zwingend eine Person
+    // (Entscheid 86) — sonst würde der Statuswechsel über die
+    // Rollen-Übergabe still eine Persona zuweisen. R-03/R-04 wählen die
+    // Person im Dialog, andere Rollen erklärt ein Modal.
+    if (objekt.status === 'offen') {
+      this.selectZuruecksetzen(select, status, objekt.status);
       if (!this.istPaketRolle()) {
         this.hinweis.zeige(
           'Zuweisung erforderlich',
-          'Ein offenes Objekt wird über die Zuweisung einer Person «Zugewiesen» — zuweisen ' +
-            'dürfen die Fachliche Administration (R-03) und die Regionale Koordination (R-04).',
+          'Ein offenes Objekt verlässt den Pool erst über die Zuweisung einer Person — ' +
+            'zuweisen dürfen die Fachliche Administration (R-03) und die Regionale ' +
+            'Koordination (R-04).',
         );
         return;
       }
@@ -515,7 +539,7 @@ export class Dashboard {
     }
     // «Geprüft» setzt ein bestandenes Prüfprotokoll voraus (siehe Objekt-Detail)
     if (status === 'geprueft' && !pruefungBestanden(objekt.pruefprotokoll)) {
-      select?.writeValue(objekt.status);
+      this.selectZuruecksetzen(select, status, objekt.status);
       this.hinweis.zeige(
         'Prüfprotokoll erforderlich',
         `${objekt.signatur} kann erst als geprüft gekennzeichnet werden, wenn das Fachlektorat ` +
@@ -561,7 +585,13 @@ export class Dashboard {
 
   protected attributWaehlen(key: string): void {
     this.attributKey.set(key);
-    this.attributWert.set('');
+    // Selects ohne Leer-Option starten auf der ersten Option — sonst
+    // zeigt das native Select leer und «Anwenden» schriebe '' als Wert
+    const attribut = MULTI_EDIT_ATTRIBUTE.find((a) => a.key === key);
+    const optionen = attribut?.optionen;
+    this.attributWert.set(
+      optionen?.length && !optionen.some((o) => o.wert === '') ? optionen[0].wert : '',
+    );
   }
 
   /** Gruppen-Checkbox: alle Strecken einer Status-Gruppe (de)selektieren. */
@@ -769,6 +799,9 @@ export class Dashboard {
   );
 
   protected kommentarWerkzeug(): void {
+    // Manuelles Umschalten des Werkzeugs bricht eine hängige Ortswahl ab —
+    // sonst kapert sie den nächsten Kommentar-Klick (Review-Befund)
+    this.ortswahlAktiv.set(false);
     this.karte()?.kommentarWerkzeugUmschalten();
   }
 
@@ -784,6 +817,8 @@ export class Dashboard {
   protected readonly ortswahlAktiv = signal(false);
 
   protected streckeAnfordernKlick(): void {
+    // Eine hängige Ortswahl verfällt beim Neustart des Dialogs
+    this.ortswahlAktiv.set(false);
     const rolle = this.einstellungen.aktiveRolleId();
     if (rolle !== 'R-03' && rolle !== 'R-06') {
       this.hinweis.zeige(

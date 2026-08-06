@@ -1189,7 +1189,7 @@
                 size="icon"
                 type="button"
                 (click)="karte()?.geometrieZusammenfuegen()"
-                hlmTooltip="Alle Linien zusammenfügen"
+                hlmTooltip="Selektierte Linien zusammenfügen (ohne Auswahl: alle)"
                 aria-label="Linien zusammenfügen"
               >
                 <ng-icon name="lucideMerge" />
@@ -1443,7 +1443,7 @@
       <hlm-dialog-header>
         <h3 hlmDialogTitle>Kommentar auf der Karte</h3>
         <p hlmDialogDescription>
-          Räumliche Notiz an der gewählten Position — die Zuweisung zu einem Objekt ist optional.
+          Räumliche Notiz an der gewählten Position — jeder Kommentar gehört zu einem Objekt.
         </p>
       </hlm-dialog-header>
       <div class="grid gap-3 py-2">

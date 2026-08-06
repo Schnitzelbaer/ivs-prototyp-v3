@@ -3,8 +3,8 @@ import { IvsObjekt, NhgWert, Substanzgrad, WorkflowStatus, bewertungMittel } fro
 /**
  * Gemeinsame Attributfilter für Dashboard und Objekte-Übersicht
  * (Entscheid 84): Alle sinnvollen Objekt-Attribute sind filterbar, die
- * Karte folgt den Filtern. «Zuständige Person» und «Arbeitspaket» stehen
- * nur den Paketrollen R-03/R-04 zur Verfügung.
+ * Karte folgt den Filtern. «Zuständige Person» steht den Paketrollen
+ * R-03/R-04 zur Verfügung, «Kantonspaket» nur R-03 (Entscheid 85).
  */
 export interface AttributFilter {
   status: 'alle' | WorkflowStatus;

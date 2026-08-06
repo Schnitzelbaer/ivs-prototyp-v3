@@ -46,6 +46,23 @@ export class GeometrieStore {
     this.geometrien.update((alle) => ({ ...alle, [signatur]: geometrien }));
   }
 
+  /**
+   * Signaturen umziehen bzw. entfernen (Entscheid 90: Signaturänderung,
+   * 07.05: Objekt-Löschung). `umbenennen` liefert die neue Signatur —
+   * oder null zum Entfernen, undefined für unverändert.
+   */
+  signaturenMigrieren(umbenennen: (signatur: string) => string | null | undefined): void {
+    this.geometrien.update((alle) => {
+      const neu: Record<string, GeometrieJson[]> = {};
+      for (const [signatur, geometrien] of Object.entries(alle)) {
+        const ziel = umbenennen(signatur);
+        if (ziel === null) continue;
+        neu[ziel ?? signatur] = geometrien;
+      }
+      return neu;
+    });
+  }
+
   zuruecksetzen(): void {
     localStorage.removeItem(STORAGE_KEY);
     this.geometrien.set({});

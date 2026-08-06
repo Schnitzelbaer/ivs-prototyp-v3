@@ -191,6 +191,32 @@ export class BegehungsStore {
     }));
   }
 
+  /**
+   * Objektsignaturen in Zielen und Anforderungen umziehen bzw. Einträge
+   * gelöschter Objekte entfernen (Entscheid 90 / 07.05). `umbenennen`
+   * liefert die neue Signatur — null entfernt, undefined lässt unverändert.
+   */
+  signaturenMigrieren(umbenennen: (signatur: string) => string | null | undefined): void {
+    this.stand.update((s) => ({
+      ...s,
+      begehungen: s.begehungen.map((b) => ({
+        ...b,
+        ziele: b.ziele.flatMap((z) => {
+          if (!z.signatur) return [z];
+          const ziel = umbenennen(z.signatur);
+          if (ziel === null) return [];
+          return [ziel === undefined ? z : { ...z, signatur: ziel }];
+        }),
+      })),
+      anforderungen: s.anforderungen.flatMap((a) => {
+        if (!a.signatur) return [a];
+        const ziel = umbenennen(a.signatur);
+        if (ziel === null) return [];
+        return [ziel === undefined ? a : { ...a, signatur: ziel }];
+      }),
+    }));
+  }
+
   anforderungLoeschen(id: string): void {
     this.stand.update((s) => ({
       ...s,

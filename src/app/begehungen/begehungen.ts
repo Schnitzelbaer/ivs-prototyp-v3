@@ -145,7 +145,11 @@ export class Begehungen {
     });
   }
 
+  /** Laufnummer gegen überholende asynchrone Aufbereitungen (Race). */
+  private punkteLauf = 0;
+
   private async punkteAufbereiten(begehung: Begehung | null): Promise<void> {
+    const lauf = ++this.punkteLauf;
     if (!begehung) {
       this.routenPunkte.set([]);
       return;
@@ -168,7 +172,9 @@ export class Begehungen {
         titel: this.zielName(ziel),
       });
     }
-    this.routenPunkte.set(punkte);
+    // Nur der jüngste Lauf schreibt — sonst zeigt die Karte bei schnellem
+    // Begehungswechsel die Route der falschen Begehung
+    if (lauf === this.punkteLauf) this.routenPunkte.set(punkte);
   }
 
   // ------------------------------------------------------------ Rechte
@@ -227,6 +233,8 @@ export class Begehungen {
 
   protected begehungAnfordern(): void {
     if (!this.darfAnfordern()) return;
+    // Eine hängige Punktwahl verfällt beim Neustart des Dialogs
+    this.punktwahlAktiv.set(false);
     this.anfordernSignatur.set('');
     this.anfordernBezeichnung.set('');
     this.anfordernBegruendung.set('');
