@@ -535,6 +535,8 @@ export class Karte implements AfterViewInit, OnDestroy {
         );
       }
     }
+    // Neu gezeichnete Graphics respektieren eine bestehende Selektion
+    this.bearbeiteteAbblenden(this.letzteSelektion ?? null);
   }
 
   /**
@@ -1545,8 +1547,12 @@ export class Karte implements AfterViewInit, OnDestroy {
     this.highlightHandles = [];
     if (!auswahl) {
       for (const layer of this.objektLayers) layer.featureEffect = null as never;
+      this.beiwerkAbblenden(null);
+      this.bearbeiteteAbblenden(null);
       return;
     }
+    this.beiwerkAbblenden(auswahl);
+    this.bearbeiteteAbblenden(auswahl);
     const where = whereFuerSelektion(auswahl);
     for (const layer of this.objektLayers) {
       layer.featureEffect = {
@@ -1588,6 +1594,57 @@ export class Karte implements AfterViewInit, OnDestroy {
       await this.view?.goTo(extent.expand(1.4));
     }
   }
+
+  /** Laufnummer gegen überholende Routen-Nummern-Abfragen der Abblendung. */
+  private beiwerkLauf = 0;
+
+  /**
+   * Auch das Beiwerk blendet bei einer Selektion ab: Wegoberflächen,
+   * Böschungsschraffuren und Grenzmarken über ihre Routen-Zuordnung
+   * (die Bestandteile der selektierten Strecke bleiben hell), die
+   * Brücken-Detektion pauschal — sie trägt keine Referenz.
+   */
+  private beiwerkAbblenden(auswahl: KartenSelektion | null): void {
+    const lauf = ++this.beiwerkLauf;
+    const ABBLENDUNG = 'opacity(25%) grayscale(60%)';
+    const bruecken = this.layers.get('bruecken');
+    if (bruecken) (bruecken as { effect?: string | null }).effect = auswahl ? ABBLENDUNG : null;
+    if (!auswahl) {
+      for (const id of ROUTEN_REF_LAYER_IDS) {
+        const layer = this.layers.get(id);
+        if (layer) layer.featureEffect = null as never;
+      }
+      return;
+    }
+    const strecke = signaturKette(auswahl.signatur).strecke || auswahl.signatur;
+    void routenNummernFuerStrecken([strecke]).then((nummern) => {
+      if (lauf !== this.beiwerkLauf || this.zerstoert) return;
+      for (const id of ROUTEN_REF_LAYER_IDS) {
+        const layer = this.layers.get(id);
+        if (!layer) continue;
+        layer.featureEffect = {
+          filter: { where: `route_nr IN (${nummern.join(', ') || '-1'})` },
+          excludedEffect: ABBLENDUNG,
+        } as never;
+      }
+    });
+  }
+
+  /**
+   * Bearbeitete Arbeitsgeometrien anderer Objekte blenden bei einer
+   * Selektion ebenfalls ab — als GraphicsLayer über die Symbol-Deckkraft
+   * statt über featureEffect.
+   */
+  private bearbeiteteAbblenden(auswahl: KartenSelektion | null): void {
+    const layer = this.bearbeitetLayer;
+    if (!layer) return;
+    for (const graphic of layer.graphics) {
+      const hell = !auswahl || passtZurSelektion(graphic.attributes, auswahl);
+      const deckkraft = hell ? 1 : 0.25;
+      graphic.symbol =
+        graphic.geometry?.type === 'point' ? editPunktSymbol(deckkraft) : editLinienSymbol(deckkraft);
+    }
+  }
 }
 
 /**
@@ -1608,17 +1665,37 @@ function kegelSymbol(azimut: number): SimpleMarkerSymbol {
 }
 
 /** Arbeitsgeometrien: kräftiges Orange, klar von den Objekt-Layern getrennt. */
-function editLinienSymbol(): SimpleLineSymbol {
-  return new SimpleLineSymbol({ color: [234, 88, 12], width: 3.5, style: 'short-dash' });
+function editLinienSymbol(deckkraft = 1): SimpleLineSymbol {
+  return new SimpleLineSymbol({
+    color: [234, 88, 12, deckkraft],
+    width: 3.5,
+    style: 'short-dash',
+  });
 }
 
-function editPunktSymbol(): SimpleMarkerSymbol {
+function editPunktSymbol(deckkraft = 1): SimpleMarkerSymbol {
   return new SimpleMarkerSymbol({
     style: 'circle',
-    color: [234, 88, 12],
+    color: [234, 88, 12, deckkraft],
     size: 11,
-    outline: { color: [255, 255, 255], width: 1.2 },
+    outline: { color: [255, 255, 255, deckkraft], width: 1.2 },
   });
+}
+
+/** Passt ein Graphic der bearbeiteten Geometrien zur Selektion? */
+function passtZurSelektion(
+  attribute: { signatur?: string; lf?: string; strecke?: string } | null,
+  auswahl: KartenSelektion,
+): boolean {
+  if (!attribute) return false;
+  switch (auswahl.ebene) {
+    case 'strecke':
+      return attribute.strecke === auswahl.signatur;
+    case 'linienfuehrung':
+      return attribute.lf === auswahl.signatur;
+    default:
+      return attribute.signatur === auswahl.signatur;
+  }
 }
 
 /** Sprechblasen-Pin für räumliche Kommentare; erledigte in Grau. */
