@@ -330,23 +330,8 @@
             <div hlmCollapsibleContent class="p-4">
               @if (istEdit()) {
                 <div class="grid gap-4 sm:grid-cols-2">
-                  <!-- Der Status wird nur noch über das Dropdown in der
-                       Kopfzeile gewechselt (Entscheid 80) -->
-                  <div class="grid gap-1.5 sm:col-span-2" id="attr-status">
-                    <span hlmLabel>Workflow-Status</span>
-                    <p class="text-sm">
-                      <span
-                        class="mr-1.5 inline-block size-2 rounded-full align-middle {{
-                          statusFarbe[o.status]
-                        }}"
-                      ></span>
-                      {{ statusLabel[o.status] }}
-                    </p>
-                    <p class="text-xs text-muted-foreground">
-                      Wechsel über das Status-Dropdown in der Kopfzeile.
-                    </p>
-                  </div>
-
+                  <!-- Der Workflow-Status lebt allein in der Kopfzeile
+                       (Status-Dropdown) — im Content hat er keinen Platz -->
                   <div class="grid gap-1.5" id="attr-name">
                     <label hlmLabel for="f-name"
                       >Objektname <span class="text-destructive">*</span></label
@@ -488,10 +473,6 @@
                 </div>
               } @else {
                 <dl class="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-                  <div id="attr-status">
-                    <dt class="text-xs text-muted-foreground">Workflow-Status</dt>
-                    <dd>{{ statusLabel[o.status] }}</dd>
-                  </div>
                   <div>
                     <dt class="text-xs text-muted-foreground">Zuständig</dt>
                     <dd>{{ o.zustaendigName ? o.zustaendigName + ' (' + o.zustaendigRolle + ')' : '—' }}</dd>
@@ -947,55 +928,6 @@
               <a hlmBtn variant="outline" size="sm" class="mt-3" routerLink="/begehungen">
                 Zu den Begehungen
               </a>
-            </div>
-          </section>
-
-          <!-- ============================================== Prüfen / Freigabe -->
-          <section
-            hlmCollapsible
-            [expanded]="true"
-            #abPruefen="brnCollapsible"
-            class="rounded-md border border-border"
-          >
-            <button
-              hlmCollapsibleTrigger
-              class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold"
-            >
-              <ng-icon
-                name="lucideChevronDown"
-                class="text-muted-foreground transition-transform"
-                [class.-rotate-90]="!abPruefen.expanded()"
-              />
-              Prüfen / Freigabe
-            </button>
-            <div hlmCollapsibleContent class="flex flex-col gap-4 p-4">
-              <div class="grid gap-1.5" id="attr-pruefkommentar">
-                <label hlmLabel for="f-pruefkommentar">Prüfkommentar</label>
-                @if (istEdit() && einstellungen.aktiveRolleId() === 'R-06') {
-                  <textarea
-                    hlmTextarea
-                    id="f-pruefkommentar"
-                    class="min-h-24 w-full"
-                    [ngModel]="o.pruefkommentar"
-                    (ngModelChange)="patch({ pruefkommentar: $event })"
-                  ></textarea>
-                } @else {
-                  <p class="text-sm whitespace-pre-line">{{ o.pruefkommentar || '—' }}</p>
-                }
-              </div>
-              <button
-                hlmBtn
-                size="sm"
-                type="button"
-                (click)="geprueftKennzeichnen()"
-                hlmTooltip="Setzt den Status auf «Geprüft» (09.02)"
-              >
-                Als geprüft kennzeichnen
-              </button>
-              <p class="text-xs text-muted-foreground">
-                Voraussetzung ist das vollständig mit Ja beantwortete Prüfprotokoll — zu öffnen
-                über den Knopf «Prüfung» in der Kopfzeile.
-              </p>
             </div>
           </section>
 
@@ -1852,6 +1784,27 @@
             </div>
           </section>
         }
+
+        <!-- Gesamtbemerkung: das frühere Freitextfeld «Prüfkommentar» aus
+             dem Formular-Abschnitt «Prüfen / Freigabe» wohnt jetzt hier -->
+        <section class="rounded-md border border-border">
+          <h4 class="rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold">
+            Gesamtbemerkung
+          </h4>
+          <div class="p-3">
+            @if (darfPruefen()) {
+              <textarea
+                hlmTextarea
+                class="min-h-24 w-full"
+                placeholder="Fachliche Zusammenfassung der Prüfung"
+                [ngModel]="o.pruefkommentar"
+                (ngModelChange)="patch({ pruefkommentar: $event })"
+              ></textarea>
+            } @else {
+              <p class="text-sm whitespace-pre-line">{{ o.pruefkommentar || '—' }}</p>
+            }
+          </div>
+        </section>
       </div>
 
       <!-- Abschluss: alle Ja → geprüft; Nein-Befunde → zurück zur Korrektur -->

@@ -800,30 +800,6 @@ export class ObjektDetail implements OnDestroy {
     return o && alt ? wortDiff(alt.gelaendeText, o.gelaendeText) : [];
   });
 
-  /** «Als geprüft kennzeichnen» (09.02): ausführen oder im Modal erklären. */
-  protected geprueftKennzeichnen(): void {
-    const o = this.objekt();
-    if (!o) return;
-    const rolle = this.einstellungen.aktiveRolleId();
-    if (rolle !== 'R-06' || o.status !== 'in_pruefung') {
-      this.hinweis.zeige(
-        'Kennzeichnen nicht möglich',
-        rolle !== 'R-06'
-          ? 'Nur das Fachlektorat (R-06) kennzeichnet Objekte als geprüft (09.02).'
-          : `Möglich ist das nur im Status «In Prüfung» — aktuell steht das Objekt auf ` +
-              `«${STATUS_LABEL[o.status]}».`,
-      );
-      return;
-    }
-    if (this.pruefBestanden()) {
-      // über das Protokoll abschliessen, damit der Abschluss-Vermerk stimmt
-      this.pruefungGeprueft();
-    } else {
-      // Guard in statusSetzen: erklärt das fehlende Protokoll und öffnet es
-      this.statusSetzen('geprueft');
-    }
-  }
-
   protected inexistentKlick(): void {
     if (!this.darfBearbeiten()) {
       this.bearbeitenHinweis();

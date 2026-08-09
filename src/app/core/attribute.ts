@@ -9,8 +9,10 @@ export interface ObjektAttribut {
   anker: string;
 }
 
+// Kein Eintrag für Workflow-Status und Prüfkommentar: Beide leben nicht
+// mehr im Formular (Kopfzeile bzw. Gesamtbemerkung des Prüfprotokolls) —
+// ein Scroll-Anker liefe ins Leere.
 export const OBJEKT_ATTRIBUTE: readonly ObjektAttribut[] = [
-  { key: 'status', label: 'Workflow-Status', anker: 'attr-status' },
   { key: 'objektname', label: 'Objektname', anker: 'attr-name' },
   { key: 'nhg-wert', label: 'NHG-Wert', anker: 'attr-nhg' },
   { key: 'substanzgrad', label: 'Substanzgrad', anker: 'attr-substanzgrad' },
@@ -26,7 +28,6 @@ export const OBJEKT_ATTRIBUTE: readonly ObjektAttribut[] = [
   { key: 'geschichte', label: 'Geschichte', anker: 'attr-geschichte' },
   { key: 'gelaende', label: 'Gelände', anker: 'attr-gelaende' },
   { key: 'bibliografie', label: 'Bibliografie', anker: 'attr-bibliografie' },
-  { key: 'pruefkommentar', label: 'Prüfkommentar', anker: 'attr-pruefkommentar' },
 ];
 
 export function attributVonLabel(label: string): ObjektAttribut | undefined {
