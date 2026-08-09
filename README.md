@@ -217,7 +217,7 @@ neuen Session weiterzuarbeiten.
   Administration (Titel, Datum, Logistik, Reihenfolge der Ziele; offene
   Anforderungen werden dabei übernommen). Die gewählte Begehung liegt
   als nummerierte Route auf der Karte; im Objekt-Detail über das
-  Kalender-Menü der Kopfzeile und den Formular-Abschnitt «Begehung».
+  Fussstapfen-Menü der Kopfzeile und den Formular-Abschnitt «Begehung».
 - **Kommentare** (09/10): Panel mit Threads, Erledigt-Kennzeichnung, Suche,
   Filtern (Standard «Offene»; objektübergreifende Listen zeigen nur die
   eigenen — zugewiesen, mal zugewiesen oder erwähnt), `@`-Erwähnungen und

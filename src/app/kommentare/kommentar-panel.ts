@@ -217,7 +217,19 @@ export class KommentarPanel {
 
   protected attributAnker(label: string): void {
     const attribut = attributVonLabel(label);
-    if (attribut) this.attributKlick.emit(attribut.anker);
+    if (attribut) {
+      this.attributKlick.emit(attribut.anker);
+      return;
+    }
+    // Referenz auf ein Attribut, das nicht mehr im Formular lebt
+    // (z. B. Workflow-Status oder Prüfkommentar, Entscheid 93) — der
+    // Klick erklärt sich statt still zu verpuffen (nie-disabled-Regel)
+    this.hinweis.zeige(
+      'Attribut nicht mehr im Formular',
+      `«${label}» ist kein Formular-Attribut mehr — der Workflow-Status lebt in der ` +
+        'Kopfzeile, der Prüfkommentar als Gesamtbemerkung im Prüfprotokoll ' +
+        '(Entscheid 93). Die Referenz stammt aus einer älteren Fassung.',
+    );
   }
 
   protected antwortenUmschalten(id: string): void {

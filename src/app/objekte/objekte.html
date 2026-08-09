@@ -272,7 +272,7 @@
                   </span>
                 </span>
                 @if (ast.strecke.inexistent) {
-                  <span hlmBadge variant="destructive" class="mt-1 text-[10px]">inexistent</span>
+                  <span hlmBadge variant="destructive" class="mt-1 text-[10px]">nicht existent</span>
                 }
               </button>
             </div>
@@ -377,7 +377,7 @@
                 {{ objektTypText(o) }}
               </span>
               @if (o.inexistent) {
-                <span hlmBadge variant="destructive">inexistent</span>
+                <span hlmBadge variant="destructive">nicht existent</span>
               }
             </div>
           </div>
@@ -459,7 +459,7 @@
 
           @if (o.inexistent; as inexistent) {
             <div>
-              <h3 class="text-xs font-medium text-destructive">Inexistent</h3>
+              <h3 class="text-xs font-medium text-destructive">Nicht existent</h3>
               <p class="mt-1 text-sm">
                 Seit {{ inexistent.seit }} — {{ inexistent.begruendung }}
               </p>
@@ -539,7 +539,7 @@
           }
           @if (o.pruefkommentar) {
             <div>
-              <h3 class="text-xs font-medium text-muted-foreground">Prüfkommentar</h3>
+              <h3 class="text-xs font-medium text-muted-foreground">Gesamtbemerkung der Prüfung</h3>
               <p class="mt-1 text-sm whitespace-pre-line">{{ o.pruefkommentar }}</p>
             </div>
           }

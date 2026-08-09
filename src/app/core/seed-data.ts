@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 12;
+export const SEED_VERSION = 13;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -535,14 +535,16 @@ const BE_21: Vorlage[] = [
     gelaendeText:
       'Geländebeschrieb 2025: Hohlweg von rund 30 m Länge, Tiefe bis 2,5 m, Sohle unbefestigt.',
     datierungGelaende20: '2025-05-02',
-    pruefkommentar:
-      'Datierung des Hohlwegs prüfen — «mittelalterlich» ist im Text nicht belegt. Bitte Quelle ergänzen oder Formulierung abschwächen.',
+    // Kein pruefkommentar auf Abschnitt-Ebene: Die Gesamtbemerkung lebt
+    // wie Status und Prüfprotokoll auf der Strecke (Entscheide 78/93)
     lognotizen: [
       {
         datum: '2026-07-19',
         autor: 'M. Gerber',
         rolle: 'R-06',
-        text: 'Zur Korrektur zurückgewiesen: Datierungsbeleg fehlt.',
+        text:
+          'Zur Korrektur zurückgewiesen: Datierung des Hohlwegs («mittelalterlich») ist ' +
+          'im Text nicht belegt — Quelle ergänzen oder Formulierung abschwächen.',
       },
     ],
   },

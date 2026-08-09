@@ -17,14 +17,14 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 91), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 95), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
-> **Stand:** 06.08.2026, achte Ausbaustufe (Rückbau der R-04-Pakete,
-> Zuweisungs-Dialog, Multi-Edit, Kommentar-Pflichtzuweisung, Begehungen
-> zweistufig mit Routen-Karte, Strecken-Anforderung, Geometrie-Werkzeuge —
-> Entscheide 85–91). Repository auf `main`. Live unter
+> **Stand:** 09.08.2026, neunte Ausbaustufe (vollständige
+> Selektions-Abblendung, Content-Aufräumung mit Gesamtbemerkung im
+> Prüfprotokoll, «Nicht existent» als Kopfzeilen-Knopf, Kosmetik —
+> Entscheide 92–95). Repository auf `main`. Live unter
 > <https://ivs-prototyp-v3.vercel.app>, Auto-Deploy aus `main` aktiv (12.7).
 >
 > **Ein spartan/ui-Skill liegt im Repo** (`.claude/skills/spartan/`, per
@@ -1125,8 +1125,9 @@ _Prüfprotokoll, Arbeitspakete und Status-Vererbung_
     entsteht **beim Zurückweisen** ein Kommentar am Objekt (Titel
     «Prüfbefund: <Gruppe>», Text Frage + Begründung), das Objekt geht in
     «Korrektur». Der **Wechsel auf «Geprüft» ist überall geschützt**
-    (Kopfzeilen-Dropdown, Formular-Select, Dashboard-Zeile, Knopf im
-    Abschnitt Prüfen/Freigabe): ohne bestandenes Protokoll erklärt ein
+    (Kopfzeilen-Dropdown und Dashboard-Zeile; das Formular-Select ist
+    mit Entscheid 80 entfernt, der Knopf im Abschnitt Prüfen/Freigabe
+    mit Entscheid 93): ohne bestandenes Protokoll erklärt ein
     Modal die Voraussetzung, im Objekt-Detail öffnet sich zusätzlich die
     Prüfung. Persistiert am Objekt (`pruefprotokoll` mit
     Abschluss-Vermerk der letzten Runde); Umsetzungsvermerk der
@@ -1287,8 +1288,9 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     gewähltes Attribut auf allen gewählten Strecken auf denselben
     Wert — wählbar ist **jedes Formularfeld** (Eckdaten, Bewertung
     samt Punkten und Begründungen, Empfehlungen, Beschriebe,
-    Bibliografie, Prüfkommentar) mit typgerechter Eingabe; nicht dabei
-    sind Status, Zuständigkeit, Kanton und Inexistenz (eigene
+    Bibliografie, ~~Prüfkommentar~~) mit typgerechter Eingabe; nicht
+    dabei sind Status, Zuständigkeit, Kanton, Inexistenz und — seit
+    Entscheid 93 — die Gesamtbemerkung der Prüfung (eigene
     Mechanismen). Die **Rechteprüfung folgt dem Formular** (Rolle ×
     Status) je Objekt — nicht bearbeitbare Strecken werden
     übersprungen und im Toast ausgewiesen; **R-03 darf
@@ -1319,7 +1321,8 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     Verbindungslinie liegt (Karten-Input `begehungsPunkte`;
     Objekt-Ziele über das Bbox-Zentrum aus `ObjektGeo`), gefiltert auf
     die betroffenen Strecken. Im Objekt-Detail liegt beides im
-    **Kalender-Menü der Kopfzeile** (verlegt aus dem 360°-Bereich —
+    **Kalender-Menü der Kopfzeile** (seit Entscheid 95 mit
+    Fussstapfen-Icon; verlegt aus dem 360°-Bereich —
     der war der falsche Ort), die Einplanung und offene Anforderungen
     stehen im neuen Formular-Abschnitt **«Begehung»**; der Dialog
     wohnt neu unter `begehungen/`. Begehungs-Seed-Version 2.
@@ -1390,20 +1393,30 @@ Content-Aufräumung (Status, Prüfen/Freigabe, Inexistent) und Kosmetik.
     werden — R-06 im Status «In Prüfung»; entscheidet den offenen
     Punkt aus Abschnitt 10), der Knopf «Als geprüft kennzeichnen»
     entfällt — der Weg führt über das Status-Dropdown mit
-    Protokoll-Guard. Beide `#`-Referenzen (Workflow-Status,
-    Prüfkommentar) sind aus der Attribut-Registry genommen, ihre
-    Scroll-Anker liefen ins Leere.
+    Protokoll-Guard. Damit die Gesamtbemerkung **nach der Prüfung
+    lesbar bleibt** (etwa für die Freigabe durch R-03), erscheint der
+    Knopf «Prüfung» auf Strecken mit Abschluss-Vermerk oder
+    Gesamtbemerkung für **alle Rollen als Einsicht** (Review-Befund).
+    Das Feld ist zudem **aus dem Multi-Edit genommen** — es hat wie
+    Status und Inexistenz einen dedizierten, geschützten Mechanismus.
+    Beide `#`-Referenzen (Workflow-Status, Prüfkommentar) sind aus der
+    Attribut-Registry genommen; ein Klick auf eine **Bestandsreferenz**
+    erklärt im Modal, wo das Attribut heute lebt (nie-disabled-Regel).
 94. **«Nicht existent» als eigener Kopfzeilen-Knopf** (statt
     Formular-Abschnitt; bewusst **kein Workflow-Status** — die
     Kennzeichnung bleibt **pro Objekt** setzbar, auch auf einzelnen
     Linienführungen und Abschnitten, während der Status auf
     Strecken-Ebene vererbt wird): Der Knopf in der Kopfzeile der
     Objektbearbeitung öffnet den bisherigen Warnhinweis mit
-    **Pflichtbegründung** (Lognotiz wie gehabt, Rollen wie gehabt);
-    im gekennzeichneten Zustand färbt er sich rot, der Tooltip zeigt
+    **Pflichtbegründung** (Rollen wie gehabt; die Lognotiz lautet neu
+    «Als nicht existent gekennzeichnet: …», ein verworfener
+    Begründungs-Entwurf verfällt beim nächsten Öffnen); im
+    gekennzeichneten Zustand färbt er sich rot, der Tooltip zeigt
     Datum und Begründung, ein Klick führt das Objekt wieder als
-    existent. Sichtbare Texte sprechen von **«nicht existent»**
-    (Badge, Dialog); Modellfeld und Filter «Inexistenz» bleiben.
+    existent. Sichtbare Texte sprechen **überall** von
+    **«nicht existent»** (Badges in Objektbearbeitung, Baum, Liste und
+    Dashboard, Panel-Abschnitt, Dialog); Modellfeld und die
+    Filter-Beschriftung «Inexistenz» bleiben.
 95. **Kosmetik:** Der Begehungs-Knopf der Objektbearbeitung trägt das
     **Fussstapfen-Icon** wie der Begehungen-Tab der Seitenleiste; das
     **Historie-Menü** kommt ohne Beschriftung aus (nur Icon mit
@@ -1688,7 +1701,7 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 
 | Schlüssel                       | Inhalt                        | Version                           |
 | ------------------------------- | ----------------------------- | --------------------------------- |
-| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 12) |
+| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 13) |
 | `ivs-prototyp-v3.kommentare`    | Kommentare und Antworten      | Konstante in `kommentare.ts`      |
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen und Anforderungen | Konstante in `begehungen.ts` |
@@ -1726,8 +1739,8 @@ Seed-Strecken sind dort als Tabellen hinterlegt. Das Dufour-Situierungsbild
 
 ### 12.5 Stand der Arbeit
 
-Gebaut ist die **achte Ausbaustufe des Kern-Workflows** (Stand 06.08.2026;
-die Anpassungen der letzten Sitzungen sind als Entscheide 48–91 in
+Gebaut ist die **neunte Ausbaustufe des Kern-Workflows** (Stand 09.08.2026;
+die Anpassungen der letzten Sitzungen sind als Entscheide 48–95 in
 9.8 dokumentiert):
 
 - **Shell**: Das IVS-Logo führt zum Dashboard; «Perspektive wechseln» liegt
@@ -1833,7 +1846,7 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–91 in
   Datum, Logistik, Reihenfolge der Ziele; offene Anforderungen werden
   dabei übernommen). Die gewählte Begehung liegt als **nummerierte
   Route** auf der Karte rechts. Aus der Objektbearbeitung über das
-  Kalender-Menü der Kopfzeile; Einplanung und Anforderungen im
+  Fussstapfen-Menü der Kopfzeile; Einplanung und Anforderungen im
   Formular-Abschnitt «Begehung».
 - **Versionsvergleich (08.05, Vorgabe 10)**: Wort-Diff der Beschriebe und
   Eckdaten-Änderungen IVS 1.0 → 2.0 plus Vergleichskarte mit separat
@@ -2209,7 +2222,7 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach der achten Ausbaustufe (06.08.2026, Entscheide 85–91);
+Stand nach der neunten Ausbaustufe (09.08.2026, Entscheide 92–95);
 Reihenfolge als Vorschlag.
 
 1. **Prüfprotokoll ausbauen (Abschnitt 4.6).** Der Fragenteil ist gebaut

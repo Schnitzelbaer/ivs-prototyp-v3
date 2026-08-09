@@ -42,7 +42,7 @@
               begehung.titel + ' — Position ' + begehung.position + ' von ' + begehung.ziele.length
             "
           >
-            <ng-icon name="lucideCalendarPlus" size="12" />
+            <ng-icon name="lucideFootprints" size="12" />
             Begehung {{ formatDatum(begehung.datum) }}
           </a>
         }
@@ -877,8 +877,9 @@
           </section>
 
           <!-- ==================================================== Begehung -->
-          <!-- Entscheid 89: geplante Begehungen und offene Anforderungen zum
-               Objekt — die Aktionen liegen in der Kopfzeile (Kalender-Menü) -->
+          <!-- Entscheide 89/95: geplante Begehungen und offene Anforderungen
+               zum Objekt — die Aktionen liegen im Fussstapfen-Menü der
+               Kopfzeile -->
           <section
             hlmCollapsible
             [expanded]="true"
@@ -922,7 +923,7 @@
               @if (!geplanteBegehungen().length && !objektAnforderungen().length) {
                 <p class="text-sm text-muted-foreground">
                   Für dieses Objekt ist keine Begehung geplant oder angefordert — beides geht
-                  über das Kalender-Menü in der Kopfzeile.
+                  über das Begehungs-Menü (Fussstapfen-Symbol) in der Kopfzeile.
                 </p>
               }
               <a hlmBtn variant="outline" size="sm" class="mt-3" routerLink="/begehungen">

@@ -18,7 +18,6 @@ import {
   lucideArrowLeft,
   lucideBan,
   lucideBookOpen,
-  lucideCalendarPlus,
   lucideCamera,
   lucideCheck,
   lucideChevronDown,
@@ -143,7 +142,6 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideArrowLeft,
       lucideBan,
       lucideBookOpen,
-      lucideCalendarPlus,
       lucideCamera,
       lucideCheck,
       lucideChevronDown,
@@ -492,13 +490,14 @@ export class ObjektDetail implements OnDestroy {
    */
   protected readonly pruefungSichtbar = computed(() => {
     const o = this.objekt();
+    if (!o || o.ebene !== 'strecke') return false;
     const rolle = this.einstellungen.aktiveRolleId();
-    return (
-      !!o &&
-      o.ebene === 'strecke' &&
-      o.status === 'in_pruefung' &&
-      (rolle === 'R-06' || rolle === 'R-07')
-    );
+    // Während der Prüfung: die prüfenden Rollen
+    if (o.status === 'in_pruefung' && (rolle === 'R-06' || rolle === 'R-07')) return true;
+    // Danach Einsicht für alle, sobald ein Abschluss oder eine
+    // Gesamtbemerkung vorliegt — sonst wäre die Gesamtbemerkung nach
+    // der Prüfung nirgends mehr lesbar (Review-Befund, Entscheid 93)
+    return !!o.pruefprotokoll?.abschluss || !!o.pruefkommentar.trim();
   });
 
   /** Die Fachliche Prüfstelle sieht einen Platzhalter statt des Formulars. */
@@ -807,6 +806,9 @@ export class ObjektDetail implements OnDestroy {
       this.bearbeitenHinweis();
       return;
     }
+    // Ein verworfener Begründungs-Entwurf (Abbrechen, Objektwechsel)
+    // darf nicht am nächsten Objekt kleben — beim Öffnen leeren
+    this.inexistentBegruendung.set('');
     this.inexistentDialogOffen.set(true);
   }
 

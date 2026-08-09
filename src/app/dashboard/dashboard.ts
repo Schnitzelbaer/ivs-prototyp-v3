@@ -126,9 +126,11 @@ function bewertungsAttribute(
 /**
  * Alle Formularfelder des Objekts sind per Multi-Edit befüllbar
  * (Entscheid 87 — «wirklich jedes Attribut»). Nicht dabei: Status,
- * Zuständigkeit, Kanton und Inexistenz — dafür gibt es die dedizierten
- * Mechanismen (Status-Dropdown, Zuständig-Aktion, Kanton-Umteilung,
- * Inexistent-Dialog mit Pflichtbegründung).
+ * Zuständigkeit, Kanton, Inexistenz und die Gesamtbemerkung der
+ * Prüfung — dafür gibt es die dedizierten Mechanismen
+ * (Status-Dropdown, Zuständig-Aktion, Kanton-Umteilung,
+ * Nicht-existent-Dialog mit Pflichtbegründung, Prüfprotokoll —
+ * Entscheide 93/94).
  */
 const MULTI_EDIT_ATTRIBUTE: MultiEditAttribut[] = [
   { key: 'name', label: 'Objektname', eingabe: 'text', anwenden: (_o, w) => ({ name: w }) },
@@ -208,12 +210,6 @@ const MULTI_EDIT_ATTRIBUTE: MultiEditAttribut[] = [
     label: 'Bibliografie',
     eingabe: 'textarea',
     anwenden: (_o, w) => ({ bibliografie: w }),
-  },
-  {
-    key: 'pruefkommentar',
-    label: 'Prüfkommentar',
-    eingabe: 'textarea',
-    anwenden: (_o, w) => ({ pruefkommentar: w }),
   },
 ];
 
@@ -822,7 +818,7 @@ export class Dashboard {
     const rolle = this.einstellungen.aktiveRolleId();
     if (rolle !== 'R-03' && rolle !== 'R-06') {
       this.hinweis.zeige(
-        'Anfordern nicht möglich',
+        'Neue Strecke nicht möglich',
         'Neue Strecken anfordern können die Fachliche Administration (R-03) und das ' +
           'Fachlektorat (R-06); die Erstellung übernehmen die Inventarisierenden (R-05).',
       );
