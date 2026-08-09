@@ -558,6 +558,18 @@ export class Dashboard {
       );
       return;
     }
+    // «Publiziert» nur aus «Freigegeben» — sonst überspränge der
+    // Direktsprung beide Prüf-Gates (Review-Befund zu E96)
+    if (status === 'publiziert' && objekt.status !== 'freigegeben') {
+      this.selectZuruecksetzen(select, status, objekt.status);
+      this.hinweis.zeige(
+        'Freigabe erforderlich',
+        `${objekt.signatur} wird erst publiziert, wenn die Fachliche Prüfstelle die Strecke ` +
+          'freigegeben hat — der Weg führt über «Geprüft» (Fachlektorat) und ' +
+          '«Freigegeben» (Prüfstelle, Checkliste 1).',
+      );
+      return;
+    }
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(objekt.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {

@@ -377,22 +377,24 @@ Das Verhältnis zwischen «Prüfprotokoll» (aus der Arbeitshilfe) und
 «Prüfregister QS wie SBB Tool» (aus dem Workshop) ist auf dem Board nicht
 aufgelöst — siehe Abschnitt 10.
 
-> **Gebaut (Entscheide 75/76, 05.08.2026).** Das Prüfprotokoll des
-> Fachlektorats liegt als Seitenleiste im Objekt-Detail (Knopf «Prüfung»,
-> nur auf Strecken im Status «In Prüfung»). Massgebend ist der
+> **Gebaut (Entscheide 75/76/96).** Das Prüfprotokoll liegt als
+> Seitenleiste im Objekt-Detail (Knopf «Prüfung») mit **zwei
+> Registern**: Das Fachlektorat prüft in «In Prüfung» mit dem
 > **Fragenkatalog der Review-Vorlage vom 05.08.2026** (vier Gruppen,
-> 8 Fragen mit Ja/Nein und Pflichtbegründung bei Nein) — er ersetzt im
-> Prototyp die Checkliste 1 aus 4.7. Nein-Befunde werden beim
-> Zurückweisen zu Kommentaren am Objekt, das Objekt geht in «Korrektur»;
-> ohne durchwegs Ja ist «Geprüft» gesperrt. Die Fachliche Prüfstelle
-> erhält ein eigenes Protokoll (noch zu spezifizieren).
+> 8 Fragen mit Ja/Nein und Pflichtbegründung bei Nein); die Fachliche
+> Prüfstelle prüft die geprüfte Strecke mit der **Checkliste 1 aus
+> 4.7** und gibt mit durchwegs Ja frei (Entscheid 96). Nein-Befunde
+> werden beim Zurückweisen zu Kommentaren am Objekt, das Objekt geht in
+> «Korrektur»; ohne durchwegs Ja ist «Geprüft» bzw. «Freigegeben»
+> gesperrt.
 
 ### 4.7 Checkliste 1
 
-> **Hinweis zum Stand:** Im Prototyp ist stattdessen der Fragenkatalog der
-> Review-Vorlage vom 05.08.2026 gebaut (Entscheid 75, Wortlaut in
-> `core/pruefprotokoll.ts`). Die folgende Checkliste bleibt als fachliche
-> Grundlage der Arbeitshilfe dokumentiert.
+> **Hinweis zum Stand:** Die folgenden neun Fragen sind seit
+> Entscheid 96 als **Prüfprotokoll der Fachlichen Prüfstelle** gebaut
+> (`PRUEFSTELLE_FRAGEN` in `core/pruefprotokoll.ts`); das Fachlektorat
+> prüft daneben mit dem Fragenkatalog der Review-Vorlage vom 05.08.2026
+> (Entscheid 75).
 
 Die Checkliste, auf der das Prüfprotokoll aufbaut. Neun Prüffragen, jede als
 **binärer Schalter** (Toggle, erfüllt / nicht erfüllt) — keine Dreiwertigkeit,
@@ -703,9 +705,10 @@ Bereits getroffene Entscheide. Sie gelten, bis sie ausdrücklich geändert werde
     plus Geometrie-Overlay alt/neu auf der Karte. **Gebaut** — Ausgestaltung
     siehe Entscheid 66 (Wort-Diff, Overlay in normaler Darstellung mit je
     eigenem Deckkraft-Regler).
-11. **Prüfregister:** ~~frei zu entwerfen~~ — **gebaut** als Prüfprotokoll
-    des Fachlektorats (Entscheide 75/76, Fragenkatalog aus der
-    Review-Vorlage). Für die in der Story Map erwähnte
+11. **Prüfregister:** ~~frei zu entwerfen~~ — **gebaut** als
+    Prüfprotokolle des Fachlektorats (Entscheide 75/76, Fragenkatalog
+    aus der Review-Vorlage) und der Fachlichen Prüfstelle
+    (Entscheid 96, Checkliste 1). Für die in der Story Map erwähnte
     SBB-Referenz existiert keine Vorlage. Die überarbeitete Story Map gibt
     inhaltlich jedoch vor, was es leisten muss (Abschnitt 4.6): Befunde des
     Fachlektorats, Umsetzungsvermerk der Inventarisierenden, begründete
@@ -1065,7 +1068,9 @@ _Perspektiven und Dashboard_
     Objekt-Kopfzeile, ~~Formular~~ — das Formular-Select ist mit
     Entscheid 80 entfernt) bieten nur noch die von der Rolle
     setzbaren Stati an. **«Korrektur» leitet allein das Fachlektorat
-    (R-06) ein** — R-04 und R-05 sehen den Status weiterhin, setzen ihn
+    (R-06) ein** (seit Entscheid 96 über das Zurückweisen auch die
+    Fachliche Prüfstelle — programmatisch, nicht über die Dropdowns) —
+    R-04 und R-05 sehen den Status weiterhin, setzen ihn
     aber nicht. Die **Fachliche Prüfstelle (R-07) darf «Publiziert»
     setzen**. Die seit Entscheid 59 tote Übergangs-Tabelle
     (`UEBERGAENGE` in status.ts) ist entfernt.
@@ -1115,8 +1120,10 @@ _Prüfprotokoll, Arbeitspakete und Status-Vererbung_
     Knopf **«Prüfung»** neben dem Stift öffnet eine **Seitenleiste** mit
     vier Fragegruppen (Allgemein, Gelände-, Geschichtsbeschrieb,
     Schutzbegründung; 8 Fragen — zwei kommen bewusst in zwei Gruppen vor
-    und werden **separat** beantwortet). Der Katalog **ersetzt im
-    Prototyp die Checkliste 1** (4.7). Antworten als **Ja/Nein**
+    und werden **separat** beantwortet). ~~Der Katalog **ersetzt im
+    Prototyp die Checkliste 1** (4.7).~~ **Seit Entscheid 96 prüft die
+    Fachliche Prüfstelle mit der Checkliste 1** — beide Kataloge
+    bestehen nebeneinander. Antworten als **Ja/Nein**
     (`hlm-toggle-group`) statt Switches; ein Nein verlangt eine
     Begründung («Was muss überarbeitet werden?»). Ausfüllen kann
     **R-06 im Status «In Prüfung»**, alle anderen sehen das Protokoll
@@ -1442,7 +1449,15 @@ in derselben Session geklärt).**
     ist die **Freigabe die nächste Stufe** («Freigeben» wechselt auf
     «Freigegeben» mit Abschluss-Vermerk). Der Wechsel auf
     «Freigegeben» ist überall geschützt (Kopfzeilen-Dropdown,
-    Dashboard-Zeile) — analog zum Geprüft-Guard aus Entscheid 75.
+    Dashboard-Zeile) — analog zum Geprüft-Guard aus Entscheid 75;
+    **«Publiziert» verlangt den Status «Freigegeben»** (sonst
+    überspränge der Direktsprung beide Gates), und **beim Zurückfallen
+    hinter den geschützten Zustand werden die Protokoll-Antworten
+    entwertet** (der Abschluss-Vermerk bleibt als Historie) — ein
+    altes «bestanden» erlaubt keinen Direktsprung zurück, jede Runde
+    ist eine neue Prüfung (Review-Befunde). Im Status «Geprüft» ist
+    die **Prüfstelle zuständig** (`rolleFuerStatus`) — frisch geprüfte
+    Strecken erscheinen in ihrem Dashboard.
     Das Protokoll hat eine **eigene Gesamtbemerkung**
     (`pruefkommentarPruefstelle`, getrennt vom Fachlektorat). Das
     Prüfung-Sheet führt beide Protokolle als **Register mit
@@ -1733,7 +1748,7 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 
 | Schlüssel                       | Inhalt                        | Version                           |
 | ------------------------------- | ----------------------------- | --------------------------------- |
-| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 14) |
+| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 15) |
 | `ivs-prototyp-v3.kommentare`    | Kommentare und Antworten      | Konstante in `kommentare.ts`      |
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen und Anforderungen | Konstante in `begehungen.ts` |
@@ -1917,11 +1932,15 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–96 in
 - **Kitchen Sink** unter `/kitchen-sink` als Nachschlagewerk;
   **Touch-Vergrösserung** aktiv (Abschnitt 9.6); keine Unit-Tests
   vorgesehen (`pnpm test` meldet «No tests found»).
-- **Prüfprotokoll (4.6, Entscheide 75/76)**: Seitenleiste «Prüfung»
-  (nur Status «In Prüfung», Rollen R-06/R-07 — R-07 mit Platzhalter für
-  ihr späteres eigenes Protokoll) mit Ja/Nein-Fragen in vier Gruppen,
-  Nein-Befunde werden beim Zurückweisen zu Kommentaren, «Geprüft» ist
-  ohne bestandenes Protokoll überall gesperrt (Guard mit Erklär-Modal).
+- **Prüfprotokoll (4.6, Entscheide 75/76/96)**: Seitenleiste «Prüfung»
+  mit zwei Registern und gegenseitiger Einsicht — das Fachlektorat
+  prüft in «In Prüfung» (Ja/Nein-Fragen in vier Gruppen), die Fachliche
+  Prüfstelle die geprüfte Strecke mit der Checkliste 1 (neun Fragen,
+  eigene Gesamtbemerkung; alle Ja → «Freigeben»). Nein-Befunde werden
+  beim Zurückweisen zu Kommentaren; «Geprüft», «Freigegeben» und
+  «Publiziert» sind ohne die jeweilige Voraussetzung überall gesperrt
+  (Guards mit Erklär-Modal), und beim Zurückfallen hinter den
+  geschützten Zustand werden die Protokoll-Antworten entwertet.
 - **Arbeitspakete (03.02, Entscheide 77/82/85)**: Bereich im
   Dashboard nur für R-03 — alle 26 Kantone an die Regionale
   Koordination zuweisbar (persistent, änderbar, ohne Statuswechsel),
@@ -2312,8 +2331,11 @@ wechseln, oder `?rolle=R-06` an die URL hängen — die Rolle gilt pro Tab):
 4. **R-06** (M. Gerber) setzt «In Prüfung», öffnet «Prüfung», beantwortet
    den Katalog — bei einem Nein mit Begründung geht die Strecke mit
    Kommentaren zurück in «Korrektur», sonst auf «Geprüft».
-5. **R-03** gibt frei und publiziert; **R-07** kommentiert und darf
-   ebenfalls publizieren.
+5. **R-07** (S. Koch) öffnet auf der geprüften Strecke «Prüfung»,
+   beantwortet die neun Fragen der Checkliste 1 und gibt mit
+   «Freigeben» frei (Entscheid 96) — bei einem Nein geht die Strecke
+   mit Kommentaren zurück in «Korrektur».
+6. **R-03** oder **R-07** publiziert die freigegebene Strecke.
 
 Zum Anschauen ohne Zuweisen eignet sich BE 22 (steht auf «In Prüfung»,
 zuständig M. Gerber) — dort ist der Prüfungs-Knopf sofort sichtbar.

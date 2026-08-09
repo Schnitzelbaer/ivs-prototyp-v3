@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 14;
+export const SEED_VERSION = 15;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -78,6 +78,10 @@ export function rolleFuerStatus(status: WorkflowStatus): RolleId {
     case 'bereit_zur_pruefung':
     case 'in_pruefung':
       return 'R-06';
+    case 'geprueft':
+      // die Fachliche Prüfstelle prüft die geprüfte Strecke für die
+      // Freigabe (Entscheid 96) — so landet sie in deren Dashboard
+      return 'R-07';
     default:
       return 'R-03';
   }

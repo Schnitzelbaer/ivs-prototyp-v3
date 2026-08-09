@@ -266,8 +266,9 @@
           </hlm-alert-dialog-content>
         </hlm-alert-dialog>
 
-        <!-- Prüfprotokoll (4.6): nur im Status «In Prüfung» und nur für die
-             prüfenden Rollen (R-06 füllt aus, R-07 hat später ein eigenes) -->
+        <!-- Prüfprotokoll (4.6): R-06 füllt in «In Prüfung» aus, R-07 die
+             Checkliste 1 auf der geprüften Strecke (Entscheid 96); nach dem
+             Abschluss Einsicht für alle Rollen (pruefungSichtbar) -->
         @if (pruefungSichtbar()) {
           <button
             hlmBtn

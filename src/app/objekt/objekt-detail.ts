@@ -468,6 +468,17 @@ export class ObjektDetail implements OnDestroy {
       if (this.darfPruefstelle()) this.pruefungOffen.set(true);
       return;
     }
+    // «Publiziert» nur aus «Freigegeben» — sonst überspränge der
+    // Direktsprung beide Prüf-Gates (Review-Befund zu E96)
+    if (status === 'publiziert' && o.status !== 'freigegeben') {
+      this.hinweis.zeige(
+        'Freigabe erforderlich',
+        'Publiziert wird nur, was die Fachliche Prüfstelle freigegeben hat — der Weg ' +
+          'führt über «Geprüft» (Fachlektorat) und «Freigegeben» (Prüfstelle, ' +
+          'Checkliste 1).',
+      );
+      return;
+    }
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(o.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
@@ -500,10 +511,12 @@ export class ObjektDetail implements OnDestroy {
   protected readonly pruefungOffen = signal(false);
 
   /**
-   * Der Knopf «Prüfung» erscheint nur auf Strecken im Status «In Prüfung»
-   * und nur für die prüfenden Rollen: Fachlektorat (R-06) und Fachliche
-   * Prüfstelle (R-07 — deren eigenes Protokoll wird später spezifiziert).
-   * Wie der Status lebt das Protokoll auf Strecken-Ebene (Entscheid 78).
+   * Der Knopf «Prüfung» erscheint auf Strecken: für die prüfenden Rollen
+   * in ihrem Arbeitszustand (R-06/R-07 in «In Prüfung», R-07 zusätzlich
+   * auf der geprüften Strecke — Entscheid 96) und für alle als Einsicht,
+   * sobald eines der beiden Protokolle einen Abschluss oder eine
+   * Gesamtbemerkung trägt (Entscheid 93). Wie der Status leben die
+   * Protokolle auf Strecken-Ebene (Entscheid 78).
    */
   protected readonly pruefungSichtbar = computed(() => {
     const o = this.objekt();

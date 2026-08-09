@@ -2,7 +2,14 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { BegehungsStore } from './begehungen';
 import { GeometrieStore } from './geometrie-store';
 import { KommentarStore, jetztLokal } from './kommentare';
-import { IvsObjekt, Lognotiz, RolleId, WorkflowStatus, idAusSignatur } from './model';
+import {
+  IvsObjekt,
+  Lognotiz,
+  Pruefprotokoll,
+  RolleId,
+  WorkflowStatus,
+  idAusSignatur,
+} from './model';
 import { ladeObjektModell } from './objekt-generierung';
 import { KANTONE } from './paket-store';
 import {
@@ -155,6 +162,25 @@ export class ObjektStore {
       'in_bearbeitung',
       'korrektur',
     ].includes(status);
+    // Prüfprotokolle entwerten, wenn die Strecke hinter den jeweils
+    // geschützten Zustand zurückfällt (Review-Befund zu E96): Ein altes
+    // «bestanden» darf keinen Direktsprung zurück auf «Geprüft» bzw.
+    // «Freigegeben» erlauben — jede Runde ist eine neue Prüfung. Der
+    // Abschluss-Vermerk bleibt als Historie stehen, nur die Antworten
+    // werden geleert.
+    const vorGeprueft = [
+      'offen',
+      'zugewiesen',
+      'in_bearbeitung',
+      'bereit_zur_pruefung',
+      'in_pruefung',
+      'korrektur',
+    ].includes(status);
+    const vorFreigegeben = vorGeprueft || status === 'geprueft';
+    const entwerte = (protokoll: Pruefprotokoll | undefined, faellig: boolean) =>
+      faellig && protokoll && Object.keys(protokoll.antworten).length
+        ? { antworten: {}, abschluss: protokoll.abschluss }
+        : protokoll;
     this.objekte.update((liste) =>
       liste.map((o) => {
         if (!betroffene.has(o.signatur)) return o;
@@ -164,6 +190,8 @@ export class ObjektStore {
           zustaendigRolle,
           zustaendigName,
           angefordert: erstellungAbgeschlossen ? null : o.angefordert,
+          pruefprotokoll: entwerte(o.pruefprotokoll, vorGeprueft),
+          pruefprotokollPruefstelle: entwerte(o.pruefprotokollPruefstelle, vorFreigegeben),
           lognotizen: o.id === id ? [...o.lognotizen, notiz] : o.lognotizen,
         };
       }),

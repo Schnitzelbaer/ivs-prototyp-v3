@@ -7,9 +7,11 @@ export interface Rolle {
   waehlbar: boolean;
   /**
    * Stati, welche die Rolle über die Status-Dropdowns setzen darf.
-   * «Korrektur» leitet allein das Fachlektorat ein; die
-   * Inventarisierenden arbeiten zwar darin, setzen den Status aber
-   * nicht selbst.
+   * «Korrektur» leiten die Prüfrollen über ihr Zurückweisen ein —
+   * das Fachlektorat und seit Entscheid 96 auch die Fachliche
+   * Prüfstelle (programmatisch aus dem Prüfprotokoll, nicht über die
+   * Dropdowns); die Inventarisierenden arbeiten zwar darin, setzen
+   * den Status aber nicht selbst.
    */
   setzbareStati: readonly WorkflowStatus[];
   /** Stati, in denen die Rolle Formularfelder bearbeiten darf. */
@@ -47,7 +49,7 @@ export const ROLLEN: readonly Rolle[] = [
     // koordiniert die Erfassung: alles, was bei den Inventarisierenden liegt,
     // plus deren Abgaben an die Prüfung; «Offen» stellt ein Objekt in den
     // unzugewiesenen Pool zurück (Entscheid 79)
-    // «Korrektur» leitet das Fachlektorat ein
+    // «Korrektur» leiten die Prüfrollen ein (R-06/R-07)
     setzbareStati: ['offen', 'zugewiesen', 'in_bearbeitung', 'bereit_zur_pruefung'],
     editStati: [],
   },
@@ -56,7 +58,7 @@ export const ROLLEN: readonly Rolle[] = [
     name: 'Inventarisierende',
     waehlbar: true,
     // eigene Arbeit plus die Abgabe an die Prüfung
-    // «Korrektur» leitet das Fachlektorat ein — R-05 arbeitet nur darin
+    // «Korrektur» leiten die Prüfrollen ein (R-06/R-07) — R-05 arbeitet nur darin
     setzbareStati: ['zugewiesen', 'in_bearbeitung', 'bereit_zur_pruefung'],
     editStati: ['zugewiesen', 'in_bearbeitung', 'korrektur'],
   },

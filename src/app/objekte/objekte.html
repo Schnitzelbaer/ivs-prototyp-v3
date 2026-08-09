@@ -539,8 +539,18 @@
           }
           @if (o.pruefkommentar) {
             <div>
-              <h3 class="text-xs font-medium text-muted-foreground">Gesamtbemerkung der Prüfung</h3>
+              <h3 class="text-xs font-medium text-muted-foreground">
+                Gesamtbemerkung des Fachlektorats
+              </h3>
               <p class="mt-1 text-sm whitespace-pre-line">{{ o.pruefkommentar }}</p>
+            </div>
+          }
+          @if (o.pruefkommentarPruefstelle) {
+            <div>
+              <h3 class="text-xs font-medium text-muted-foreground">
+                Gesamtbemerkung der Fachlichen Prüfstelle
+              </h3>
+              <p class="mt-1 text-sm whitespace-pre-line">{{ o.pruefkommentarPruefstelle }}</p>
             </div>
           }
           @if (o.lognotizen.length) {

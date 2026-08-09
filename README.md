@@ -257,8 +257,7 @@ neuen Session weiterzuarbeiten.
   generierte Kunstbaute mit eigener Teilstück-Geometrie. Änderungen
   überleben im localStorage (`SEED_VERSION` erhöhen verwirft sie).
 
-Noch offen (spätere Etappen): Umsetzungsvermerk der Inventarisierenden und
-das eigene Protokoll der Fachlichen Prüfstelle im Prüfprotokoll,
+Noch offen (spätere Etappen): Umsetzungsvermerk der Inventarisierenden,
 Nebenblöcke (Accounts, Reports, Einsatzlisten).
 
 Die Zuordnung Signatur → Testdaten-Feature liegt in
