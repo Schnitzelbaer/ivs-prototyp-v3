@@ -16,6 +16,7 @@ import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowLeft,
+  lucideBan,
   lucideBookOpen,
   lucideCalendarPlus,
   lucideCamera,
@@ -37,7 +38,6 @@ import {
   lucideScissors,
   lucideSpline,
   lucideTrash2,
-  lucideTriangleAlert,
   lucideUpload,
   lucideUserRound,
 } from '@ng-icons/lucide';
@@ -140,6 +140,7 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
   providers: [
     provideIcons({
       lucideArrowLeft,
+      lucideBan,
       lucideBookOpen,
       lucideCalendarPlus,
       lucideCamera,
@@ -161,7 +162,6 @@ type BewertungsSchluessel = 'geschichte' | 'morphologie' | 'substanzwert';
       lucideScissors,
       lucideSpline,
       lucideTrash2,
-      lucideTriangleAlert,
       lucideUpload,
       lucideUserRound,
     }),
@@ -838,7 +838,7 @@ export class ObjektDetail implements OnDestroy {
     if (!o || !begruendung) return;
     this.inexistentDialogOffen.set(false);
     this.patch({ inexistent: { seit: heute(), begruendung } });
-    this.protokolliere(o.id, `Auf inexistent gesetzt: ${begruendung}`);
+    this.protokolliere(o.id, `Als nicht existent gekennzeichnet: ${begruendung}`);
     this.inexistentBegruendung.set('');
   }
 

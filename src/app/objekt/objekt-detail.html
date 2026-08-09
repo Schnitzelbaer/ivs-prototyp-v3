@@ -18,7 +18,7 @@
         </button>
         <h1 class="truncate text-base font-semibold">{{ o.signatur }} – {{ o.name }}</h1>
         @if (o.inexistent) {
-          <span hlmBadge variant="destructive">inexistent</span>
+          <span hlmBadge variant="destructive">nicht existent</span>
         }
         @if (o.angefordert; as angefordert) {
           <span
@@ -202,6 +202,69 @@
             </button>
           </hlm-dropdown-menu>
         </ng-template>
+
+        <!-- Nicht existent (07.16): eigener Kopfzeilen-Knopf — kennzeichnen
+             mit Pflichtbegründung bzw. wieder als existent führen (verlegt
+             aus dem Formular) -->
+        <button
+          hlmBtn
+          [variant]="o.inexistent ? 'destructive' : 'outline'"
+          size="icon"
+          type="button"
+          (click)="o.inexistent ? wiederExistentKlick() : inexistentKlick()"
+          [hlmTooltip]="
+            o.inexistent
+              ? 'Nicht existent seit ' +
+                formatDatum(o.inexistent.seit) +
+                ': ' +
+                o.inexistent.begruendung +
+                ' — Klick führt das Objekt wieder als existent'
+              : 'Als nicht existent kennzeichnen'
+          "
+          [attr.aria-label]="
+            o.inexistent ? 'Wieder als existent führen' : 'Als nicht existent kennzeichnen'
+          "
+        >
+          <ng-icon name="lucideBan" />
+        </button>
+        <hlm-alert-dialog
+          [state]="inexistentDialogOffen() ? 'open' : 'closed'"
+          (stateChanged)="inexistentDialogOffen.set($event === 'open')"
+        >
+          <hlm-alert-dialog-content *hlmAlertDialogPortal>
+            <hlm-alert-dialog-header>
+              <h3 hlmAlertDialogTitle>{{ o.signatur }} als nicht existent kennzeichnen?</h3>
+              <p hlmAlertDialogDescription>
+                Verlinkte Objekte werden gekennzeichnet und müssen überprüft werden (07.16).
+                Eine Begründung ist Pflicht.
+              </p>
+            </hlm-alert-dialog-header>
+            <div class="grid gap-1.5 py-2">
+              <label hlmLabel for="f-inexistent"
+                >Begründung <span class="text-destructive">*</span></label
+              >
+              <textarea
+                hlmTextarea
+                id="f-inexistent"
+                class="min-h-20 w-full"
+                [ngModel]="inexistentBegruendung()"
+                (ngModelChange)="inexistentBegruendung.set($event)"
+              ></textarea>
+            </div>
+            <hlm-alert-dialog-footer>
+              <button hlmAlertDialogCancel (click)="inexistentDialogOffen.set(false)">
+                Abbrechen
+              </button>
+              <button
+                hlmAlertDialogAction
+                [disabled]="!inexistentBegruendung().trim()"
+                (click)="inexistentSetzen()"
+              >
+                Als nicht existent kennzeichnen
+              </button>
+            </hlm-alert-dialog-footer>
+          </hlm-alert-dialog-content>
+        </hlm-alert-dialog>
 
         <!-- Prüfprotokoll (4.6): nur im Status «In Prüfung» und nur für die
              prüfenden Rollen (R-06 füllt aus, R-07 hat später ein eigenes) -->
@@ -933,102 +996,6 @@
                 Voraussetzung ist das vollständig mit Ja beantwortete Prüfprotokoll — zu öffnen
                 über den Knopf «Prüfung» in der Kopfzeile.
               </p>
-            </div>
-          </section>
-
-          <!-- ==================================================== Inexistent -->
-          <section
-            hlmCollapsible
-            [expanded]="true"
-            #abInexistent="brnCollapsible"
-            class="rounded-md border border-border"
-          >
-            <button
-              hlmCollapsibleTrigger
-              class="flex w-full items-center gap-2 rounded-t-md bg-muted/60 px-3 py-2 text-sm font-semibold"
-            >
-              <ng-icon
-                name="lucideChevronDown"
-                class="text-muted-foreground transition-transform"
-                [class.-rotate-90]="!abInexistent.expanded()"
-              />
-              Inexistent
-            </button>
-            <div hlmCollapsibleContent class="flex flex-col gap-3 p-4">
-              @if (o.inexistent; as inexistent) {
-                <div
-                  class="flex items-start gap-3 rounded-md border border-destructive/50 bg-destructive/5 p-3"
-                >
-                  <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-destructive" />
-                  <div class="flex flex-col gap-1 text-sm">
-                    <p class="font-medium">
-                      Als inexistent geführt seit {{ formatDatum(inexistent.seit) }}.
-                    </p>
-                    <p class="text-muted-foreground">{{ inexistent.begruendung }}</p>
-                  </div>
-                </div>
-                <button
-                  hlmBtn
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  (click)="wiederExistentKlick()"
-                >
-                  Wieder als existent führen
-                </button>
-              } @else {
-                <button
-                  hlmBtn
-                  variant="destructive"
-                  size="sm"
-                  type="button"
-                  (click)="inexistentKlick()"
-                >
-                  <ng-icon name="lucideTriangleAlert" />
-                  Auf inexistent setzen
-                </button>
-                <hlm-alert-dialog
-                  [state]="inexistentDialogOffen() ? 'open' : 'closed'"
-                  (stateChanged)="inexistentDialogOffen.set($event === 'open')"
-                >
-                  <hlm-alert-dialog-content *hlmAlertDialogPortal>
-                    <hlm-alert-dialog-header>
-                      <h3 hlmAlertDialogTitle>{{ o.signatur }} auf inexistent setzen?</h3>
-                      <p hlmAlertDialogDescription>
-                        Verlinkte Objekte werden gekennzeichnet und müssen überprüft werden (07.16).
-                        Eine Begründung ist Pflicht.
-                      </p>
-                    </hlm-alert-dialog-header>
-                    <div class="grid gap-1.5 py-2">
-                      <label hlmLabel for="f-inexistent"
-                        >Begründung <span class="text-destructive">*</span></label
-                      >
-                      <textarea
-                        hlmTextarea
-                        id="f-inexistent"
-                        class="min-h-20 w-full"
-                        [ngModel]="inexistentBegruendung()"
-                        (ngModelChange)="inexistentBegruendung.set($event)"
-                      ></textarea>
-                    </div>
-                    <hlm-alert-dialog-footer>
-                      <button hlmAlertDialogCancel (click)="inexistentDialogOffen.set(false)">
-                        Abbrechen
-                      </button>
-                      <button
-                        hlmAlertDialogAction
-                        [disabled]="!inexistentBegruendung().trim()"
-                        (click)="inexistentSetzen()"
-                      >
-                        Auf inexistent setzen
-                      </button>
-                    </hlm-alert-dialog-footer>
-                  </hlm-alert-dialog-content>
-                </hlm-alert-dialog>
-                <p class="text-xs text-muted-foreground">
-                  Öffnet einen Warnhinweis mit Pflichtbegründung.
-                </p>
-              }
             </div>
           </section>
 
