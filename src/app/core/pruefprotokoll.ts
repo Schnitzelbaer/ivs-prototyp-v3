@@ -83,6 +83,50 @@ export const PRUEF_GRUPPEN: readonly PruefGruppe[] = [
 
 export const ALLE_PRUEF_FRAGEN: readonly PruefFrage[] = PRUEF_GRUPPEN.flatMap((g) => g.fragen);
 
+/**
+ * Prüfprotokoll der Fachlichen Prüfstelle (R-07): die neun Fragen der
+ * Checkliste 1 aus der Arbeitshilfe (Kap. 4.7) als flache Liste ohne
+ * Gruppen. Gleiche Mechanik wie beim Fachlektorat — alle Ja erlauben
+ * hier aber die **Freigabe** (Status «freigegeben»), Nein-Befunde gehen
+ * als Kommentare zur Korrektur zurück. Die Kapitel-Verweise bleiben im
+ * Prototyp Text (Platzhalter, vgl. Abschnitt 10).
+ */
+export const PRUEFSTELLE_FRAGEN: readonly PruefFrage[] = [
+  { id: 'ps-verstaendlich', text: 'Ist der Beschrieb verständlich?' },
+  {
+    id: 'ps-aufbau',
+    text: 'Sind Aufbau und Argumentation des Beschriebs nachvollziehbar?',
+  },
+  {
+    id: 'ps-arbeitshilfe',
+    text:
+      'Entspricht der Inhalt des Beschriebs den Bestimmungen der Arbeitshilfe, ' +
+      'Kap. 3.6 und 4.7?',
+  },
+  {
+    id: 'ps-aktuell',
+    text: 'Ist der Inhalt des Beschriebs aktuell und für den Vollzug des IVS relevant?',
+  },
+  { id: 'ps-widerspruchsfrei', text: 'Ist der Inhalt des Beschriebs widerspruchsfrei?' },
+  {
+    id: 'ps-luecken',
+    text:
+      'Werden inhaltliche Lücken explizit erwähnt und gegebenenfalls begründet? ' +
+      'Sind die Begründungen nachvollziehbar und fachlich korrekt?',
+  },
+  {
+    id: 'ps-terminologie',
+    text: 'Ist die Terminologie der Beschriebe korrekt (gemäss Terminologie-Handbuch)?',
+  },
+  {
+    id: 'ps-aussagen',
+    text:
+      'Werden die wichtigsten Aussagen des Beschriebs hervorgehoben und korrekt ' +
+      '(gemäss Arbeitshilfe Kap. 5.1, 5.2, 5.3) bewertet?',
+  },
+  { id: 'ps-eckdaten', text: 'Entsprechen die Eckdaten dem Inhalt des Beschriebs?' },
+];
+
 export function leereAntwort(): PruefAntwort {
   return { antwort: null, begruendung: '' };
 }
@@ -91,12 +135,15 @@ export function antwortVon(protokoll: Pruefprotokoll | undefined, frageId: strin
   return protokoll?.antworten[frageId] ?? leereAntwort();
 }
 
-/** Anzahl beantworteter Fragen. */
-export function beantworteteFragen(protokoll: Pruefprotokoll | undefined): number {
-  return ALLE_PRUEF_FRAGEN.filter((f) => antwortVon(protokoll, f.id).antwort !== null).length;
+/** Anzahl beantworteter Fragen des übergebenen Katalogs. */
+export function beantworteteFragen(
+  protokoll: Pruefprotokoll | undefined,
+  fragen: readonly PruefFrage[] = ALLE_PRUEF_FRAGEN,
+): number {
+  return fragen.filter((f) => antwortVon(protokoll, f.id).antwort !== null).length;
 }
 
-/** Mit Nein beantwortete Fragen samt Gruppe (die Befunde). */
+/** Mit Nein beantwortete Fragen samt Gruppe (die Befunde des Fachlektorats). */
 export function neinBefunde(
   protokoll: Pruefprotokoll | undefined,
 ): { gruppe: string; frage: PruefFrage; begruendung: string }[] {
@@ -112,15 +159,37 @@ export function neinBefunde(
   return befunde;
 }
 
-/** Vollständig: jede Frage beantwortet, jedes Nein begründet. */
-export function protokollVollstaendig(protokoll: Pruefprotokoll | undefined): boolean {
+/** Mit Nein beantwortete Fragen eines gruppenlosen Katalogs (Prüfstelle). */
+export function neinBefundeVon(
+  protokoll: Pruefprotokoll | undefined,
+  fragen: readonly PruefFrage[],
+): { frage: PruefFrage; begruendung: string }[] {
+  return fragen
+    .map((frage) => ({ frage, antwort: antwortVon(protokoll, frage.id) }))
+    .filter(({ antwort }) => antwort.antwort === 'nein')
+    .map(({ frage, antwort }) => ({ frage, begruendung: antwort.begruendung.trim() }));
+}
+
+/** Vollständig: jede Frage des Katalogs beantwortet, jedes Nein begründet. */
+export function protokollVollstaendig(
+  protokoll: Pruefprotokoll | undefined,
+  fragen: readonly PruefFrage[] = ALLE_PRUEF_FRAGEN,
+): boolean {
   return (
-    beantworteteFragen(protokoll) === ALLE_PRUEF_FRAGEN.length &&
-    neinBefunde(protokoll).every((b) => b.begruendung !== '')
+    beantworteteFragen(protokoll, fragen) === fragen.length &&
+    neinBefundeVon(protokoll, fragen).every((b) => b.begruendung !== '')
   );
 }
 
-/** Bestanden: vollständig und ohne Nein-Befunde — Voraussetzung für «geprüft». */
-export function pruefungBestanden(protokoll: Pruefprotokoll | undefined): boolean {
-  return protokollVollstaendig(protokoll) && neinBefunde(protokoll).length === 0;
+/**
+ * Bestanden: vollständig und ohne Nein-Befunde — Voraussetzung für
+ * «geprüft» (Fachlektorat) bzw. «freigegeben» (Prüfstelle).
+ */
+export function pruefungBestanden(
+  protokoll: Pruefprotokoll | undefined,
+  fragen: readonly PruefFrage[] = ALLE_PRUEF_FRAGEN,
+): boolean {
+  return (
+    protokollVollstaendig(protokoll, fragen) && neinBefundeVon(protokoll, fragen).length === 0
+  );
 }

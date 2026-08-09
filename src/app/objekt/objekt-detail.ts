@@ -76,9 +76,11 @@ import {
 import {
   ALLE_PRUEF_FRAGEN,
   PRUEF_GRUPPEN,
+  PRUEFSTELLE_FRAGEN,
   antwortVon,
   beantworteteFragen,
   neinBefunde,
+  neinBefundeVon,
   protokollVollstaendig,
   pruefungBestanden,
 } from '../core/pruefprotokoll';
@@ -451,6 +453,21 @@ export class ObjektDetail implements OnDestroy {
       if (this.darfPruefen()) this.pruefungOffen.set(true);
       return;
     }
+    // «Freigegeben» setzt analog das bestandene Prüfstellen-Protokoll
+    // voraus (Entscheid 96)
+    if (
+      status === 'freigegeben' &&
+      !pruefungBestanden(o.pruefprotokollPruefstelle, PRUEFSTELLE_FRAGEN)
+    ) {
+      this.hinweis.zeige(
+        'Prüfstellen-Protokoll erforderlich',
+        'Bevor ein Objekt freigegeben werden kann, muss die Fachliche Prüfstelle ihr ' +
+          'Prüfprotokoll (Checkliste 1) vollständig mit Ja beantworten. Enthält es ' +
+          'Nein-Befunde, geht das Objekt zur Korrektur zurück an die Inventarisierenden.',
+      );
+      if (this.darfPruefstelle()) this.pruefungOffen.set(true);
+      return;
+    }
     const rolle = this.einstellungen.aktiveRolleId();
     this.store.statusWechseln(o.id, status as WorkflowStatus, NAME_FUER_ROLLE[rolle], rolle);
     toast.success(`Status gewechselt: ${STATUS_LABEL[status as WorkflowStatus]}`, {
@@ -494,13 +511,20 @@ export class ObjektDetail implements OnDestroy {
     const rolle = this.einstellungen.aktiveRolleId();
     // Während der Prüfung: die prüfenden Rollen
     if (o.status === 'in_pruefung' && (rolle === 'R-06' || rolle === 'R-07')) return true;
+    // Freigabe-Prüfung der Prüfstelle auf der geprüften Strecke (Entscheid 96)
+    if (o.status === 'geprueft' && rolle === 'R-07') return true;
     // Danach Einsicht für alle, sobald ein Abschluss oder eine
     // Gesamtbemerkung vorliegt — sonst wäre die Gesamtbemerkung nach
     // der Prüfung nirgends mehr lesbar (Review-Befund, Entscheid 93)
-    return !!o.pruefprotokoll?.abschluss || !!o.pruefkommentar.trim();
+    return (
+      !!o.pruefprotokoll?.abschluss ||
+      !!o.pruefkommentar.trim() ||
+      !!o.pruefprotokollPruefstelle?.abschluss ||
+      !!o.pruefkommentarPruefstelle.trim()
+    );
   });
 
-  /** Die Fachliche Prüfstelle sieht einen Platzhalter statt des Formulars. */
+  /** Vorgewähltes Tab im Prüfung-Sheet: die Prüfstelle landet auf ihrem. */
   protected readonly istPruefstelle = computed(
     () => this.einstellungen.aktiveRolleId() === 'R-07',
   );
@@ -516,6 +540,20 @@ export class ObjektDetail implements OnDestroy {
     );
   });
 
+  /**
+   * Ihr Protokoll füllt die Fachliche Prüfstelle auf der geprüften
+   * Strecke aus — der Abschluss gibt frei (Entscheid 96).
+   */
+  protected readonly darfPruefstelle = computed(() => {
+    const o = this.objekt();
+    return (
+      !!o &&
+      o.ebene === 'strecke' &&
+      o.status === 'geprueft' &&
+      this.einstellungen.aktiveRolleId() === 'R-07'
+    );
+  });
+
   protected readonly pruefBeantwortet = computed(() =>
     beantworteteFragen(this.objekt()?.pruefprotokoll),
   );
@@ -525,6 +563,21 @@ export class ObjektDetail implements OnDestroy {
   );
   protected readonly pruefBestanden = computed(() =>
     pruefungBestanden(this.objekt()?.pruefprotokoll),
+  );
+
+  // Prüfstellen-Protokoll (Entscheid 96): neun Fragen der Checkliste 1
+  protected readonly pruefstelleFragen = PRUEFSTELLE_FRAGEN;
+  protected readonly pruefstelleBeantwortet = computed(() =>
+    beantworteteFragen(this.objekt()?.pruefprotokollPruefstelle, PRUEFSTELLE_FRAGEN),
+  );
+  protected readonly pruefstelleBefunde = computed(() =>
+    neinBefundeVon(this.objekt()?.pruefprotokollPruefstelle, PRUEFSTELLE_FRAGEN),
+  );
+  protected readonly pruefstelleVollstaendig = computed(() =>
+    protokollVollstaendig(this.objekt()?.pruefprotokollPruefstelle, PRUEFSTELLE_FRAGEN),
+  );
+  protected readonly pruefstelleBestanden = computed(() =>
+    pruefungBestanden(this.objekt()?.pruefprotokollPruefstelle, PRUEFSTELLE_FRAGEN),
   );
 
   private protokollUpdate(frageId: string, patch: Partial<{ antwort: 'ja' | 'nein'; begruendung: string }>): void {
@@ -549,6 +602,33 @@ export class ObjektDetail implements OnDestroy {
 
   protected pruefBegruendungSetzen(frageId: string, begruendung: string): void {
     this.protokollUpdate(frageId, { begruendung });
+  }
+
+  private pruefstelleUpdate(
+    frageId: string,
+    patch: Partial<{ antwort: 'ja' | 'nein'; begruendung: string }>,
+  ): void {
+    const o = this.objekt();
+    if (!o || !this.darfPruefstelle()) return;
+    const bisher: Pruefprotokoll = o.pruefprotokollPruefstelle ?? { antworten: {}, abschluss: null };
+    this.store.update(o.id, {
+      pruefprotokollPruefstelle: {
+        ...bisher,
+        antworten: {
+          ...bisher.antworten,
+          [frageId]: { ...antwortVon(bisher, frageId), ...patch },
+        },
+      },
+    });
+  }
+
+  protected pruefstelleAntwortSetzen(frageId: string, antwort: unknown): void {
+    if (antwort !== 'ja' && antwort !== 'nein') return;
+    this.pruefstelleUpdate(frageId, { antwort });
+  }
+
+  protected pruefstelleBegruendungSetzen(frageId: string, begruendung: string): void {
+    this.pruefstelleUpdate(frageId, { begruendung });
   }
 
   /** Alle Fragen mit Ja beantwortet: Prüfung abschliessen und Status setzen. */
@@ -597,6 +677,62 @@ export class ObjektDetail implements OnDestroy {
     this.store.update(o.id, {
       pruefprotokoll: {
         antworten: { ...(o.pruefprotokoll?.antworten ?? {}) },
+        abschluss: { datum: jetztLokal().slice(0, 10), autor, rolle, ergebnis: 'korrektur' },
+      },
+    });
+    this.store.statusWechseln(o.id, 'korrektur', autor, rolle);
+    this.pruefungOffen.set(false);
+    toast.success('Zur Korrektur zurückgewiesen', {
+      description: `${o.signatur} — ${befunde.length} Befund${befunde.length === 1 ? '' : 'e'} als Kommentar erfasst.`,
+    });
+  }
+
+  /**
+   * Prüfstellen-Abschluss (Entscheid 96): Alle neun Fragen mit Ja
+   * beantwortet — die Freigabe ist die nächste Stufe.
+   */
+  protected pruefungFreigeben(): void {
+    const o = this.objekt();
+    if (!o || !this.darfPruefstelle() || !this.pruefstelleBestanden()) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const autor = NAME_FUER_ROLLE[rolle];
+    this.store.update(o.id, {
+      pruefprotokollPruefstelle: {
+        antworten: { ...(o.pruefprotokollPruefstelle?.antworten ?? {}) },
+        abschluss: { datum: jetztLokal().slice(0, 10), autor, rolle, ergebnis: 'freigegeben' },
+      },
+    });
+    this.store.statusWechseln(o.id, 'freigegeben', autor, rolle);
+    this.pruefungOffen.set(false);
+    toast.success('Prüfung abgeschlossen', {
+      description: `${o.signatur} — freigegeben.`,
+    });
+  }
+
+  /** Nein-Befunde der Prüfstelle: Kommentare erfassen, zurück zur Korrektur. */
+  protected pruefstelleZurueckweisen(): void {
+    const o = this.objekt();
+    if (!o || !this.darfPruefstelle() || !this.pruefstelleVollstaendig()) return;
+    const befunde = this.pruefstelleBefunde();
+    if (befunde.length === 0) return;
+    const rolle = this.einstellungen.aktiveRolleId();
+    const autor = NAME_FUER_ROLLE[rolle];
+    for (const befund of befunde) {
+      this.kommentarStore.hinzufuegen({
+        objektSignatur: o.signatur,
+        position: null,
+        titel: 'Prüfbefund der Fachlichen Prüfstelle',
+        text: `${befund.frage.text}\n\n${befund.begruendung}`,
+        autor,
+        rolle,
+        zeit: jetztLokal(),
+        erledigt: false,
+        antworten: [],
+      });
+    }
+    this.store.update(o.id, {
+      pruefprotokollPruefstelle: {
+        antworten: { ...(o.pruefprotokollPruefstelle?.antworten ?? {}) },
         abschluss: { datum: jetztLokal().slice(0, 10), autor, rolle, ergebnis: 'korrektur' },
       },
     });

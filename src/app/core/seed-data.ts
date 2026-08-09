@@ -25,7 +25,7 @@ import {
  */
 
 /** Wird der Seed geändert, die Version erhöhen — verwirft gespeicherte Stände. */
-export const SEED_VERSION = 13;
+export const SEED_VERSION = 14;
 
 const STANDARD_ERHALTUNGSZIEL =
   'Erhalten der Wegsubstanz mit allen historischen Bestandteilen (Art. 3 VIVS). ' +
@@ -167,6 +167,7 @@ export function objektAusVorlage(v: Vorlage): IvsObjekt {
     datierungGelaende20: v.datierungGelaende20 ?? null,
     bibliografie: v.bibliografie ?? '',
     pruefkommentar: v.pruefkommentar ?? '',
+    pruefkommentarPruefstelle: '',
     lognotizen: v.lognotizen ?? [],
   };
 }

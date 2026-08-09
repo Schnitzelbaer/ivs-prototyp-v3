@@ -78,8 +78,10 @@ export interface PruefAntwort {
 }
 
 /**
- * Prüfprotokoll des Fachlektorats am Objekt (Fragenkatalog und Regeln in
- * core/pruefprotokoll.ts). `abschluss` vermerkt die letzte Prüfrunde.
+ * Prüfprotokoll am Objekt (Fragenkataloge und Regeln in
+ * core/pruefprotokoll.ts) — dieselbe Struktur trägt das Protokoll des
+ * Fachlektorats (Ergebnis «geprueft») und das der Fachlichen Prüfstelle
+ * (Ergebnis «freigegeben»). `abschluss` vermerkt die letzte Prüfrunde.
  */
 export interface Pruefprotokoll {
   antworten: Record<string, PruefAntwort>;
@@ -87,7 +89,7 @@ export interface Pruefprotokoll {
     datum: string;
     autor: string;
     rolle: RolleId;
-    ergebnis: 'geprueft' | 'korrektur';
+    ergebnis: 'geprueft' | 'freigegeben' | 'korrektur';
   } | null;
 }
 
@@ -156,10 +158,15 @@ export interface IvsObjekt {
   // Anhang
   bibliografie: string;
 
-  // Prüfen / Freigabe
+  // Prüfung (Fachlektorat) und Freigabe (Fachliche Prüfstelle)
+  /** Gesamtbemerkung des Fachlektorats-Protokolls. */
   pruefkommentar: string;
   /** Prüfprotokoll des Fachlektorats — fehlt, solange nie geprüft wurde. */
   pruefprotokoll?: Pruefprotokoll;
+  /** Gesamtbemerkung des Prüfstellen-Protokolls (eigenes Feld). */
+  pruefkommentarPruefstelle: string;
+  /** Prüfprotokoll der Fachlichen Prüfstelle — fehlt bis zur ersten Prüfung. */
+  pruefprotokollPruefstelle?: Pruefprotokoll;
 
   lognotizen: Lognotiz[];
 }

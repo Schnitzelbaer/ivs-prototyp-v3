@@ -45,7 +45,7 @@ import { EinstellungenStore } from '../core/einstellungen-store';
 import { HerkunftStore } from '../core/herkunft-store';
 import { HinweisStore } from '../core/hinweis-store';
 import { KommentarStore, jetztLokal } from '../core/kommentare';
-import { pruefungBestanden } from '../core/pruefprotokoll';
+import { PRUEFSTELLE_FRAGEN, pruefungBestanden } from '../core/pruefprotokoll';
 import {
   IvsObjekt,
   NhgWert,
@@ -541,6 +541,20 @@ export class Dashboard {
         `${objekt.signatur} kann erst als geprüft gekennzeichnet werden, wenn das Fachlektorat ` +
           'das Prüfprotokoll vollständig mit Ja beantwortet hat — öffne das Objekt und ' +
           'schliesse die Prüfung über den Knopf «Prüfung» ab.',
+      );
+      return;
+    }
+    // «Freigegeben» analog: bestandenes Prüfstellen-Protokoll (Entscheid 96)
+    if (
+      status === 'freigegeben' &&
+      !pruefungBestanden(objekt.pruefprotokollPruefstelle, PRUEFSTELLE_FRAGEN)
+    ) {
+      this.selectZuruecksetzen(select, status, objekt.status);
+      this.hinweis.zeige(
+        'Prüfstellen-Protokoll erforderlich',
+        `${objekt.signatur} kann erst freigegeben werden, wenn die Fachliche Prüfstelle ihr ` +
+          'Prüfprotokoll (Checkliste 1) vollständig mit Ja beantwortet hat — öffne das ' +
+          'Objekt und schliesse die Prüfung über den Knopf «Prüfung» ab.',
       );
       return;
     }
