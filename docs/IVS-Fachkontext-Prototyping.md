@@ -17,14 +17,15 @@
 > Komponenten bauen**, ohne vorher zu fragen.
 >
 > **Der schnellste Einstieg** in den heutigen Stand: Abschnitt 9.8
-> (abgestimmte Detailentscheide, aktuell bis Nr. 95), 12.4 (Projektstruktur
+> (abgestimmte Detailentscheide, aktuell bis Nr. 96), 12.4 (Projektstruktur
 > und Persistenz), 12.5 (was gebaut ist), 12.6 (Fallstricke — bitte wirklich
 > lesen, sie sparen Stunden), 12.7 (Deployment) und 14 (nächste Schritte).
 >
-> **Stand:** 09.08.2026, neunte Ausbaustufe (vollständige
-> Selektions-Abblendung, Content-Aufräumung mit Gesamtbemerkung im
-> Prüfprotokoll, «Nicht existent» als Kopfzeilen-Knopf, Kosmetik —
-> Entscheide 92–95). Repository auf `main`. Live unter
+> **Stand:** 09.08.2026, zehnte Ausbaustufe (Prüfstellen-Protokoll mit
+> Checkliste 1 und Freigabe — Entscheid 96; davor die neunte:
+> vollständige Selektions-Abblendung, Content-Aufräumung, «Nicht
+> existent» als Kopfzeilen-Knopf, Kosmetik — Entscheide 92–95).
+> Repository auf `main`. Live unter
 > <https://ivs-prototyp-v3.vercel.app>, Auto-Deploy aus `main` aktiv (12.7).
 >
 > **Ein spartan/ui-Skill liegt im Repo** (`.claude/skills/spartan/`, per
@@ -1135,9 +1136,12 @@ _Prüfprotokoll, Arbeitspakete und Status-Vererbung_
 76. **Prüfungs-Knopf eingeschränkt:** Er erscheint nur im Status
     **«In Prüfung»** und nur für **R-06 und R-07**; die Einsicht für
     andere Rollen entfällt (die Befunde stehen als Kommentare am
-    Objekt). R-07 sieht statt des Formulars einen **Platzhalter** — die
-    Fachliche Prüfstelle erhält ein **eigenes Protokoll**, das später
-    spezifiziert wird.
+    Objekt). ~~R-07 sieht statt des Formulars einen **Platzhalter** —
+    die Fachliche Prüfstelle erhält ein **eigenes Protokoll**, das
+    später spezifiziert wird.~~ **Gebaut mit Entscheid 96** — die
+    Checkliste 1 als eigenes Protokoll; die Sichtbarkeit ist seit den
+    Entscheiden 93/96 breiter (Einsicht nach Abschluss, R-07 auf der
+    geprüften Strecke).
 77. **Arbeitspakete im Dashboard** (03.02/03.03): Für die Paketrollen
     **R-03 und R-04** liegt über den Status-Gruppen der Bereich
     «Arbeitspakete». ~~**R-03** schnürt **Kantonspakete** — der Kanton
@@ -1424,6 +1428,29 @@ Content-Aufräumung (Status, Prüfen/Freigabe, Inexistent) und Kosmetik.
     Strecke»** (Bestätigung «Strecke anlegen» — das fachliche
     Anfordern-Kennzeichen aus Entscheid 90 bleibt).
 
+**Zehnte Ausbaustufe — Prüfstellen-Protokoll (09.08.2026, 4 Rückfragen
+in derselben Session geklärt).**
+
+96. **Eigenes Prüfprotokoll der Fachlichen Prüfstelle** (löst den
+    Platzhalter aus Entscheid 76 ab): R-07 prüft mit den **neun Fragen
+    der Checkliste 1** aus der Arbeitshilfe (Kap. 4.7, flache Liste
+    ohne Gruppen; Kapitel-Verweise als Text) — gleiche Mechanik wie
+    beim Fachlektorat (Ja/Nein, Pflichtbegründung bei Nein,
+    Zurückweisen erzeugt Kommentare «Prüfbefund der Fachlichen
+    Prüfstelle» und den Status «Korrektur»). Ausgefüllt wird auf der
+    **geprüften Strecke**; sind alle neun Fragen mit Ja beantwortet,
+    ist die **Freigabe die nächste Stufe** («Freigeben» wechselt auf
+    «Freigegeben» mit Abschluss-Vermerk). Der Wechsel auf
+    «Freigegeben» ist überall geschützt (Kopfzeilen-Dropdown,
+    Dashboard-Zeile) — analog zum Geprüft-Guard aus Entscheid 75.
+    Das Protokoll hat eine **eigene Gesamtbemerkung**
+    (`pruefkommentarPruefstelle`, getrennt vom Fachlektorat). Das
+    Prüfung-Sheet führt beide Protokolle als **Register mit
+    gegenseitiger Einsicht** (die Rolle landet auf ihrem eigenen);
+    nach dem Abschluss bleibt es für alle Rollen als Einsicht offen
+    (erweitert Entscheid 93). Persistiert als
+    `pruefprotokollPruefstelle` am Objekt, SEED_VERSION 14.
+
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
 
@@ -1513,15 +1540,19 @@ bei Bedarf nachschärfen):
 
 Aus der sechsten Ausbaustufe (05.08.2026) offen geblieben:
 
-- **Protokoll der Fachlichen Prüfstelle:** R-07 hat laut Abstimmung ein
-  **eigenes** Prüfprotokoll; sein Inhalt ist noch nicht spezifiziert
-  (heute Platzhalter, Entscheid 76). Ebenso offen: der
-  Umsetzungsvermerk der Inventarisierenden (4.6).
-- **Fragenkatalog vs. Checkliste 1:** Der gebaute Katalog stammt aus der
-  Review-Vorlage (vier Gruppen, 8 Fragen) und **ersetzt im Prototyp** die
-  neun Fragen der Checkliste 1 aus der Arbeitshilfe (4.7). Ob die
-  Arbeitshilfe nachgeführt wird oder beide Kataloge nebeneinander
-  bestehen, ist nicht geklärt.
+- ~~**Protokoll der Fachlichen Prüfstelle:** R-07 hat laut Abstimmung
+  ein **eigenes** Prüfprotokoll; sein Inhalt ist noch nicht
+  spezifiziert (heute Platzhalter, Entscheid 76).~~ **Entschieden mit
+  Entscheid 96** — die neun Fragen der Checkliste 1, Abschluss gibt
+  frei. Weiterhin offen: der Umsetzungsvermerk der
+  Inventarisierenden (4.6).
+- **Fragenkatalog vs. Checkliste 1:** ~~Der gebaute Katalog stammt aus
+  der Review-Vorlage (vier Gruppen, 8 Fragen) und **ersetzt im
+  Prototyp** die neun Fragen der Checkliste 1 aus der Arbeitshilfe
+  (4.7).~~ **Seit Entscheid 96 bestehen beide nebeneinander**: die
+  Review-Vorlage beim Fachlektorat, die Checkliste 1 bei der
+  Fachlichen Prüfstelle. Ob diese Aufteilung der Absicht der
+  Arbeitshilfe entspricht, ist nicht abschliessend geklärt.
 - ~~**Arbeitspakete ohne Entität:** Eine Zuweisung ist ein einmaliger
   Vorgang (Entscheid 77) — es gibt keine benannten, nachträglich
   änderbaren Pakete und keine Einsatzlisten (03.04). Der Kanton als
@@ -1661,7 +1692,8 @@ src/app/
     herkunft-store.ts  Herkunft des Objekt-Details (Back-Button)
     objekt-filter.ts   gemeinsame Attributfilter von Dashboard und Objekten
                        (Entscheid 84)
-    pruefprotokoll.ts  Fragenkatalog und Regeln des Prüfprotokolls (Entscheid 75)
+    pruefprotokoll.ts  Fragenkataloge (Fachlektorat und Prüfstellen-
+                       Checkliste 1) und Regeln (Entscheide 75/96)
     hinweis-store.ts   zentraler «Warum nicht?»-Hinweis (nie-disabled-Regel)
     version-vergleich.ts  IVS-1.0-Ableitung, kuratierte Alttexte, Wort-Diff
     stammdaten.ts      Auswahllisten DE/FR/IT
@@ -1701,7 +1733,7 @@ Zustand in Signals und spiegeln ihn per `effect` in den localStorage:
 
 | Schlüssel                       | Inhalt                        | Version                           |
 | ------------------------------- | ----------------------------- | --------------------------------- |
-| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 13) |
+| `ivs-prototyp-v3.objekte`       | Objekte samt Lognotizen und Prüfprotokoll | `SEED_VERSION` in `seed-data.ts` (aktuell 14) |
 | `ivs-prototyp-v3.kommentare`    | Kommentare und Antworten      | Konstante in `kommentare.ts`      |
 | `ivs-prototyp-v3.geometrien`    | Arbeitsgeometrien je Signatur | Konstante in `geometrie-store.ts` |
 | `ivs-prototyp-v3.begehungen`    | geplante Begehungen und Anforderungen | Konstante in `begehungen.ts` |
@@ -1739,8 +1771,8 @@ Seed-Strecken sind dort als Tabellen hinterlegt. Das Dufour-Situierungsbild
 
 ### 12.5 Stand der Arbeit
 
-Gebaut ist die **neunte Ausbaustufe des Kern-Workflows** (Stand 09.08.2026;
-die Anpassungen der letzten Sitzungen sind als Entscheide 48–95 in
+Gebaut ist die **zehnte Ausbaustufe des Kern-Workflows** (Stand 09.08.2026;
+die Anpassungen der letzten Sitzungen sind als Entscheide 48–96 in
 9.8 dokumentiert):
 
 - **Shell**: Das IVS-Logo führt zum Dashboard; «Perspektive wechseln» liegt
@@ -1789,8 +1821,10 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–95 in
   Dashboards (Entscheid 81); **«Nicht existent» als Kopfzeilen-Knopf**
   (07.16, Pflichtbegründung, Entscheid 94);
   **Prüfprotokoll** als Seitenleiste hinter dem Knopf «Prüfung»
-  (Entscheide 75/76), mit dem Prüfkommentar als **Gesamtbemerkung**
-  (Entscheid 93); **Back-Button** zur gemerkten Herkunftsseite
+  (Entscheide 75/76) mit **zwei Registern** — Fachlektorat (vier
+  Gruppen, Gesamtbemerkung, Entscheid 93) und Fachliche Prüfstelle
+  (Checkliste 1 mit eigener Gesamtbemerkung, Abschluss gibt frei —
+  Entscheid 96) — mit gegenseitiger Einsicht; **Back-Button** zur gemerkten Herkunftsseite
   (Entscheid 62); **Versionsvergleich** im Historie-Menü — nur noch
   als Icon (Entscheide 66/95);
   Begehungen im **Fussstapfen-Menü der Kopfzeile** (anfordern/planen)
@@ -1917,8 +1951,9 @@ bewusst niemandes Perspektive — ihre Objekte zeigen, dass das Dashboard
 persönlich filtert. Generierte Objekte sind «System» (R-08) zugewiesen.
 
 Noch nicht gebaut: Nebenblöcke (Accounts, Reports; Arbeitspakete-Rest
-wie Einsatzlisten 03.04), Umsetzungsvermerk der Inventarisierenden und
-das eigene Protokoll der Fachlichen Prüfstelle im Prüfprotokoll.
+wie Einsatzlisten 03.04) und der Umsetzungsvermerk der
+Inventarisierenden (das Protokoll der Fachlichen Prüfstelle ist mit
+Entscheid 96 gebaut).
 
 ### 12.6 Fallstricke aus der bisherigen Arbeit
 
@@ -2222,14 +2257,13 @@ Abschnitt 12.6.
 
 ## 14. Nächste Schritte
 
-Stand nach der neunten Ausbaustufe (09.08.2026, Entscheide 92–95);
+Stand nach der zehnten Ausbaustufe (09.08.2026, Entscheide 92–96);
 Reihenfolge als Vorschlag.
 
-1. **Prüfprotokoll ausbauen (Abschnitt 4.6).** Der Fragenteil ist gebaut
-   (Entscheid 75, Katalog der Review-Vorlage statt Checkliste 1). Offen
-   bleiben: das **eigene Protokoll der Fachlichen Prüfstelle** (R-07
-   sieht heute einen Platzhalter, Entscheid 76 — Inhalt wird noch
-   spezifiziert), der **Umsetzungsvermerk der Inventarisierenden**
+1. **Prüfprotokoll ausbauen (Abschnitt 4.6).** Beide Fragenteile sind
+   gebaut (Entscheid 75: Review-Vorlage beim Fachlektorat; Entscheid 96:
+   Checkliste 1 bei der Fachlichen Prüfstelle). Offen bleiben: der
+   **Umsetzungsvermerk der Inventarisierenden**
    (welche Befunde umgesetzt, Abweichungen begründet), freie Befunde für
    Kartenkorrekturen und das Verhältnis zum «Prüfregister QS»
    (Abschnitt 10).

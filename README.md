@@ -112,9 +112,9 @@ Themengruppe.
 
 ## Stand
 
-Der Kern-Workflow steht in neunter Ausbaustufe (09.08.2026; zuletzt
-umgesetzt: vollständige Selektions-Abblendung, Content-Aufräumung und
-«Nicht existent» als Kopfzeilen-Knopf). Der vollständige Projektstand — abgestimmte
+Der Kern-Workflow steht in zehnter Ausbaustufe (09.08.2026; zuletzt
+umgesetzt: eigenes Prüfprotokoll der Fachlichen Prüfstelle mit der
+Checkliste 1 — der Abschluss gibt frei). Der vollständige Projektstand — abgestimmte
 Entscheide, Architektur, Fallstricke und nächste Schritte — liegt in
 [docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md),
 Abschnitte 9.8, 12.4–12.6 und 14. Dieses Dokument allein genügt, um in einer
@@ -181,12 +181,16 @@ neuen Session weiterzuarbeiten.
   separat regelbar), Begehungen im Fussstapfen-Menü der Kopfzeile
   (anfordern, für R-03 planen) und im Formular-Abschnitt «Begehung»,
   Bearbeitungslog-Sheet, **Prüfprotokoll** als Seitenleiste (Knopf
-  «Prüfung», nur im Status «In Prüfung» für R-06/R-07: Ja/Nein-Fragen
-  in vier Gruppen, Nein mit Pflichtbegründung, Gesamtbemerkung als
-  Freitext; Befunde werden beim Zurückweisen zu Kommentaren und das
-  Objekt geht in «Korrektur», ohne bestandenes Protokoll ist «Geprüft»
-  gesperrt; R-07 sieht einen Platzhalter für ihr später spezifiziertes
-  eigenes Protokoll).
+  «Prüfung») mit zwei Registern und gegenseitiger Einsicht: das
+  Fachlektorat prüft im Status «In Prüfung» (Ja/Nein-Fragen in vier
+  Gruppen, Nein mit Pflichtbegründung, Gesamtbemerkung als Freitext;
+  Befunde werden beim Zurückweisen zu Kommentaren und das Objekt geht
+  in «Korrektur», ohne bestandenes Protokoll ist «Geprüft» gesperrt),
+  die Fachliche Prüfstelle prüft die geprüfte Strecke mit den neun
+  Fragen der Checkliste 1 samt eigener Gesamtbemerkung — sind alle mit
+  Ja beantwortet, gibt «Freigeben» die Strecke frei, ohne bestandenes
+  Prüfstellen-Protokoll ist «Freigegeben» gesperrt; nach dem Abschluss
+  bleibt das Protokoll für alle Rollen einsehbar.
 - **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS und den
   `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Quelldaten — die
   bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden
