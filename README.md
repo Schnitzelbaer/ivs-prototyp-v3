@@ -112,8 +112,9 @@ Themengruppe.
 
 ## Stand
 
-Der Kern-Workflow steht in fünfter Ausbaustufe (02.08.2026, Review-Pakete
-«Changes IVS» und «Neue ToDos» umgesetzt). Der vollständige Projektstand — abgestimmte
+Der Kern-Workflow steht in neunter Ausbaustufe (09.08.2026; zuletzt
+umgesetzt: vollständige Selektions-Abblendung, Content-Aufräumung und
+«Nicht existent» als Kopfzeilen-Knopf). Der vollständige Projektstand — abgestimmte
 Entscheide, Architektur, Fallstricke und nächste Schritte — liegt in
 [docs/IVS-Fachkontext-Prototyping.md](docs/IVS-Fachkontext-Prototyping.md),
 Abschnitte 9.8, 12.4–12.6 und 14. Dieses Dokument allein genügt, um in einer
@@ -165,30 +166,35 @@ neuen Session weiterzuarbeiten.
 - **Objektbearbeitung** (`/objekt/:id`): View-/Edit-Modus mit automatischem
   Speichern, Formular gemäss Skizze (Eckdaten mit Dufour-Situierungsausschnitt
   via swisstopo-WMS, NHG-Bewertung mit Punkteskalen, Empfehlungen, Geschichte
-  & Gelände, Anhang, Prüfen/Freigabe, Inexistent mit Pflichtbegründung,
-  Lognotizen), **Hierarchie-Menü** mit Legenden-Symbolen, Typ-Tags und
+  & Gelände, Anhang, Begehung, Lognotizen — Workflow-Status, Prüfen/Freigabe
+  und Inexistent leben in der Kopfzeile bzw. im Prüfprotokoll, nicht im
+  Formular), **Hierarchie-Menü** mit Legenden-Symbolen, Typ-Tags und
   Umteilen je Child-Zeile («…»-Kontextmenü, öffnet nur per Klick),
   **Status-Dropdown** (zeigt den aktuellen Status, setzbare Stati zur
   freien Wahl), **zugewiesene Person read-only** (der Wechsel geschieht
   in der Zuständig-Spalte des Dashboards durch R-03/R-04),
+  **«Nicht existent»-Knopf** mit Warnhinweis samt Pflichtbegründung
+  (im gekennzeichneten Zustand rot, Klick hebt die Kennzeichnung auf),
   **Back-Button** zur gemerkten Herkunftsseite, **Versionsvergleich**
-  IVS 1.0 → 2.0 im Historie-Menü (Wort-Diff mit Änderungsmarkierungen plus
-  Vergleichskarte, Deckkraft beider Stände separat regelbar),
-  Begehungen im Kalender-Menü der Kopfzeile (anfordern, für R-03
-  planen) und im Formular-Abschnitt «Begehung»,
+  IVS 1.0 → 2.0 im Historie-Menü — nur als Icon — (Wort-Diff mit
+  Änderungsmarkierungen plus Vergleichskarte, Deckkraft beider Stände
+  separat regelbar), Begehungen im Fussstapfen-Menü der Kopfzeile
+  (anfordern, für R-03 planen) und im Formular-Abschnitt «Begehung»,
   Bearbeitungslog-Sheet, **Prüfprotokoll** als Seitenleiste (Knopf
   «Prüfung», nur im Status «In Prüfung» für R-06/R-07: Ja/Nein-Fragen
-  in vier Gruppen, Nein mit Pflichtbegründung; Befunde werden beim
-  Zurückweisen zu Kommentaren und das Objekt geht in «Korrektur», ohne
-  bestandenes Protokoll ist «Geprüft» gesperrt; R-07 sieht einen
-  Platzhalter für ihr später spezifiziertes eigenes Protokoll).
+  in vier Gruppen, Nein mit Pflichtbegründung, Gesamtbemerkung als
+  Freitext; Befunde werden beim Zurückweisen zu Kommentaren und das
+  Objekt geht in «Korrektur», ohne bestandenes Protokoll ist «Geprüft»
+  gesperrt; R-07 sieht einen Platzhalter für ihr später spezifiziertes
+  eigenes Protokoll).
 - **Karte** (`src/app/karte/`): ArcGIS-Komponente mit swisstopo-WMTS und den
   `ivs-map`-Layern. Die Mock-Objekte haben keine eigenen Quelldaten — die
   bestehenden Layer (Routen, Teilsegmente, Punktobjekte) werden beim Laden
   mit den Objekt-Attributen angereichert (`karten-layer.ts`); die
   Teilsegmente sind nach Abschnitt-Typ symbolisiert, die Kunstbauten haben
   einen generierten Teilstück-Layer. Selektion mit SDK-Highlight, Abblendung
-  und Zoom; Hover zeigt einen MapTip mit der Hierarchie und den
+  aller Bestandteile (auch Wegoberflächen, Böschung, Grenzen, Brücken und
+  bearbeitete Arbeitsgeometrien) und Zoom; Hover zeigt einen MapTip mit der Hierarchie und den
   Legenden-Symbolen, Klick öffnet das Objekt direkt — nur bei mehreren echt
   verschiedenen Objekten erscheint ein Kontextmenü. Das
   **Kartenbild-Panel** steuert Hintergründe additiv (Auge plus Deckkraft je

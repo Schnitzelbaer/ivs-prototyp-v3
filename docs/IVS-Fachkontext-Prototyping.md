@@ -1188,10 +1188,12 @@ Arbeitspakete und echte Filter.
     Demo-Beispiel bewusst publiziert**. Statusfarbe: neutrales Grau
     (`--status-offen`). SEED_VERSION 11.
 80. **Status-Dropdown nur in der Kopfzeile:** Das Feld «Workflow-Status»
-    in den Eckdaten des Objekt-Formulars ist entfernt; im Edit-Modus
+    in den Eckdaten des Objekt-Formulars ist entfernt; ~~im Edit-Modus
     steht dort nur noch die Read-only-Anzeige (der Anker `attr-status`
-    für `#`-Referenzen bleibt). Der Wechsel läuft ausschliesslich über
-    das Dropdown in der Kopfzeile (bzw. die Dashboard-Zeile).
+    für `#`-Referenzen bleibt)~~ **mit Entscheid 93 vollständig aus dem
+    Content entfernt** — auch Read-only-Anzeige und Anker sind weg. Der
+    Wechsel läuft ausschliesslich über das Dropdown in der Kopfzeile
+    (bzw. die Dashboard-Zeile).
 81. **Zuständigkeit über das Dashboard:** Die zugewiesene Person steht
     als Spalte «Zuständig» in der Dashboard-Tabelle. **Nur R-03 und
     R-04** wechseln sie (Zeilen-Dropdown mit allen Personen); alle
@@ -1322,7 +1324,8 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     stehen im neuen Formular-Abschnitt **«Begehung»**; der Dialog
     wohnt neu unter `begehungen/`. Begehungs-Seed-Version 2.
 90. **Strecke anfordern und erstellen:** Über den Dashboard-Knopf
-    **«Strecke anfordern»** legen **R-03 und R-06** eine noch nicht
+    **«Strecke anfordern»** (seit Entscheid 95 beschriftet mit
+    **«Neue Strecke»**) legen **R-03 und R-06** eine noch nicht
     vorhandene Strecke an (anderen Rollen erklärt der Klick die
     Sperre): Kanton-Wahl mit **automatischer Signatur** (nächste freie
     Nummer, im Dialog anpassbar), Arbeitstitel und Begründung als
@@ -1364,6 +1367,49 @@ Strecken-Anforderung und Geometrie-Werkzeuge.
     an (`kindErstellen`: automatische Signatur, Status/Zuständigkeit
     vom Parent) und wechselt dorthin — die Zeichnung gehört damit dem
     neuen Objekt.
+
+**Neunte Ausbaustufe — Review-Paket vom 09.08.2026 (7 Rückfragen in
+derselben Session geklärt).** Vollständige Selektions-Abblendung,
+Content-Aufräumung (Status, Prüfen/Freigabe, Inexistent) und Kosmetik.
+
+92. **Selektion blendet alle Kartenbestandteile ab** (Review-Befund:
+    einzelne Geometrie-Bestandteile blieben hell): Zusätzlich zu den
+    fünf Objekt-Layern blenden **Wegoberflächen, Böschungsschraffuren
+    und Segment-/Routengrenzen** über ihre Routen-Zuordnung ab
+    (`route_nr` — die Bestandteile der selektierten Strecke bleiben
+    hell), die **Brücken-Detektion pauschal** (sie trägt keine
+    Referenz) und die **bearbeiteten Arbeitsgeometrien fremder
+    Objekte** über die Symbol-Deckkraft (GraphicsLayer kennt kein
+    featureEffect).
+93. **Workflow-Status und Prüfen/Freigabe aus dem Content:** Das
+    Formular zeigt den Status gar nicht mehr (hebt die
+    Read-only-Anzeige aus Entscheid 80 auf — die Kopfzeile genügt).
+    Der Abschnitt **«Prüfen / Freigabe» ist aufgelöst**: Der
+    Prüfkommentar zieht als **«Gesamtbemerkung» ins
+    Prüfprotokoll-Sheet** (ausfüllbar, wo auch die Fragen beantwortet
+    werden — R-06 im Status «In Prüfung»; entscheidet den offenen
+    Punkt aus Abschnitt 10), der Knopf «Als geprüft kennzeichnen»
+    entfällt — der Weg führt über das Status-Dropdown mit
+    Protokoll-Guard. Beide `#`-Referenzen (Workflow-Status,
+    Prüfkommentar) sind aus der Attribut-Registry genommen, ihre
+    Scroll-Anker liefen ins Leere.
+94. **«Nicht existent» als eigener Kopfzeilen-Knopf** (statt
+    Formular-Abschnitt; bewusst **kein Workflow-Status** — die
+    Kennzeichnung bleibt **pro Objekt** setzbar, auch auf einzelnen
+    Linienführungen und Abschnitten, während der Status auf
+    Strecken-Ebene vererbt wird): Der Knopf in der Kopfzeile der
+    Objektbearbeitung öffnet den bisherigen Warnhinweis mit
+    **Pflichtbegründung** (Lognotiz wie gehabt, Rollen wie gehabt);
+    im gekennzeichneten Zustand färbt er sich rot, der Tooltip zeigt
+    Datum und Begründung, ein Klick führt das Objekt wieder als
+    existent. Sichtbare Texte sprechen von **«nicht existent»**
+    (Badge, Dialog); Modellfeld und Filter «Inexistenz» bleiben.
+95. **Kosmetik:** Der Begehungs-Knopf der Objektbearbeitung trägt das
+    **Fussstapfen-Icon** wie der Begehungen-Tab der Seitenleiste; das
+    **Historie-Menü** kommt ohne Beschriftung aus (nur Icon mit
+    Tooltip); der Dashboard-Knopf samt Dialog heisst **«Neue
+    Strecke»** (Bestätigung «Strecke anlegen» — das fachliche
+    Anfordern-Kennzeichen aus Entscheid 90 bleibt).
 
 **Bewusst nicht umgesetzt** (aus dem spartan-Review; nicht erneut
 vorschlagen, ohne den Entscheid anzusprechen):
@@ -1477,13 +1523,15 @@ Aus der sechsten Ausbaustufe (05.08.2026) offen geblieben:
   fachlich auf R-03/R-04 zu beschränken wäre, ist nicht abschliessend
   geklärt.~~ **Geklärt mit Entscheid 81:** Zuweisen dürfen nur R-03 und
   R-04, und zwar über die Zuständig-Spalte im Dashboard.
-- **Prüfkommentar neben dem Prüfprotokoll:** Der Abschnitt
+- ~~**Prüfkommentar neben dem Prüfprotokoll:** Der Abschnitt
   «Prüfen / Freigabe» im Formular führt weiterhin das Freitextfeld
   `pruefkommentar` (fachliche Zusammenfassung der Prüfung, seit der
   ersten Ausbaustufe). Das strukturierte Protokoll (Entscheid 75) liegt
   daneben in der Seitenleiste. Ob das Feld bleibt, im Protokoll aufgeht
   oder zu dessen Gesamtbemerkung wird, ist offen — **nicht
-  eigenmächtig zusammenlegen**.
+  eigenmächtig zusammenlegen**.~~ **Entschieden mit Entscheid 93** —
+  das Feld ist die Gesamtbemerkung des Prüfprotokolls, der
+  Formular-Abschnitt ist aufgelöst.
 - ~~**Region-Filter ist eine Attrappe:** Das Select «Region» in der
   Dashboard-Filterleiste (einziger Wert «Bern-Mittelland») wird bewusst
   **nicht ausgewertet** — die Testdaten kennen nur eine Region.
@@ -1699,7 +1747,7 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–91 in
   Person» und nur für R-03 «Arbeitspaket» (Entscheide 84/85) —,
   **Multi-Edit** über Zeilen- und Gruppen-Checkboxen (Person oder ein
   beliebiges Attribut über die Auswahl setzen, Entscheid 87),
-  **«Strecke anfordern»** für R-03/R-06 (Entscheid 90), Zeilen-Dropdown mit
+  **«Neue Strecke»** für R-03/R-06 (Entscheide 90/95), Zeilen-Dropdown mit
   direktem Wechsel unter den **setzbaren Stati** (Entscheid 69),
   **Zuständig-Spalte** mit Personen-Dropdown für R-03/R-04
   (Entscheid 81), Polygon-Selektion als geographischer Filter (05.03).
@@ -1715,21 +1763,25 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–91 in
   und Rechteprüfung je Rolle × Status; Formular mit Eckdaten (inkl.
   Dufour-Situierungsausschnitt via swisstopo-WMS), NHG-Bewertung (drei
   Punkteskalen 0–4, Ø angezeigt), Empfehlungen, Geschichte & Gelände
-  (3000-Zeichen-Limite), Anhang, Prüfen/Freigabe, Inexistent (07.16, mit
-  Pflichtbegründung), Lognotizen; **Hierarchie-Menü** (Entscheid 54) mit
+  (3000-Zeichen-Limite), Anhang, Begehung und Lognotizen — Status,
+  Prüfen/Freigabe und Inexistent leben nicht mehr im Content
+  (Entscheide 93/94); **Hierarchie-Menü** (Entscheid 54) mit
   Legenden-Symbolen, Typ-Tags und Umteilen je Child-Zeile (Kontextmenü
   nur per Klick, Entscheide 63/74); **Status-Dropdown**, das den
   aktuellen Status zeigt und die setzbaren zur Wahl stellt (Entscheide
   59/69/72) — Statuswechsel nur auf Strecken, Nachkommen erben ihn
-  (Entscheid 78), das Eckdaten-Formular zeigt den Status nur noch
-  read-only (Entscheid 80); die **zugewiesene Person read-only** in der
+  (Entscheid 78), im Content erscheint der Status gar nicht mehr
+  (Entscheide 80/93); die **zugewiesene Person read-only** in der
   Kopfzeile — der Wechsel geschieht in der Zuständig-Spalte des
-  Dashboards (Entscheid 81);
+  Dashboards (Entscheid 81); **«Nicht existent» als Kopfzeilen-Knopf**
+  (07.16, Pflichtbegründung, Entscheid 94);
   **Prüfprotokoll** als Seitenleiste hinter dem Knopf «Prüfung»
-  (Entscheide 75/76); **Back-Button** zur gemerkten Herkunftsseite
-  (Entscheid 62); **Versionsvergleich** im Historie-Menü (Entscheid 66);
-  Begehungen im **Kalender-Menü der Kopfzeile** (anfordern/planen) und
-  im Formular-Abschnitt «Begehung» (Entscheid 89, löst den
+  (Entscheide 75/76), mit dem Prüfkommentar als **Gesamtbemerkung**
+  (Entscheid 93); **Back-Button** zur gemerkten Herkunftsseite
+  (Entscheid 62); **Versionsvergleich** im Historie-Menü — nur noch
+  als Icon (Entscheide 66/95);
+  Begehungen im **Fussstapfen-Menü der Kopfzeile** (anfordern/planen)
+  und im Formular-Abschnitt «Begehung» (Entscheide 89/95, löst den
   360°-Bereich aus Entscheid 65 ab);
   Bearbeitungslog als Sheet; Löschen immer aktiv mit Warn- bzw.
   Erklär-Modal (07.05, nie-disabled-Regel, Entscheid 52).
@@ -1738,6 +1790,8 @@ die Anpassungen der letzten Sitzungen sind als Entscheide 48–91 in
   Laden, Entscheid 40); die **Symbolik folgt der einheitlichen Legende**
   (Entscheid 49: Abschnitte blau nach Typ, Strecken/LF orange, Kunstbauten
   als eigener generierter Layer). Selektion mit SDK-Highlight, Abblendung
+  **aller** Bestandteile (auch Wegoberflächen, Böschung, Grenzen, Brücken
+  und bearbeitete Arbeitsgeometrien, Entscheid 92)
   und Zoom; Hover-MapTip mit Hierarchie und Legenden-Symbolen; Klick öffnet
   direkt, Kontextmenü nur bei mehreren echt verschiedenen Objekten
   (Entscheid 41). Treffer werden über einen **Umkreis** gesucht (8 px Maus,
