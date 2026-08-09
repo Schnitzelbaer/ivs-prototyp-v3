@@ -107,18 +107,18 @@
           <ng-icon name="lucideDownload" />
         </button>
 
-        <!-- Historie -->
+        <!-- Historie: nur das Icon — das Menü erklärt sich im Tooltip -->
         <button
           hlmBtn
           variant="outline"
-          size="sm"
+          size="icon"
           type="button"
           [hlmDropdownMenuTrigger]="historieMenu"
           align="end"
+          hlmTooltip="Historie: Versionsvergleich und Bearbeitungslog"
+          aria-label="Historie"
         >
           <ng-icon name="lucideHistory" />
-          Historie
-          <ng-icon name="lucideChevronDown" />
         </button>
         <ng-template #historieMenu>
           <hlm-dropdown-menu class="w-64">
@@ -188,7 +188,7 @@
           hlmTooltip="Begehung anfordern oder planen"
           aria-label="Begehung anfordern oder planen"
         >
-          <ng-icon name="lucideCalendarPlus" />
+          <ng-icon name="lucideFootprints" />
         </button>
         <ng-template #begehungMenu>
           <hlm-dropdown-menu class="w-64">

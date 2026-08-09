@@ -7,7 +7,7 @@
            R-05 erstellt — andere Rollen erklärt der Klick -->
       <button hlmBtn variant="outline" size="sm" type="button" (click)="streckeAnfordernKlick()">
         <ng-icon name="lucideMapPinPlus" />
-        Strecke anfordern
+        Neue Strecke
       </button>
       <button
         hlmBtn
@@ -614,10 +614,10 @@
 >
   <hlm-dialog-content *hlmDialogPortal>
     <hlm-dialog-header>
-      <h3 hlmDialogTitle>Strecke anfordern</h3>
+      <h3 hlmDialogTitle>Neue Strecke</h3>
       <p hlmDialogDescription>
-        Legt eine noch nicht vorhandene Strecke im Status «Offen» an — die Inventarisierenden
-        erstellen anschliessend Geometrie und Beschrieb.
+        Fordert eine noch nicht vorhandene Strecke an und legt sie im Status «Offen» an — die
+        Inventarisierenden erstellen anschliessend Geometrie und Beschrieb.
       </p>
     </hlm-dialog-header>
     <div class="grid gap-3 py-2">
@@ -692,7 +692,7 @@
         [disabled]="!anfordernTitel().trim() || !anfordernBegruendung().trim()"
         (click)="streckeAnfordernSpeichern()"
       >
-        Strecke anfordern
+        Strecke anlegen
       </button>
     </hlm-dialog-footer>
   </hlm-dialog-content>
